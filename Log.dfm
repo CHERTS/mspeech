@@ -10,11 +10,13 @@ object LogForm: TLogForm
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnKeyDown = FormKeyDown
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
@@ -88,7 +90,7 @@ object LogForm: TLogForm
       AsyncDrawing = True
       Animate = True
       Center = True
-      FrameIndex = 5
+      FrameIndex = 6
       Image.Data = {
         9802000047494638396110001000A20000FFFFFF000000C2C2C2424242000000
         62626282828292929221FF0B4E45545343415045322E30030100000021FE1A43

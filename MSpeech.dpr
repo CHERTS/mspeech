@@ -19,7 +19,7 @@ uses
   Global in 'Global.pas',
   Settings in 'Settings.pas' {SettingsForm},
   Log in 'Log.pas' {LogForm},
-  Recognizer in 'Recognizer.pas';
+  ASR in 'ASR.pas';
 
 {$R *.res}
 

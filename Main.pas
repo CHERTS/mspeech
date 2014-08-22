@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -17,11 +17,11 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, NewACIndicators, ACS_FLAC, ACS_DXAudio,
-  HTTPSend, SSL_OpenSSL, ShellApi, Global, Settings, Log, ACS_Misc, ACS_Filters, ACS_Wave,
+  ShellApi, Global, Settings, Log, ACS_Misc, ACS_Filters, ACS_Wave,
   CoolTrayIcon, ImgList, Menus, JvAppStorage, JvAppIniStorage, JvComponentBase,
   JvFormPlacement, Grids, JvAppHotKey, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
-  XMLIntf, XMLDoc, JvExControls, ActiveX, SpeechLib_TLB, JclStringConversions,
-  AudioDMO, ACS_Procs, synautil, ACS_WinMedia, ACS_smpeg, SHFolder, StrUtils, Recognizer;
+  XMLIntf, XMLDoc, JvExControls, ActiveX, SpeechLib_TLB,
+  AudioDMO, ACS_Procs, ACS_WinMedia, ACS_smpeg, SHFolder, StrUtils, ASR;
 
 type
   TMainForm = class(TForm)
@@ -74,6 +74,7 @@ type
     procedure SyncFilterOff;
     procedure VoiceFilterOn;
     procedure VoiceFilterOff;
+    procedure DXAudioOutDone(Sender: TComponent);
   private
     { Private declarations }
     SessionEnding: Boolean;
@@ -96,12 +97,10 @@ type
     gpIVTxt: TSpVoice;
     Voices: ISpeechObjectTokens;
     TextToSpeechSGrid: TStringGrid;
+    FLockedCount: Integer;
     // Фильтры
     VoiceFilter: TVoiceFilter;
     SincFilter: TSincFilter;
-    function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64; overload;
-    function HTTPGetSize(URL: String): int64; overload;
-    function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
     procedure RegisterHotKeys;
     procedure UnRegisterHotKeys;
     procedure ShowBalloonHint(BalloonTitle, BalloonMsg : WideString); overload;
@@ -118,15 +117,32 @@ type
     procedure SAPIDeactivate;
     procedure TextToSpeech(EType: TEventsType); overload;
     procedure TextToSpeech(SayText: String); overload;
+    function OtherTTS(const Text, MP3FileName: String): Boolean;
     procedure Filters;
     procedure RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
     procedure RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
+    procedure WndProc(var Message: TMessage); override;
   end;
 
 var
   MainForm: TMainForm;
 
+// WTSRegisterSessionNotification
+// http://msdn.microsoft.com/en-us/library/aa383828%28VS.85%29.aspx
+// http://msdn.microsoft.com/en-us/library/aa383841%28VS.85%29.aspx
+function WTSRegisterSessionNotification(hWnd: HWND; dwFlags: DWORD): BOOL; stdcall;
+function WTSUnRegisterSessionNotification(hWND: HWND): BOOL; stdcall;
+
+const
+  // WTSRegisterSessionNotification
+  NOTIFY_FOR_ALL_SESSIONS  = 1;
+  NOTIFY_FOR_THIS_SESSIONS = 0;
+
 implementation
+
+// WTSRegisterSessionNotification
+function WTSRegisterSessionNotification; external 'wtsapi32.dll' Name 'WTSRegisterSessionNotification';
+function WTSUnRegisterSessionNotification; external 'wtsapi32.dll' Name 'WTSUnRegisterSessionNotification';
 
 {$R *.dfm}
 
@@ -288,6 +304,9 @@ begin
     StartNULLRecord;
   // Язык распознавания
   CurrentSpeechRecognizeLang := DefaultSpeechRecognizeLang;
+  // Кол. блокировок ПК
+  FLockedCount := 0;
+  WTSRegisterSessionNotification(Handle, NOTIFY_FOR_ALL_SESSIONS);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -303,6 +322,7 @@ begin
   TextToSpeechSGrid.Free;
   // Закрываем логи
   CloseLogFile;
+  WTSUnRegisterSessionNotification(Handle);
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -333,6 +353,42 @@ begin
   AlphaBlendValue := AlphaBlendEnableValue;
 end;
 
+procedure TMainForm.WndProc(var Message: TMessage);
+begin
+  case Message.Msg of
+    WM_WTSSESSION_CHANGE:
+      begin
+        if Message.wParam = WTS_SESSION_LOCK then // ПК заблокирован
+        begin
+          Inc(FLockedCount);
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          if StopRecognitionAfterLockingComputer then
+          begin
+            if MaxLevelOnAutoControl then
+              MaxLevelOnAutoControl := False;
+            if EnableLogs then WriteInLog(WorkPath, Format('%s: Останавливаем запись и распознавание.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+            StopButton.Click;
+            StopNULLRecord;
+          end;
+        end;
+        if Message.wParam = WTS_SESSION_UNLOCK then // ПК разблокирован
+        begin
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован %d раз.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
+          if StartRecognitionAfterUnlockingComputer then
+          begin
+            if EnableLogs then WriteInLog(WorkPath, Format('%s: Запускаем запись.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+            MaxLevelOnAutoControl := ReadCustomINI(WorkPath, 'Main', 'MaxLevelOnAutoControl', False);
+            if MaxLevelOnAutoControl then
+              StartNULLRecord
+            else
+              StartButton.Click;
+          end;
+        end;
+      end;
+  end;
+  inherited;
+end;
+
 procedure TMainForm.SettingsButtonClick(Sender: TObject);
 begin
   if not SettingsForm.Visible then
@@ -349,9 +405,9 @@ end;
 
 procedure TMainForm.MSpeechSettingsClick(Sender: TObject);
 begin
-  MSpeechTray.ShowMainForm;
-  MSpeechMainFormHidden := False;
-  MSpeechPopupMenu.Items[0].Caption := GetLangStr('MSpeechPopupMenuHide');
+  //MSpeechTray.ShowMainForm;
+  //MSpeechMainFormHidden := False;
+  //MSpeechPopupMenu.Items[0].Caption := GetLangStr('MSpeechPopupMenuHide');
   SettingsButtonClick(SettingsButton);
 end;
 
@@ -503,6 +559,7 @@ begin
   try
     VoiceFilter := TVoiceFilter.Create(nil);
     VoiceFilter.Input := DXAudioIn;
+    VoiceFilter.OutSampleRate := 22050;
     VoiceFilter.EnableAGC := VoiceFilterEnableAGC;
     VoiceFilter.EnableNoiseReduction := VoiceFilterEnableNoiseReduction;
     VoiceFilter.EnableVAD := VoiceFilterEnableVAD;
@@ -552,6 +609,7 @@ begin
   StartButton.Enabled := True;
   StopButton.Enabled := False;
   StopRecord := True;
+  StopNULLRecord;
   FLACOut.Stop;
   if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Получен запрос на остановку записи.');
 end;
@@ -631,6 +689,7 @@ begin
   end;
 end;
 
+{ Обработка ошибок распознавания }
 procedure TMainForm.RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
 var
   ErrStr: String;
@@ -644,10 +703,20 @@ begin
     else ErrStr := 'Ошибка: ' + EStr;
   end;
   if EnableLogs then WriteInLog(WorkPath, Format('%s: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), ErrStr]));
+  // Неизвестная ошибка в потоке распознавания
   if E = reErrorGoogleResponse then
   begin
     MSpeechTray.IconIndex := 5;
     ShowBalloonHint(ProgramsName, GetLangStr('MsgErr3'),  bitError);
+    StopNULLRecord;
+    if MaxLevelOnAutoControl then
+      StartNULLRecord;
+  end;
+  // Ошибка передачи данных в Google
+  if (E = reErrorConnectionTimedOut) or (E = reErrorHostNotFound) then
+  begin
+    MSpeechTray.IconIndex := 5;
+    ShowBalloonHint(ProgramsName, Format(GetLangStr('MsgErr12'), [EStr]),  bitError);
     StopNULLRecord;
     if MaxLevelOnAutoControl then
       StartNULLRecord;
@@ -660,11 +729,13 @@ begin
   MSpeechTray.IconIndex := 0;
 end;
 
+{ Обработка результатов распознавания }
 procedure TMainForm.RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
 var
   RecognizeStr: String;
   K: Integer;
   RowN: Integer;
+  Grid: TArrayOfInteger;
 begin
   if EnableLogs then
   begin
@@ -757,59 +828,63 @@ begin
     // Выполнение команд
     if EnableExecCommand then
     begin
-      K := CommandSGrid.Cols[0].IndexOf(RecognizeStr);
-      if K <> -1 then // Команда найдена в списке
+      Grid := HackTStringsIndexOf(CommandSGrid.Cols[0], RecognizeStr); // Поиск команд
+      if Length(Grid) > 0 then // Команда найдена в списке
       begin
-        if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mExecPrograms then
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: В CommandSGrid найдено %d команд.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+        for K := Low(Grid) to High(Grid) do // Перебор найденных команд
         begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,K]);
-          //Beep;
-          if (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.bat') then
-            ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_HIDE)
+          if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mExecPrograms then
+          begin
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+            //Beep;
+            if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
+              ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_HIDE)
+            else
+              ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_SHOWNORMAL);
+          end
+          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mClosePrograms then
+          begin
+            if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
+            begin
+              EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])), WM_CLOSE);
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              //Beep;
+            end;
+          end
+          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mKillPrograms then
+          begin
+            if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
+            begin
+              KillTask(ExtractFileName(CommandSGrid.Cells[1,Grid[K]]));
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              //Beep;
+            end;
+          end
+          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mTextToSpeech then
+            TextToSpeech(CommandSGrid.Cells[1,Grid[K]])
           else
-            ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_SHOWNORMAL);
-        end
-        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mClosePrograms then
-        begin
-          if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
           begin
-            EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,K])), WM_CLOSE);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,K]);
-            Beep;
+            if DefaultCommandExec  <> '' then // Выполняем команду по умолчанию
+            begin
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
+              if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
+                ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
+              else
+                ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
+            end;
           end;
-        end
-        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mKillPrograms then
-        begin
-          if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
-          begin
-            KillTask(ExtractFileName(CommandSGrid.Cells[1,K]));
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,K]);
-            Beep;
-          end;
-        end
-        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mTextToSpeech then
-          TextToSpeech(CommandSGrid.Cells[1,K]);
+        end;
       end
-      else
+      else // Команда не найдена в списке
       begin
-        if DefaultCommandExec  <> '' then // Выполняем команду по умолчанию
-        begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
-          if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
-            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
-          else
-            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
-        end
-        else
-        begin
           if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf3'));
           TextToSpeech(mCommandNotFound);
           ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
-        end;
-        StopNULLRecord;
-        if MaxLevelOnAutoControl then
-          StartNULLRecord;
       end;
+      StopNULLRecord;
+      if MaxLevelOnAutoControl then
+        StartNULLRecord;
     end;
     StartButton.Enabled := True;
     StopButton.Enabled := False;
@@ -820,118 +895,6 @@ begin
     StopNULLRecord;
     if MaxLevelOnAutoControl then
       StartNULLRecord;
-  end;
-end;
-
-function TMainForm.HTTPGetSize(var HTTP: THTTPSend; URL: String): int64;
-var
-  I: Integer;
-  Size: String;
-  Ch: Char;
-begin
-  Result := -1;
-  HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-  if HTTP.HTTPMethod('HEAD',URL) then
-  begin
-    for I := 0 to HTTP.Headers.Count - 1 do
-    begin
-      if Pos('content-length', lowercase(HTTP.Headers[I])) > 0 then
-      begin
-        Size := '';
-        for Ch in HTTP.Headers[i]do
-          if Ch in ['0'..'9'] then
-            Size := Size + Ch;
-        Result := StrToInt(Size) + Length(HTTP.Headers.Text);
-        Break;
-      end;
-    end;
-  end;
-end;
-
-function TMainForm.HTTPGetSize(URL: String): int64;
-const
-  CRLF = #$0D + #$0A;
-var
-  Bound, Str, Size: String;
-begin
-  Result := -1;
-  with THTTPSend.Create do
-  begin
-    Document.Clear;
-    Headers.Clear;
-    //MimeType := 'application/x-www-form-urlencoded';
-    UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-    if HTTPMethod('HEAD', URL) then
-    begin
-      //if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - Результат запроса Headers = ' + Headers.Text);
-      HeadersToList(Headers);
-      Size := Headers.Values['Content-Length'];
-      Result := StrToIntDef(Size, -1);
-      if Result > -1 then
-        Result := Result + Length(Headers.Text);
-      //if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - Результат запроса ResultString = ' + ResultString);
-    end;
-  end;
-end;
-
-{ Отправка текстового запроса в гугл и прием mp3-файла }
-function TMainForm.GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
-const
-  CRLF = #$0D + #$0A;
-var
-  HTTP: THTTPSend;
-  MaxSize: int64;
-begin
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
-    end;
-    //MaxSize := HTTPGetSize(HTTP, 'http://translate.google.com/translate_tts?tl=' + GoogleTL + '&q='+WideStringToUTF8(Text));
-    MaxSize := HTTPGetSize('http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-    if MaxSize > 0 then
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Размер данных = ' + inttostr(MaxSize) + ' байт.');
-      if FileExists(MP3FileName) then
-        DeleteFile(MP3FileName);
-      HTTP.Document.Clear;
-      HTTP.Headers.Clear;
-      HTTP.MimeType := 'application/x-www-form-urlencoded';
-      HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-      Result := HTTP.HTTPMethod('GET', 'http://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-      if LowerCase(HTTP.ResultString) = 'ok' then
-      begin
-        HTTP.Document.SaveToFile(MP3FileName);
-        if FileExists(MP3FileName) then
-        begin
-          MP3In.FileName := MP3FileName;
-          if MP3In.Valid then
-          begin
-            DXAudioOut.Run;
-            DeleteFile(MP3FileName);
-          end;
-        end;
-      end
-      else
-      begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Ошибка передачи данных в Google (' + HTTP.ResultString + ')');
-        ShowBalloonHint(ProgramsName, Format(GetLangStr('MsgErr12'), [HTTP.ResultString]),  bitError);
-      end;
-    end;
-  finally
-    HTTP.Free;
   end;
 end;
 
@@ -1429,33 +1392,38 @@ end;
 procedure TMainForm.TextToSpeech(EType: TEventsType);
 var
   K: Integer;
+  Grid: TArrayOfInteger;
 begin
   if EnableTextToSpeech then
   begin
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск SAPITextToSpeech.');
-    K := TextToSpeechSGrid.Cols[1].IndexOf(DetectEventsTypeName(EType));
-    if K <> -1 then
+    Grid := HackTStringsIndexOf(TextToSpeechSGrid.Cols[1], DetectEventsTypeName(EType));
+    if Length(Grid) > 0 then // Команда найдена в списке
     begin
-      if DetectEventsTypeStatusName(TextToSpeechSGrid.Cells[2,K]) = mEnable then
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: В TextToSpeechSGrid найдено %d событий.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+      for K := Low(Grid) to High(Grid) do // Перебор найденных событий
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SAPITextToSpeech = ' + TextToSpeechSGrid.Cells[0,K]);
-        if TextToSpeechEngine = 0 then // Если Microsoft SAPI
+        if DetectEventsTypeStatusName(TextToSpeechSGrid.Cells[2,Grid[K]]) = mEnable then
         begin
-          CoInitialize(nil);
-          try
-            gpIVTxt.Speak(TextToSpeechSGrid.Cells[0,K], SVSFlagsAsync);
-            CoUninitialize;
-          except
-            on e: Exception do
-            begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TextToSpeech - ' + e.Message);
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SAPITextToSpeech = ' + TextToSpeechSGrid.Cells[0,Grid[K]]);
+          if TextToSpeechEngine = 0 then // Если Microsoft SAPI
+          begin
+            CoInitialize(nil);
+            try
+              gpIVTxt.Speak(TextToSpeechSGrid.Cells[0,Grid[K]], SVSFlagsAsync);
               CoUninitialize;
-              Exit;
+            except
+              on e: Exception do
+              begin
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TextToSpeech - ' + e.Message);
+                CoUninitialize;
+                Exit;
+              end;
             end;
-          end;
-        end
-        else
-          GoogleTextToSpeech(TextToSpeechSGrid.Cells[0,K], GetUserTempPath() + 'mspeech-tts.mp3');
+          end
+          else
+            OtherTTS(TextToSpeechSGrid.Cells[0,Grid[K]], GetUserTempPath() + 'mspeech-tts.mp3');
+        end;
       end;
     end;
   end;
@@ -1467,7 +1435,7 @@ begin
   if EnableTextToSpeech then
   begin
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск TextToSpeech. Говорим: ' + SayText);
-    if TextToSpeechEngine = 0 then // Если Microsoft SAPI
+    if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
     begin
       CoInitialize(nil);
       try
@@ -1483,8 +1451,51 @@ begin
       end;
     end
     else
-      GoogleTextToSpeech(SayText, GetUserTempPath() + 'mspeech-tts.mp3');
+      OtherTTS(SayText, GetUserTempPath() + 'mspeech-tts.mp3');
   end;
+end;
+
+{ Отправка текстового запроса в систему TTS, прием звукового файла и его воспроизведение }
+function TMainForm.OtherTTS(const Text, MP3FileName: String): Boolean;
+var
+  TTSResult: Boolean;
+begin
+  TTSResult := False;
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google TTS
+  begin
+    TTSResult := GoogleTextToSpeech(Text, MP3FileName);
+    DXAudioOut.Latency := 100;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex TTS
+  begin
+    TTSResult := YandexTextToSpeech(Text, MP3FileName);
+    DXAudioOut.Latency := 79;
+  end;
+  if TTSResult then
+  begin
+    if FileExists(MP3FileName) then
+    begin
+      MP3In.FileName := MP3FileName;
+      if MP3In.Valid then
+        DXAudioOut.Run
+      else
+      begin
+        if FileExists(MP3In.FileName) then
+          DeleteFile(MP3In.FileName);
+      end;
+    end;
+  end
+  else
+  begin
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'TTS - Ошибка передачи данных для синтеза речи.');
+    ShowBalloonHint(ProgramsName, GetLangStr('MsgErr13'),  bitError);
+  end;
+end;
+
+procedure TMainForm.DXAudioOutDone(Sender: TComponent);
+begin
+  if FileExists(MP3In.FileName) then
+    DeleteFile(MP3In.FileName);
 end;
 
 procedure TMainForm.InitSaveSettings(var Msg: TMessage);
@@ -1527,7 +1538,7 @@ begin
   Filters();
   // Авто-активация записи
   if MaxLevelOnAutoControl then
-    MainForm.StartNULLRecord;
+    StartNULLRecord;
 end;
 
 { Смена языка интерфейса по событию WM_LANGUAGECHANGED }

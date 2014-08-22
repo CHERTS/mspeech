@@ -30,6 +30,8 @@
   <CBAlphaBlend>Enable transparency windows</CBAlphaBlend>
   <CBShowTrayEvents>Show pop-up messages</CBShowTrayEvents>
   <LLang>Language:</LLang>
+  <GBMainSettings>Main settings</GBMainSettings>
+  <CBAutoRunMSpeech>Run MSpeech at logon</CBAutoRunMSpeech>
   <GBRecordSettings>Recording settings</GBRecordSettings>
   <LDevice>Source:</LDevice>
   <MicSettingsButton>Microphone settings</MicSettingsButton>
@@ -139,6 +141,8 @@
   <LDefaultCommandExec>Default command:</LDefaultCommandExec>
   <LDefaultCommandExecDesc>Run if the command is not found in the list.</LDefaultCommandExecDesc>
   <LAPINotes>If you do not specify your own key to access the Speech API, the public will be used, but we can not guarantee that with him recognition system will work. To get your own key, you can use the instructions posted on the site http://www.chromium.org/developers/how-tos/api-keys</LAPINotes>
+  <CBStopRecognitionAfterLockingComputer>Stop recognition after locking the PC</CBStopRecognitionAfterLockingComputer>
+  <CBStartRecognitionAfterUnlockingComputer>Start recognition after unlocking PC</CBStartRecognitionAfterUnlockingComputer>
 
   <StartStopRecord>Start\stop recording</StartStopRecord>
   <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>
@@ -170,7 +174,8 @@
   <MsgErr9>Failed to delete file %s</MsgErr9>
   <MsgErr10>File take the program. Try again?</MsgErr10>
   <MsgErr11>Install the Microsoft SAPI 4.0 and above.</MsgErr11>
-  <MsgErr12>Ошибка передачи данных в Google (%s)</MsgErr12>
+  <MsgErr12>Error sending data in Google (%s)</MsgErr12>
+  <MsgErr13>Error data for speech synthesis.</MsgErr13>
 
   <MsgInf1>To configure the microphone go to Control Panel.%sYour version of OS: %s</MsgInf1>
   <MsgInf2>Recording is not recognized</MsgInf2>

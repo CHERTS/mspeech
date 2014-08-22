@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -53,6 +53,7 @@ type
     procedure LogCopyClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure SelectAllRowClick(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
     FTextReader: TJclAnsiMappedTextReader;
@@ -105,6 +106,13 @@ end;
 procedure TLogForm.FormDestroy(Sender: TObject);
 begin
   FreeAndNil(FTextReader);
+end;
+
+procedure TLogForm.FormKeyDown(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+begin
+  if Key = VK_ESCAPE then
+    Close;
 end;
 
 procedure TLogForm.FormResize(Sender: TObject);

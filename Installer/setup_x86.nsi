@@ -1,11 +1,13 @@
 !include "MUI2.nsh"
 !include "UAC.nsh"
+!include "LogicLib.nsh"
+!include "Library.nsh"
 
 !define HOME ".\base\"
 
 !define PRODUCT_NAME "MSpeech"
 !define NAME "MSpeech"
-!define VERSION 1.5.5
+!define VERSION 1.5.6
 !define COMPANY "Mikhael Grigorev"
 !define URL http://www.im-history.ru
 
@@ -38,7 +40,7 @@
   VIAddVersionKey LegalCopyright "${COMPANY}"
 
   ;Request application privileges for Windows Vista
-  RequestExecutionLevel user
+  RequestExecutionLevel admin
 
 ;----------------------------------
 ;Language Selection Dialog Settings
@@ -172,6 +174,36 @@ LangString SecAddShortcutsDesc ${LANG_ENGLISH} "Add shortcuts to Start Menu"
 LangString SecAddShortcutsInDesktopDesc ${LANG_RUSSIAN} "Добавить ярлык на Рабочий стол"
 LangString SecAddShortcutsInDesktopDesc ${LANG_ENGLISH} "Add shortcut to the Desktop"
 
+LangString SecAddRHVoiceDesc ${LANG_RUSSIAN} "Установить систему синтеза речи RHVoice"
+LangString SecAddRHVoiceDesc ${LANG_ENGLISH} "Installing the speech synthesis system RHVoice"
+
+LangString SecAddRHVoiceCoreDesc ${LANG_RUSSIAN} "RHVoice"
+LangString SecAddRHVoiceCoreDesc ${LANG_ENGLISH} "RHVoice"
+
+LangString SecAddRHVoiceRussianPackDesc ${LANG_RUSSIAN} "Русский языковой пакет для RHVoice"
+LangString SecAddRHVoiceRussianPackDesc ${LANG_ENGLISH} "Russian language pack for RHVoice"
+
+LangString SecAddRHVoiceRussianVoiceAnnaDesc ${LANG_RUSSIAN} "Русский голос Анна для RHVoice"
+LangString SecAddRHVoiceRussianVoiceAnnaDesc ${LANG_ENGLISH} "Russian voice Anna for RHVoice"
+
+LangString SecAddRHVoiceRussianVoiceElenaDesc ${LANG_RUSSIAN} "Русский голос Елена для RHVoice"
+LangString SecAddRHVoiceRussianVoiceElenaDesc ${LANG_ENGLISH} "Russian voice Elena for RHVoice"
+
+LangString SecAddRHVoiceRussianVoiceIrinaDesc ${LANG_RUSSIAN} "Русский голос Ирина для RHVoice"
+LangString SecAddRHVoiceRussianVoiceIrinaDesc ${LANG_ENGLISH} "Russian voice Irina for RHVoice"
+
+LangString SecAddRHVoiceRussianVoiceAleksandrDesc ${LANG_RUSSIAN} "Русский голос Александр для RHVoice"
+LangString SecAddRHVoiceRussianVoiceAleksandrDesc ${LANG_ENGLISH} "Russian voice Aleksandr for RHVoice"
+
+LangString SecAddRHVoiceEnglishPackDesc ${LANG_RUSSIAN} "Английский языковой пакет для RHVoice"
+LangString SecAddRHVoiceEnglishPackDesc ${LANG_ENGLISH} "English language pack for RHVoice"
+
+LangString SecAddRHVoiceEnglishVoiceAlanDesc ${LANG_RUSSIAN} "Английский голос Алан для RHVoice"
+LangString SecAddRHVoiceEnglishVoiceAlanDesc ${LANG_ENGLISH} "English voice Alan for RHVoice"
+
+LangString SecAddRHVoiceEnglishVoiceCLBDesc ${LANG_RUSSIAN} "Английский голос CLB для RHVoice"
+LangString SecAddRHVoiceEnglishVoiceCLBDesc ${LANG_ENGLISH} "English voice CLB for RHVoice"
+
 LangString RunMSpeechDesc ${LANG_RUSSIAN} "Запустить MSpeech.lnk"
 LangString RunMSpeechDesc ${LANG_ENGLISH} "Run MSpeech.lnk"
 
@@ -256,16 +288,254 @@ Section $(SecAddShortcutsInDesktopDesc) SecAddShortcutsInDesktop
 
 SectionEnd
 
+SectionGroup $(SecAddRHVoiceDesc) SecAddRHVoice
+
+	Section $(SecAddRHVoiceCoreDesc) SecAddRHVoiceCore
+		SetOverwrite on
+		; Регистрация DLL
+		SetOutPath "$INSTDIR\rhvoice\lib32"
+		!insertmacro installLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED ${HOME}\rhvoice\lib32\RHVoiceSvr.dll "RHVoiceSvr.dll" $INSTDIR
+		!define LIBRARY_X64
+		${If} ${RunningX64}
+		SetOutPath "$INSTDIR\rhvoice\lib64"
+		!insertmacro installLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED ${HOME}\rhvoice\lib64\RHVoiceSvr.dll "RHVoiceSvr.dll" $INSTDIR
+		${EndIf}
+		!undef LIBRARY_X64
+		; Прописываем пути к файлам данных движка
+		WriteRegStr HKLM "Software\RHVoice" "path" "$INSTDIR\rhvoice"
+		WriteRegStr HKLM "Software\RHVoice" "data_path" "$INSTDIR\rhvoice\data"
+		${If} ${RunningX64}
+		SetRegView 64
+		WriteRegStr HKLM "Software\RHVoice" "data_path" "$INSTDIR\rhvoice\data"
+		SetRegView 32
+		${EndIf}
+		; Регистрация RHVoice в SAPI
+		WriteRegStr HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice" "CLSID" "{d7577808-7ade-4dea-a5b7-ee314d6ef3a1}"
+		${If} ${RunningX64}
+		SetRegView 64
+		WriteRegStr HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice" "CLSID" "{d7577808-7ade-4dea-a5b7-ee314d6ef3a1}"
+		SetRegView 32
+		${EndIf}
+		SetOutPath "$INSTDIR"
+	SectionEnd
+
+	SectionGroup $(SecAddRHVoiceRussianPackDesc) SecAddRHVoiceRussianPack
+
+		Section $(SecAddRHVoiceRussianPackDesc) SecAddRHVoiceRussianPackCore
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\languages\Russian"
+			File "${HOME}\rhvoice\data\languages\Russian\clitics.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\dict.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\downcase.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\english_phone_mapping.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\g2p.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\gpos.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\key.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\labelling.xml"
+			File "${HOME}\rhvoice\data\languages\Russian\language.info"
+			File "${HOME}\rhvoice\data\languages\Russian\lseq.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\msg.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\numbers.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\phonemes.xml"
+			File "${HOME}\rhvoice\data\languages\Russian\phrasing.dt"
+			File "${HOME}\rhvoice\data\languages\Russian\rulex_dict.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\rulex_rules.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\spell.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\stress.fsm"
+			File "${HOME}\rhvoice\data\languages\Russian\stress.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\syl.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\tok.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\untranslit.fst"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section $(SecAddRHVoiceRussianVoiceAnnaDesc) SecAddRHVoiceRussianVoiceAnna
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\Anna"
+			File "${HOME}\rhvoice\data\voices\anna\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\anna\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\anna\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\anna\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\anna\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\anna\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\anna\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\anna\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\anna\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\anna\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\anna\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\anna\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\anna\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\anna\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\anna\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\anna\voice.info"
+			File "${HOME}\rhvoice\data\voices\anna\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceRussianVoiceElenaDesc) SecAddRHVoiceRussianVoiceElena
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\Elena"
+			File "${HOME}\rhvoice\data\voices\elena\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\elena\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\elena\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\elena\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\elena\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\elena\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\elena\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\elena\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\elena\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\elena\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\elena\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\elena\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\elena\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\elena\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\elena\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\elena\voice.info"
+			File "${HOME}\rhvoice\data\voices\elena\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceRussianVoiceIrinaDesc) SecAddRHVoiceRussianVoiceIrina
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\Irina"
+			File "${HOME}\rhvoice\data\voices\irina\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\irina\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\irina\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\irina\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\irina\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\irina\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\irina\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\irina\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\irina\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\irina\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\irina\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\irina\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\irina\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\irina\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\irina\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\irina\voice.info"
+			File "${HOME}\rhvoice\data\voices\irina\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceRussianVoiceAleksandrDesc) SecAddRHVoiceRussianVoiceAleksandr
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\Aleksandr"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\voice.info"
+			File "${HOME}\rhvoice\data\voices\Aleksandr\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+	SectionGroupEnd
+
+	SectionGroup $(SecAddRHVoiceEnglishPackDesc) SecAddRHVoiceEnglishPack
+
+		Section /o $(SecAddRHVoiceEnglishPackDesc) SecAddRHVoiceEnglishPackCore
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\languages\English"
+			File "${HOME}\rhvoice\data\languages\English\accents.dt"
+			File "${HOME}\rhvoice\data\languages\English\cmulex.fst"
+			File "${HOME}\rhvoice\data\languages\English\cmulex.lts"
+			File "${HOME}\rhvoice\data\languages\English\downcase.fst"
+			File "${HOME}\rhvoice\data\languages\English\gpos.fst"
+			File "${HOME}\rhvoice\data\languages\English\key.fst"
+			File "${HOME}\rhvoice\data\languages\English\labelling.xml"
+			File "${HOME}\rhvoice\data\languages\English\language.info"
+			File "${HOME}\rhvoice\data\languages\English\lseq.fst"
+			File "${HOME}\rhvoice\data\languages\English\msg.fst"
+			File "${HOME}\rhvoice\data\languages\English\numbers.fst"
+			File "${HOME}\rhvoice\data\languages\English\phonemes.xml"
+			File "${HOME}\rhvoice\data\languages\English\phrasing.dt"
+			File "${HOME}\rhvoice\data\languages\English\spell.fst"
+			File "${HOME}\rhvoice\data\languages\English\syl.fst"
+			File "${HOME}\rhvoice\data\languages\English\tok.fst"
+			File "${HOME}\rhvoice\data\languages\English\tones.dt"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceEnglishVoiceAlanDesc) SecAddRHVoiceEnglishVoiceAlan
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\Alan"
+			File "${HOME}\rhvoice\data\voices\Alan\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\Alan\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\Alan\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\Alan\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\Alan\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\Alan\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\Alan\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\Alan\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\Alan\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\Alan\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\Alan\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\Alan\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\Alan\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\Alan\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\Alan\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\Alan\voice.info"
+			File "${HOME}\rhvoice\data\voices\Alan\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceEnglishVoiceCLBDesc) SecAddRHVoiceEnglishVoiceCLB
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\CLB"
+			File "${HOME}\rhvoice\data\voices\CLB\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\CLB\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\CLB\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\CLB\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\CLB\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\CLB\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\CLB\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\CLB\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\CLB\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\CLB\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\CLB\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\CLB\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\CLB\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\CLB\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\CLB\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\CLB\voice.info"
+			File "${HOME}\rhvoice\data\voices\CLB\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+	SectionGroupEnd
+
+SectionGroupEnd
+
 ;--------------------------------
 ;Language Strings
 
   LangString DESC_SecMainProgramUserSpace ${LANG_RUSSIAN} "Установить программу."
   LangString DESC_SecAddShortcuts ${LANG_RUSSIAN} "Добавить ярлыки в меню Пуск."
   LangString DESC_SecAddShortcutsInDesktop ${LANG_RUSSIAN} "Добавить ярлык на Рабочий стол."
+  LangString DESC_SecAddRHVoice ${LANG_RUSSIAN} "Установить многоязычный синтезатор речи с открытым исходным кодом."
+  LangString DESC_SecAddRHVoiceCore ${LANG_RUSSIAN} "Ядро системы синтеза RHVoice."
+  LangString DESC_SecAddRHVoiceRussianPack ${LANG_RUSSIAN} "Русский языковой пакет для системы RHVoice."
+  LangString DESC_SecAddRHVoiceEnglishPack ${LANG_RUSSIAN} "Английский языковой пакет для системы RHVoice."
 
   LangString DESC_SecMainProgramUserSpace ${LANG_ENGLISH} "Install main programms."
   LangString DESC_SecAddShortcuts ${LANG_ENGLISH} "Add shortcuts to the current user's Start Menu."
   LangString DESC_SecAddShortcutsInDesktop ${LANG_ENGLISH} "Add shortcuts to the Desktop."
+  LangString DESC_SecAddRHVoice ${LANG_ENGLISH} "Install multilingual speech synthesizer with open source."
+  LangString DESC_SecAddRHVoiceCore ${LANG_ENGLISH} "Core synthesis system RHVoice."
+  LangString DESC_SecAddRHVoiceRussianPack ${LANG_ENGLISH} "Russian language pack for RHVoice."
+  LangString DESC_SecAddRHVoiceEnglishPack ${LANG_ENGLISH} "English language pack for RHVoice."
 
 ;--------------------------------
 ;Descriptions
@@ -274,6 +544,12 @@ SectionEnd
   !insertmacro MUI_DESCRIPTION_TEXT ${SecMainProgramUserSpace} $(DESC_SecMainProgramUserSpace)
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAddShortcuts} $(DESC_SecAddShortcuts)
   !insertmacro MUI_DESCRIPTION_TEXT ${SecAddShortcutsInDesktop} $(DESC_SecAddShortcutsInDesktop)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoice} $(DESC_SecAddRHVoice)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoiceCore} $(DESC_SecAddRHVoiceCore)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoiceRussianPack} $(DESC_SecAddRHVoiceRussianPack)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoiceRussianPackCore} $(DESC_SecAddRHVoiceRussianPack)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoiceEnglishPack} $(DESC_SecAddRHVoiceEnglishPack)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SecAddRHVoiceEnglishPackCore} $(DESC_SecAddRHVoiceEnglishPack)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 
@@ -310,6 +586,49 @@ FunctionEnd
 ;Uninstaller Section
 
 Section "Uninstall"
+
+  !insertmacro UnInstallLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED "$INSTDIR\rhvoice\lib32\RHVoiceSvr.dll"
+  !define LIBRARY_X64
+  ${If} ${RunningX64}
+  !insertmacro UnInstallLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED "$INSTDIR\rhvoice\lib64\RHVoiceSvr.dll"
+  ${EndIf}
+  !undef LIBRARY_X64
+  Delete "$INSTDIR\rhvoice\rhvoice\lib32\*.*"
+  Rmdir "$INSTDIR\rhvoice\lib32"
+  Delete "$INSTDIR\rhvoice\rhvoice\lib64\*.*"
+  Rmdir "$INSTDIR\rhvoice\lib64"
+  DeleteRegKey HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice"
+  ${If} ${RunningX64}
+  SetRegView 64
+  DeleteRegKey HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice"
+  SetRegView 32
+  ${EndIf}
+  DeleteRegKey HKLM "Software\RHVoice"
+  ${If} ${RunningX64}
+  SetRegView 64
+  DeleteRegKey HKLM "Software\RHVoice"
+  SetRegView 32
+  ${EndIf}
+  Delete "$INSTDIR\rhvoice\data\languages\Russian\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\languages\Russian\"
+  Delete "$INSTDIR\rhvoice\data\voices\Anna\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\Anna\"
+  Delete "$INSTDIR\rhvoice\data\voices\Elena\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\Elena\"
+  Delete "$INSTDIR\rhvoice\data\voices\Irina\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\Irina\"
+  Delete "$INSTDIR\rhvoice\data\voices\Aleksandr\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\Aleksandr\"
+  Delete "$INSTDIR\rhvoice\data\languages\English\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\languages\English\"
+  Delete "$INSTDIR\rhvoice\data\voices\Alan\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\Alan\"
+  Delete "$INSTDIR\rhvoice\data\voices\CLB\*.*"
+  Rmdir "$INSTDIR\rhvoice\data\voices\CLB\"
+  Rmdir "$INSTDIR\rhvoice\data\languages\"
+  Rmdir "$INSTDIR\rhvoice\data\voices\"
+  Rmdir "$INSTDIR\rhvoice\data\"
+  Rmdir "$INSTDIR\rhvoice\"
 
   Delete "$INSTDIR\*.exe"
   Delete "$INSTDIR\*.dll"

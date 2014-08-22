@@ -30,6 +30,8 @@
   <CBAlphaBlend>Включить прозрачность окон</CBAlphaBlend>
   <CBShowTrayEvents>Показывать всплывающие сообщения</CBShowTrayEvents>
   <LLang>Язык программы:</LLang>
+  <GBMainSettings>Общее</GBMainSettings>
+  <CBAutoRunMSpeech>Запускать MSpeech при входе в систему</CBAutoRunMSpeech>
   <GBRecordSettings>Настройки записи</GBRecordSettings>
   <LDevice>Источник:</LDevice>
   <MicSettingsButton>Настройки микрофона</MicSettingsButton>
@@ -133,6 +135,8 @@
   <LDefaultCommandExec>Команда по-умолчанию:</LDefaultCommandExec>
   <LDefaultCommandExecDesc>Выполняется если не найдена команда из списка.</LDefaultCommandExecDesc>
   <LAPINotes>Если Вы не укажите собственный ключ для доступа к Speech API, то будет использоваться публичный, но мы не даём гарантии, что с ним система распознавания будет работать. Для получения собственного ключа можно воспользоваться инструкцией размещенной на сайте http://www.chromium.org/developers/how-tos/api-keys</LAPINotes>
+  <CBStopRecognitionAfterLockingComputer>Остановить распознавание после блокировки ПК</CBStopRecognitionAfterLockingComputer>
+  <CBStartRecognitionAfterUnlockingComputer>Запустить распознавание после разблокировки ПК</CBStartRecognitionAfterUnlockingComputer>
 
   <EventWarningRecognize>Ошибка распознавания</EventWarningRecognize>
   <EventRecordingNotRecognized>Команда не распознана</EventRecordingNotRecognized>
@@ -172,6 +176,7 @@
   <MsgErr10>Возможно файл занят другой программой. Повторить попытку?</MsgErr10>
   <MsgErr11>Установите Microsoft SAPI 4.0 или выше.</MsgErr11>
   <MsgErr12>Ошибка передачи данных в Google (%s)</MsgErr12>
+  <MsgErr13>Ошибка передачи данных для синтеза речи.</MsgErr13>
 
   <MsgInf1>Для настройки параметров микрофона зайдите в Панель управления.%sВаша версия OS: %s</MsgInf1>
   <MsgInf2>Запись не распознана</MsgInf2>

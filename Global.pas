@@ -1,6 +1,6 @@
-{ ############################################################################ }
+Ôªø{ ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.5 - –‡ÒÔÓÁÌ‡‚‡ÌËÂ Â˜Ë ËÒÔÓÎ¸ÁÛˇ Google Speech API         # }
+{ #  MSpeech v1.5.6 - –†–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏–µ —Ä–µ—á–∏ –∏—Å–ø–æ–ª—å–∑—É—è Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -16,7 +16,7 @@ interface
 
 uses
   Windows, SysUtils, IniFiles, Messages, XMLIntf, XMLDoc, Classes, Vcl.Grids,
-  Types, TLHELP32, SHFolder;
+  Types, TLHELP32, SHFolder, Registry, HTTPSend, SSL_OpenSSL, synautil, JclStringConversions;
 
 type
   TWinVersion = (wvUnknown,wv95,wv98,wvME,wvNT3,wvNT4,wvW2K,wvXP,wv2003,wvVista,wv7,wv2008,wv8);
@@ -25,9 +25,59 @@ type
   TCopyDataType = (cdtString = 0, cdtImage = 1, cdtRecord = 2);
   TEventsType = (mWarningRecognize, mRecordingNotRecognized, mCommandNotFound, mErrorGoogleCommunication);
   TEventsTypeStatus = (mDisable, mEnable);
+  TArrayOfInteger = Array of Integer;
+  THackStrings = class(TStrings);
+  TASREngine = (ASRGoogle, ASRYandex);
+  TASRMediaFormat = (TPCM, TFLAC, TSpeex);
+  TTTSEngine = (TTSMicrosoft, TTSGoogle, TTSYandex);
+  TTTSEngines = record
+    TTSDisplayName: String;
+  end;
+  TASREngines = record
+    ASRDisplayName: String;
+  end;
+  TGoogleTTSLanguage = (
+    GTTS_Arabic,      // –ê—Ä–∞–±—Å–∫–∏–π
+    GTTS_Danish,      // –î–∞—Ç—Å–∫–∏–π
+    GTTS_Deutsch,     // –ù–µ–º–µ—Ü–∫–∏–π
+    GTTS_Greek,       // –ì—Ä–µ—á–µ—Å–∫–∏–π
+    GTTS_English,     // –ê–Ω–≥–ª–∏–π—Å–∫–∏–π
+    GTTS_Spanish,     // –ò—Å–ø–∞–Ω—Å–∫–∏–π
+    GTTS_Finnish,     // –§–∏–Ω—Å–∫–∏–π
+    GTTS_French,      // –§—Ä–∞–Ω—Ü—É–∑—Å–∫–∏–π
+    GTTS_Italiano,    // –ò—Ç–∞–ª—å—è–Ω—Å–∫–∏–π
+    GTTS_Japanese,    // –Ø–ø–æ–Ω—Å–∫–∏–π
+    GTTS_Korean,      // –ö–æ—Ä–µ–π—Å–∫–∏–π
+    GTTS_Dutch,       // –ù–∏–¥–µ—Ä–ª–∞–Ω–¥—Å–∫–∏–π (–ì–æ–ª–ª–∞–Ω–¥—Å–∫–∏–π)
+    GTTS_Polski,      // –ü–æ–ª—å—Å–∫–∏–π
+    GTTS_Portugal,    // –ü–æ—Ä—Ç—É–≥–∞–ª—å—Å–∫–∏–π
+    GTTS_Russian,     // –í–µ–ª–∏–∫–∏–π –∏ –º–æ–≥—É—á–∏–π ;)
+    GTTS_Turkish,     // –¢—É—Ä–µ—Ü–∫–∏–π
+    GTTS_Chinese      // –ö–∏—Ç–∞–π—Å–∫–∏–π (–Ω–∞–≤–µ—Ä–Ω–æ —Ç—Ä–∞–¥–∏—Ü–∏–æ–Ω–Ω—ã–π)
+  );
+  TGoogleTTSLanguages = record
+    LangCode        : PAnsiChar;
+    LangDisplayName : String;
+    TestPhrase      : String;
+  end;
+  TYandexTTSLanguage = (
+    YTTS_English,
+    YTTS_Deutsch,
+    YTTS_French,
+    YTTS_Russian
+  );
+  TYandexTTSLanguages = record
+    LangCode        : PAnsiChar;
+    LangDisplayName : String;
+    TestPhrase      : String;
+  end;
+  TASRMediaFormats = record
+    MediaType        : TASRMediaFormat;
+    MediaDisplayName : String;
+  end;
 
 const
-  ProgramsVer : WideString = '1.5.5.0';
+  ProgramsVer : WideString = '1.5.6.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -36,25 +86,25 @@ const
   {$ENDIF}
   ININame = 'MSpeech.ini';
   INIFormsName = 'MSpeechForms.ini';
-  // ŒÚÎ‡‰Í‡
+  // –û—Ç–ª–∞–¥–∫–∞
   DebugLogName = 'mspeech.log';
-  // —ÓÓ·˘ÂÌËˇ ÓÍÌ‡Ï
+  // –°–æ–æ–±—â–µ–Ω–∏—è –æ–∫–Ω–∞–º
   WM_MSGBOX = WM_USER + 2;
   WM_UPDATELOG = WM_USER + 3;
   WM_STARTSAVESETTINGS = WM_USER + 4;
   WM_SAVESETTINGSDONE = WM_USER + 5;
-  // ƒÎˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË
+  // –î–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏
   WM_LANGUAGECHANGED = WM_USER + 1;
   dirLangs = 'langs\';
   defaultLangFile = 'English.xml';
   MaxCaptionSize: Integer = 255;
-  // ŒÔËÒ‡ÌËÂ ÚËÔÓ‚ ÍÓÏ‡Ì‰
+  // –û–ø–∏—Å–∞–Ω–∏–µ —Ç–∏–ø–æ–≤ –∫–æ–º–∞–Ω–¥
   CommandStr: Array[TCommandType] of String = (
     'ExecProgramsCommandDesc',
     'CloseProgramsCommandDesc',
     'KillProgramsCommandDesc',
     'TextToSpeechCommandDesc');
-  // ŒÔËÒ‡ÌËÂ ÚËÔÓ‚ ÒÓ·˚ÚËÈ ‚ ÔÓ„‡ÏÏÂ
+  // –û–ø–∏—Å–∞–Ω–∏–µ —Ç–∏–ø–æ–≤ —Å–æ–±—ã—Ç–∏–π –≤ –ø—Ä–æ–≥—Ä–∞–º–º–µ
   EventsTypeStr: Array[TEventsType] of String = (
     'EventWarningRecognize',
     'EventRecordingNotRecognized',
@@ -63,8 +113,71 @@ const
   EventsTypeStatusStr: Array[TEventsTypeStatus] of String = (
     'EventDisable',
     'EventEnable');
-  // —ÔËÒÓÍ Â„ËÓÌÓ‚ ‰Îˇ ‡ÒÔÓÁÌ‡‚‡ÌËˇ „ÓÎÓÒ‡ ˜ÂÂÁ Google
-  RegionArray: Array[0..62] of String = (
+  // –°–ø–∏—Å–æ–∫ —Ä–µ–≥–∏–æ–Ω–æ–≤ –¥–ª—è —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è –≥–æ–ª–æ—Å–∞ —á–µ—Ä–µ–∑ Google
+  // Afrikaans - af-ZA
+  // Bahasa Indonesia - id-ID
+  // Bahasa Melayu - ms-MY
+  // Catal√† - ca-ES
+  // ƒåe≈°tina - cs-CZ
+  // Deutsch - de-DE
+  // English - Australia - en-AU
+  // English - Canada - en-CA
+  // English - India - en-IN
+  // English - New Zealand - en-NZ
+  // English - South Africa - en-ZA
+  // English - United Kingdom - en-GB
+  // English - United States - en-US
+  // Espa√±ol - Argentina - es-AR
+  // Espa√±ol - Bolivia - es-BO
+  // Espa√±ol - Chile - es-CL
+  // Espa√±ol - Colombia - es-CO
+  // Espa√±ol - Costa Rica - es-CR
+  // Espa√±ol - Ecuador - es-EC
+  // Espa√±ol - El Salvador - es-SV
+  // Espa√±ol - Espa√±a - es-ES
+  // Espa√±ol - Estados Unidos - es-US
+  // Espa√±ol - Guatemala - es-GT
+  // Espa√±ol - Honduras - es-HN
+  // Espa√±ol - M√©xico - es-MX
+  // Espa√±ol - Nicaragua - es-NI
+  // Espa√±ol - Panam√° - es-PA
+  // Espa√±ol - Paraguay - es-PY
+  // Espa√±ol - Per√∫ - es-PE
+  // Espa√±ol - Puerto Rico - es-PR
+  // Espa√±ol - Rep√∫blica Dominicana - es-DO
+  // Espa√±ol - Uruguay - es-UY
+  // Espa√±ol - Venezuela - es-VE
+  // Euskara - eu-ES
+  // Fran√ßais - fr-FR
+  // Galego - gl-ES
+  // Hebrew - he-HE
+  // Hrvatski - hr_HR
+  // IsiZulu - zu-ZA
+  // √çslenska - is-IS
+  // Italiano - Italia - it-IT
+  // Italiano - Svizzera - it-CH
+  // Magyar - hu-HU
+  // Nederlands - nl-NL
+  // Norsk bokm√•l - nb-NO
+  // Polski - pl-PL
+  // Portugu√™s - Brasil - pt-BR
+  // Portugu√™s - Portugal - pt-PT
+  // Rom√¢nƒÉ - ro-RO
+  // Slovenƒçina - sk-SK
+  // Suomi - fi-FI
+  // Svenska - sv-SE
+  // T√ºrk√ße - tr-TR
+  // –±—ä–ª–≥–∞—Ä—Å–∫–∏ - bg-BG
+  // P—É—Å—Å–∫–∏–π - ru-RU
+  // –°—Ä–ø—Å–∫–∏ - sr-RS
+  // Korean - ko-KR
+  // Mandarin Chinese (Simplified) - cmn-Hans-CN
+  // Hong Kong Chinese (Simplified) - cmn-Hans-HK
+  // Taiwan Chinese (Traditional) - cmn-Hant-TW
+  // Hong Kong Chinese (Traditional) -  yue-Hant-HK
+  // Japanese - ja-JP
+  // Lingua latƒ´na - la
+  GoogleRegionArray: Array[0..62] of String = (
     'af-ZA', 'id-ID', 'ms-MY', 'ca-ES', 'cs-CZ', 'de-DE', 'en-AU', 'en-CA', 'en-IN',
     'en-NZ', 'en-ZA', 'en-GB', 'en-US', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR',
     'es-EC', 'es-SV', 'es-ES', 'es-US', 'es-GT', 'es-HN', 'es-MX', 'es-NI', 'es-PA',
@@ -73,8 +186,52 @@ const
     'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG',
     'ru-RU', 'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
     'ja-JP', 'la');
-  // —ÔËÒÓÍ Â„ËÓÌÓ‚ ‰Îˇ ÒËÌÚÂÁ‡ „ÓÎÓÒ‡ ˜ÂÂÁ Google
-  TextToSpeechRegionArray: Array[0..1] of String = ('ru', 'en');
+  // –°–ø–∏—Å–æ–∫ —Ä–µ–≥–∏–æ–Ω–æ–≤ –¥–ª—è —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è –≥–æ–ª–æ—Å–∞ —á–µ—Ä–µ–∑ Yandex
+  YandexRegionArray: Array[0..0] of String = ('ru-RU');
+  // –°–ø–∏—Å–æ–∫ —Å–∏—Å—Ç–µ–º —Å–∏–Ω—Ç–µ–∑–∞ —Ä–µ—á–∏
+  TTSEngineList: Array[TTTSEngine] of TTTSEngines = (
+    (TTSDisplayName: 'Microsoft SAPI (Offline)'),
+    (TTSDisplayName: 'Google Text-To-Speech (Online)'),
+    (TTSDisplayName: 'Yandex Text-To-Speech (Online)')
+    );
+  // –°–ø–∏—Å–æ–∫ —Ä–µ–≥–∏–æ–Ω–æ–≤ –¥–ª—è —Å–∏–Ω—Ç–µ–∑–∞ –≥–æ–ª–æ—Å–∞ —á–µ—Ä–µ–∑ Google
+  GoogleTTSLanguageList: Array[TGoogleTTSLanguage] of TGoogleTTSLanguages = (
+    (LangCode: 'ar';	LangDisplayName: 'ÿßŸÑÿπÿ±ÿ®Ÿäÿ©'; TestPhrase: 'ŸÅÿ≠ÿµ ÿ™ÿ±ŸÉŸäÿ® ÿßŸÑŸÉŸÑÿßŸÖ ŸÅŸä ÿßŸÑŸÑÿ∫ÿ© ÿßŸÑÿπÿ±ÿ®Ÿäÿ©.'),
+    (LangCode: 'da';	LangDisplayName: 'Dansk'; TestPhrase: 'Kontrol af talesyntese p√• det danske sprog.'),
+    (LangCode: 'de';	LangDisplayName: 'Deutsch'; TestPhrase: '√úberpr√ºfung der Sprachsynthese in deutscher Sprache.'),
+    (LangCode: 'el';	LangDisplayName: 'ŒµŒªŒªŒ∑ŒΩŒπŒ∫Œ¨'; TestPhrase: 'ŒàŒªŒµŒ≥œáŒøœÇ œÉœçŒΩŒ∏ŒµœÉŒ∑œÇ ŒøŒºŒπŒªŒØŒ±œÇ œÉœÑŒ± ŒµŒªŒªŒ∑ŒΩŒπŒ∫Œ¨.'),
+    (LangCode: 'en';	LangDisplayName: 'English'; TestPhrase: 'Checking speech synthesis on English language.'),
+    (LangCode: 'es';	LangDisplayName: 'Espa√±ol'; TestPhrase: 'Comprobaci√≥n de la s√≠ntesis de voz en espa√±ol.'),
+    (LangCode: 'fi';	LangDisplayName: 'Suomalainen'; TestPhrase: 'Tarkkailun puhesynteesin Suomen kielen.'),
+    (LangCode: 'fr';	LangDisplayName: 'Fran√ßais'; TestPhrase: 'V√©rification de synth√®se de la parole en fran√ßais.'),
+    (LangCode: 'it';	LangDisplayName: 'Italiano'; TestPhrase: 'Controllo della sintesi vocale in lingua italiana.'),
+    (LangCode: 'ja';	LangDisplayName: 'Êó•Êú¨„ÅÆ'; TestPhrase: 'Êó•Êú¨Ë™û„ÅßÈü≥Â£∞ÂêàÊàê„ÇíÁ¢∫Ë™ç„Åô„Çã„ÄÇ'),
+    (LangCode: 'ko';	LangDisplayName: 'ÌïúÍµ≠Ïùò'; TestPhrase: 'ÌïúÍµ≠Ïùò Ïñ∏Ïñ¥Ïóê ÎåÄÌïú ÏùåÏÑ± Ìï©ÏÑ±ÏùÑ ÌôïÏù∏Ìï©ÎãàÎã§.'),
+    (LangCode: 'nl';	LangDisplayName: 'Dutch'; TestPhrase: 'Controle van spraaksynthese in het Nederlands.'),
+    (LangCode: 'pl';	LangDisplayName: 'Polski'; TestPhrase: 'Sprawdzanie syntezy mowy na jƒôzyk polski.'),
+    (LangCode: 'pt';	LangDisplayName: 'Portugu√™s'; TestPhrase: 'Verificando a s√≠ntese de voz em Portugu√™s.'),
+    (LangCode: 'ru';	LangDisplayName: '–†—É—Å—Å–∫–∏–π'; TestPhrase: '–ü—Ä–æ–≤–µ—Ä–∫–∞ —Å–∏–Ω—Ç–µ–∑–∞ —Ä–µ—á–∏ –Ω–∞ –†—É—Å—Å–∫–æ–º —è–∑—ã–∫–µ.'),
+    (LangCode: 'tr';	LangDisplayName: 'T√ºrk'; TestPhrase: 'T√ºrk dili √ºzerinde konu≈üma sentezi denetleniyor.'),
+    (LangCode: 'zh';	LangDisplayName: '‰∏≠ÂúãÁöÑ'; TestPhrase: 'Ê™¢Êü•Ë™ûÈü≥ÂêàÊàêÂú®‰∏≠Âúã„ÄÇ')
+    );
+  // –°–ø–∏—Å–æ–∫ —Ä–µ–≥–∏–æ–Ω–æ–≤ –¥–ª—è —Å–∏–Ω—Ç–µ–∑–∞ –≥–æ–ª–æ—Å–∞ —á–µ—Ä–µ–∑ Yandex
+  YandexTTSLanguageList: Array[TYandexTTSLanguage] of TYandexTTSLanguages = (
+    (LangCode: 'en_GB';	LangDisplayName: 'English'; TestPhrase: 'Checking speech synthesis on English language.'),
+    (LangCode: 'de_DE';	LangDisplayName: 'Deutsch'; TestPhrase: '√úberpr√ºfung der Sprachsynthese in deutscher Sprache.'),
+    (LangCode: 'fr_FR';	LangDisplayName: 'Fran√ßais'; TestPhrase: 'V√©rification de synth√®se de la parole en fran√ßais.'),
+    (LangCode: 'ru_RU';	LangDisplayName: '–†—É—Å—Å–∫–∏–π'; TestPhrase: '–ü—Ä–æ–≤–µ—Ä–∫–∞ —Å–∏–Ω—Ç–µ–∑–∞ —Ä–µ—á–∏ –Ω–∞ –†—É—Å—Å–∫–æ–º —è–∑—ã–∫–µ.')
+    );
+  // –°–ø–∏—Å–æ–∫ —Å–∏—Å—Ç–µ–º —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è —Ä–µ—á–∏
+  TASREngineList: Array[TASREngine] of TASREngines = (
+    (ASRDisplayName: 'Google (Online)'),
+    (ASRDisplayName: 'Yandex (Online)')
+    );
+  // –°–ø–∏—Å–æ–∫ —Ñ–æ—Ä–º–∞—Ç–æ–≤ –º–µ–¥–∏–∞-—Ñ–∞–π–ª–æ–≤ –¥–ª—è –∑–∞–ø–∏—Å–∏ –∏ –æ—Ç–ø—Ä–∞–≤–∫–∏ –Ω–∞ —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏–µ
+  ASRMediaFormatList: Array[TASRMediaFormat] of TASRMediaFormats = (
+    (MediaType: TPCM;	MediaDisplayName: 'Microsoft PCM'),
+    (MediaType: TFLAC;	MediaDisplayName: 'FLAC'),
+    (MediaType: TSpeex;	MediaDisplayName: 'Speex')
+    );
 
 var
   ProgramsPath: WideString;
@@ -84,12 +241,12 @@ var
   ReplaceGridFile: String = 'MSpeech.rpl';
   CommandGridFile: String = 'MSpeech.cf';
   TextToSpeechGridFile: String = 'MSpeech.tts';
-  // ŒÚÎ‡‰Í‡
+  // –û—Ç–ª–∞–¥–∫–∞
   EnableLogs: Boolean = False;
   MaxDebugLogSize: Integer = 1000;
   TFDebugLog: TextFile;
   DebugLogOpened: Boolean = False;
-  // «‡ÔËÒ¸
+  // –ó–∞–ø–∏—Å—å
   DefaultAudioDeviceNumber: Integer = 0;
   MaxLevelOnAutoRecord: Integer = 57;
   MaxLevelOnAutoRecordInterrupt: Integer = 4;
@@ -100,66 +257,67 @@ var
   StartSaveSettings: Boolean = False;
   EnableExecCommand: Boolean = True;
   DefaultCommandExec: String = '';
-  // œÓÍÒË
+  // –ü—Ä–æ–∫—Å–∏
   UseProxy: Boolean = False;
   ProxyAuth: Boolean = False;
   ProxyAddress: String = '';
   ProxyPort: String = '';
   ProxyUser: String = '';
   ProxyUserPasswd: String = '';
-  // √Ó.ÍÎ‡‚Ë¯Ë
+  // –ì–æ—Ä.–∫–ª–∞–≤–∏—à–∏
   GlobalHotKeyEnable: Boolean = False;
   StartRecordHotKey: String = 'Ctrl+Alt+F10';
   StartRecordWithoutSendTextHotKey: String = 'Ctrl+Alt+F11';
   StartRecordWithoutExecCommandHotKey: String = 'Ctrl+Alt+F12';
   SwitchesLanguageRecognizeHotKey: String = 'Ctrl+Alt+R';
-  // ƒÂÈÒÚ‚ËÂ ÍÌÓÔÍË "ŒÒÚ‡ÌÓ‚ËÚ¸ Á‡ÔËÒ¸"
+  // –î–µ–π—Å—Ç–≤–∏–µ –∫–Ω–æ–ø–∫–∏ "–û—Å—Ç–∞–Ω–æ–≤–∏—Ç—å –∑–∞–ø–∏—Å—å"
   StopRecordAction: Integer = 0;
-  // ¬ÒÔÎ˚‚‡˛˘ËÂ ÒÓÓ·˘ÂÌËˇ
+  // –í—Å–ø–ª—ã–≤–∞—é—â–∏–µ —Å–æ–æ–±—â–µ–Ω–∏—è
   ShowTrayEvents: Boolean = False;
-  // œÂÂ‰‡˜‡ ÚÂÍÒÚ‡ ‚ ‰Û„ËÂ ÔÓ„‡ÏÏ˚
+  // –ü–µ—Ä–µ–¥–∞—á–∞ —Ç–µ–∫—Å—Ç–∞ –≤ –¥—Ä—É–≥–∏–µ –ø—Ä–æ–≥—Ä–∞–º–º—ã
   EnableSendText: Boolean = False;
   ClassNameReciver: String = 'Edit';
   MethodSendingText: Integer = 0;
   EnableSendTextInactiveWindow: Boolean = False;
   InactiveWindowCaption: String = 'MSpeech Reciver Demo';
-  // œÓÁ‡˜ÌÓÒÚ¸ ÓÍÓÌ
+  // –ü—Ä–æ–∑—Ä–∞—á–Ω–æ—Å—Ç—å –æ–∫–æ–Ω
   AlphaBlendEnable: Boolean = False;
   AlphaBlendEnableValue: Integer = 255;
-  // ƒÎˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË
+  // –î–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏
   CoreLanguage: String;
   MainFormHandle: HWND;
   SettingsFormHandle: HWND;
   LogFormHandle: HWND;
   LangDoc: IXMLDocument;
   DefaultLanguage: String;
-  //  ÓÂÍˆËˇ ÚÂÍÒÚ‡ ÔË ÔÂÂ‰‡˜Â
-  EnableText—orrection: Boolean = False;
+  // –ö–æ—Ä—Ä–µ–∫—Ü–∏—è —Ç–µ–∫—Å—Ç–∞ –ø—Ä–∏ –ø–µ—Ä–µ–¥–∞—á–µ
+  EnableText–°orrection: Boolean = False;
   EnableTextReplace: Boolean = False;
   FirstLetterUpper: Boolean = False;
-  // ﬂÁ˚Í ‡ÒÔÓÁÌ‡‚‡ÌËˇ ÔÓ ÛÏÓÎ˜‡ÌË˛
+  // –Ø–∑—ã–∫ —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è –ø–æ —É–º–æ–ª—á–∞–Ω–∏—é
   CurrentSpeechRecognizeLang: String;
   DefaultSpeechRecognizeLang: String = 'ru-RU';
   SecondSpeechRecognizeLang: String = 'en-US';
-  // PID ÔÓˆÂÒÒ‡
+  // PID –ø—Ä–æ—Ü–µ—Å—Å–∞
   GlobalProcessPID: DWORD = 0;
-  // —ËÌÚÂÁ „ÓÎÓÒ‡
+  // –°–∏–Ω—Ç–µ–∑ –≥–æ–ª–æ—Å–∞
   EnableTextToSpeech: Boolean = False;
   TextToSpeechEngine: Integer = 0;
   SAPIVoiceNum: Integer = 0;
   SAPIVoiceVolume: Integer = 100;
   SAPIVoiceSpeed: Integer = 0;
   GoogleTL: String = 'ru';
-  // ‘ËÎ¸Ú‡ˆËˇ Ë VAD
+  YandexTL: String = 'ru_RU';
+  // –§–∏–ª—å—Ç—Ä–∞—Ü–∏—è –∏ VAD
   EnableFilters: Boolean = False;
-  FilterType: Integer = 0; // 0 - WindowedSincFilter ËÎË 1 - VoiceFilter
-  // 1 ÚËÔ ÙËÎ¸Ú‡
+  FilterType: Integer = 0; // 0 - WindowedSincFilter –∏–ª–∏ 1 - VoiceFilter
+  // 1 —Ç–∏–ø —Ñ–∏–ª—å—Ç—Ä–∞
   SincFilterType: Integer = 1;
   SincFilterLowFreq: Integer = 300;
   SincFilterHighFreq: Integer = 4000;
   SincFilterKernelWidth: Integer = 32;
   SincFilterWindowType: Integer = 0;
-  // 2 “ËÔ ÙËÎ¸Ú‡
+  // 2 –¢–∏–ø —Ñ–∏–ª—å—Ç—Ä–∞
   VoiceFilterEnableAGC: Boolean = False;
   VoiceFilterEnableNoiseReduction: Boolean = False;
   VoiceFilterEnableVAD: Boolean = True;
@@ -167,6 +325,12 @@ var
   GoogleAPIKey: String = '';
   // Yandex API Key
   YandexAPIKey: String = '';
+  // –û—Å—Ç–∞–Ω–æ–≤–∫–∞ —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è –ø–æ—Å–ª–µ –±–ª–æ–∫–∏—Ä–æ–≤–∫–∏ –ü–ö
+  StopRecognitionAfterLockingComputer: Boolean = True;
+  // –ó–∞–ø—É—Å–∫  —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏—è –ø–æ—Å–ª–µ —Ä–∞–∑–±–ª–æ–∫–∏—Ä–æ–≤–∫–∏ –ü–ö
+  StartRecognitionAfterUnlockingComputer: Boolean = False;
+  // –ó–∞–ø—É—Å–∫ MSpeech –ø—Ä–∏ –≤—Ö–æ–¥–µ –≤ —Å–∏—Å—Ç–µ–º—É
+  AutoRunMSpeech: Boolean = True;
 
 function IsNumber(const S: String): Boolean;
 function BoolToStr(Bool: Boolean): String;
@@ -221,8 +385,15 @@ function GetMyFileSize(const Path: WideString): Integer;
 function OpenLogFile(LogPath: WideString): Boolean;
 procedure CloseLogFile;
 procedure WriteInLog(LogPath: WideString; TextString: String);
-function DetectTextToSpeechRegionStr(RegionID: Integer): String;
-function DetectTextToSpeechRegionID(RegionStr: String): Integer;
+function GetGoogleTTSLanguageCode(LangName: TGoogleTTSLanguage): String;
+function GoogleTTSLanguageCodeToName(const Value: String) : String;
+function GoogleTTSLanguageNameToCode(const Value: String) : String;
+function GetYandexTTSLanguageCode(LangName: TYandexTTSLanguage): String;
+function YandexTTSLanguageCodeToName(const Value: String) : String;
+function YandexTTSLanguageNameToCode(const Value: String) : String;
+function GetTTSLanguages(mDest: TStrings; mTTSEngine: TTTSEngine; mDisplayName: Boolean = False): Boolean;
+function GetTTSEngines(mDest: TStrings): Boolean;
+function GetTTSLanguageNum(mDest: TStrings; mTTSEngine: TTTSEngine): Integer;
 function DetectEventsType(CType: Integer): String; overload;
 function DetectEventsType(CType: TEventsType): Integer; overload;
 function DetectEventsTypeName(CType: TEventsType): String; overload;
@@ -234,6 +405,18 @@ function DetectEventsTypeStatusName(CType: String): TEventsTypeStatus; overload;
 procedure LoadTextToSpeechDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 function GetSpecialFolderPath(FolderType: Integer) : WideString;
+function HackTStringsIndexOf(MyStrings: TStrings; const S: String): TArrayOfInteger;
+procedure AddAllUserAutorun(AppTitle, AppExe: String);
+procedure AddCurrentUserAutorun(AppTitle, AppExe: String);
+procedure DeleteAllUserAutorun(AppTitle: String);
+procedure DeleteCurrentUserAutorun(AppTitle: String);
+function CheckAllUserAutorun(AppTitle: String): Boolean;
+function CheckCurrentUserAutorun(AppTitle: String): Boolean;
+function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
+function YandexTextToSpeech(const Text, MP3FileName: String): Boolean;
+function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64; overload;
+function HTTPYandexGetSize(URL: String): int64;
+function HTTPGetSize(URL: String): int64; overload;
 
 implementation
 
@@ -271,7 +454,7 @@ begin
     Result := True;
 end;
 
-// «‡„ÛÊ‡ÂÏ Ì‡ÒÚÓÈÍË
+// –ó–∞–≥—Ä—É–∂–∞–µ–º –Ω–∞—Å—Ç—Ä–æ–π–∫–∏
 procedure LoadINI(INIPath: String);
 var
   Path: WideString;
@@ -311,12 +494,15 @@ begin
       ShowTrayEvents := INI.ReadBool('Main', 'ShowTrayEvents', False);
       EnableExecCommand := INI.ReadBool('Main', 'EnableExecCommand', True);
       DefaultCommandExec := INI.ReadString('Main', 'DefaultCommandExec', '');
+      StopRecognitionAfterLockingComputer := INI.ReadBool('Main', 'StopRecognitionAfterLockingComputer', True);
+      StartRecognitionAfterUnlockingComputer := INI.ReadBool('Main', 'StartRecognitionAfterUnlockingComputer', False);
+      AutoRunMSpeech := INI.ReadBool('Main', 'AutoRunMSpeech', True);
       EnableSendText := INI.ReadBool('SendText', 'EnableSendText', False);
       EnableSendTextInactiveWindow := INI.ReadBool('SendText', 'EnableSendTextInactiveWindow', False);
       ClassNameReciver := INI.ReadString('SendText', 'ClassNameReciver', 'Edit');
       MethodSendingText := INI.ReadInteger('SendText', 'MethodSendingText', 0);
-      InactiveWindowCaption := INI.ReadString('SendText', 'InactiveWindowCaption', '*¡ÎÓÍÌÓÚ');
-      EnableText—orrection := INI.ReadBool('SendText', 'EnableText—orrection', False);
+      InactiveWindowCaption := INI.ReadString('SendText', 'InactiveWindowCaption', '*–ë–ª–æ–∫–Ω–æ—Ç');
+      EnableText–°orrection := INI.ReadBool('SendText', 'EnableText–°orrection', False);
       EnableTextReplace := INI.ReadBool('SendText', 'EnableTextReplace', False);
       FirstLetterUpper := INI.ReadBool('SendText', 'FirstLetterUpper', False);
       UseProxy := INI.ReadBool('Proxy', 'UseProxy', False);
@@ -336,6 +522,7 @@ begin
       SAPIVoiceVolume := INI.ReadInteger('TextToSpeech', 'SAPIVoiceVolume', 100);
       SAPIVoiceSpeed := INI.ReadInteger('TextToSpeech', 'SAPIVoiceSpeed', 0);
       GoogleTL := INI.ReadString('TextToSpeech', 'GoogleTL', 'ru');
+      YandexTL := INI.ReadString('TextToSpeech', 'YandexTL', 'ru_RU');
       INIFileLoaded := True;
     end
     else
@@ -368,12 +555,15 @@ begin
       INI.WriteBool('Main', 'VoiceFilterEnableAGC', VoiceFilterEnableAGC);
       INI.WriteBool('Main', 'VoiceFilterEnableNoiseReduction', VoiceFilterEnableNoiseReduction);
       INI.WriteBool('Main', 'VoiceFilterEnableVAD', VoiceFilterEnableVAD);
+      INI.WriteBool('Main', 'StopRecognitionAfterLockingComputer', StopRecognitionAfterLockingComputer);
+      INI.WriteBool('Main', 'StartRecognitionAfterUnlockingComputer', StartRecognitionAfterUnlockingComputer);
+      INI.WriteBool('Main', 'AutoRunMSpeech', AutoRunMSpeech);
       INI.WriteBool('SendText', 'EnableSendText', EnableSendText);
       INI.WriteBool('SendText', 'EnableSendTextInactiveWindow', EnableSendTextInactiveWindow);
       INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
       INI.WriteInteger('SendText', 'MethodSendingText', MethodSendingText);
       INI.WriteString('SendText', 'InactiveWindowCaption', InactiveWindowCaption);
-      INI.WriteBool('SendText', 'EnableText—orrection', EnableText—orrection);
+      INI.WriteBool('SendText', 'EnableText–°orrection', EnableText–°orrection);
       INI.WriteBool('SendText', 'EnableTextReplace', EnableTextReplace);
       INI.WriteBool('SendText', 'FirstLetterUpper', FirstLetterUpper);
       INI.WriteBool('Proxy', 'UseProxy', False);
@@ -393,6 +583,7 @@ begin
       INI.WriteInteger('TextToSpeech', 'SAPIVoiceVolume', SAPIVoiceVolume);
       INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
       INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
+      INI.WriteString('TextToSpeech', 'YandexTL', YandexTL);
       INIFileLoaded := False;
     end;
     INI.Free;
@@ -442,12 +633,15 @@ begin
     INI.WriteBool('Main', 'VoiceFilterEnableAGC', VoiceFilterEnableAGC);
     INI.WriteBool('Main', 'VoiceFilterEnableNoiseReduction', VoiceFilterEnableNoiseReduction);
     INI.WriteBool('Main', 'VoiceFilterEnableVAD', VoiceFilterEnableVAD);
+    INI.WriteBool('Main', 'StopRecognitionAfterLockingComputer', StopRecognitionAfterLockingComputer);
+    INI.WriteBool('Main', 'StartRecognitionAfterUnlockingComputer', StartRecognitionAfterUnlockingComputer);
+    INI.WriteBool('Main', 'AutoRunMSpeech', AutoRunMSpeech);
     INI.WriteBool('SendText', 'EnableSendText', EnableSendText);
     INI.WriteBool('SendText', 'EnableSendTextInactiveWindow', EnableSendTextInactiveWindow);
     INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
     INI.WriteInteger('SendText', 'MethodSendingText', MethodSendingText);
     INI.WriteString('SendText', 'InactiveWindowCaption', InactiveWindowCaption);
-    INI.WriteBool('SendText', 'EnableText—orrection', EnableText—orrection);
+    INI.WriteBool('SendText', 'EnableText–°orrection', EnableText–°orrection);
     INI.WriteBool('SendText', 'EnableTextReplace', EnableTextReplace);
     INI.WriteBool('SendText', 'FirstLetterUpper', FirstLetterUpper);
     INI.WriteBool('Proxy', 'UseProxy', UseProxy);
@@ -467,6 +661,7 @@ begin
     INI.WriteInteger('TextToSpeech', 'SAPIVoiceVolume', SAPIVoiceVolume);
     INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
     INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
+    INI.WriteString('TextToSpeech', 'YandexTL', YandexTL);
     MsgInf(ProgramsName, GetLangStr('MsgInf7'));
   finally
     INI.Free;
@@ -474,7 +669,7 @@ begin
 end;
 
 {
-DwMajorVersion:DWORD - ÒÚ‡¯‡ˇ ˆËÙ‡ ‚ÂÒËË Windows
+DwMajorVersion:DWORD - —Å—Ç–∞—Ä—à–∞—è —Ü–∏—Ñ—Ä–∞ –≤–µ—Ä—Å–∏–∏ Windows
 
    Windows 95      - 4
    Windows 98      - 4
@@ -487,7 +682,7 @@ DwMajorVersion:DWORD - ÒÚ‡¯‡ˇ ˆËÙ‡ ‚ÂÒËË Windows
    Windows 7       - 6
    Windows 8       - 7
 
-DwMinorVersion: DWORD - ÏÎ‡‰¯‡ˇ ˆËÙ‡ ‚ÂÒËË
+DwMinorVersion: DWORD - –º–ª–∞–¥—à–∞—è —Ü–∏—Ñ—Ä–∞ –≤–µ—Ä—Å–∏–∏
 
    Windows 95      - 0
    Windows 98      - 10
@@ -501,9 +696,9 @@ DwMinorVersion: DWORD - ÏÎ‡‰¯‡ˇ ˆËÙ‡ ‚ÂÒËË
    Windows 8       - 1
 
 DwBuildNumber: DWORD
- Win NT 4 - ÌÓÏÂ ·ËÎ‰‡
- Win 9x   - ÒÚ‡¯ËÈ ·‡ÈÚ - ÒÚ‡¯‡ˇ Ë ÏÎ‡‰¯‡ˇ ˆËÙ˚ ‚ÂÒËË / ÏÎ‡‰¯ËÈ - ÌÓÏÂ
-·ËÎ‰‡
+ Win NT 4 - –Ω–æ–º–µ—Ä –±–∏–ª–¥–∞
+ Win 9x   - —Å—Ç–∞—Ä—à–∏–π –±–∞–π—Ç - —Å—Ç–∞—Ä—à–∞—è –∏ –º–ª–∞–¥—à–∞—è —Ü–∏—Ñ—Ä—ã –≤–µ—Ä—Å–∏–∏ / –º–ª–∞–¥—à–∏–π - –Ω–æ–º–µ—Ä
+–±–∏–ª–¥–∞
 
 dwPlatformId: DWORD
 
@@ -512,14 +707,14 @@ dwPlatformId: DWORD
   VER_PLATFORM_WIN32_NT          Win32 on Windows NT, 2000 
 
 SzCSDVersion:DWORD
-  NT - ÒÓ‰ÂÊËÚ P—har Ò ËÌÙÓ Ó ÛÒÚ‡ÌÓ‚ÎÂÌÌÓÏ ServicePack
-  9x - ‰ÓÔ. ËÌÙÓ, ÏÓÊÂÚ Ë ÌÂ ·˚Ú¸
+  NT - —Å–æ–¥–µ—Ä–∂–∏—Ç P–°har —Å –∏–Ω—Ñ–æ –æ —É—Å—Ç–∞–Ω–æ–≤–ª–µ–Ω–Ω–æ–º ServicePack
+  9x - –¥–æ–ø. –∏–Ω—Ñ–æ, –º–æ–∂–µ—Ç –∏ –Ω–µ –±—ã—Ç—å
 }
 function DetectWinVersion: TWinVersion;
 var
   OSVersionInfo : TOSVersionInfo;
 begin
-  Result := wvUnknown;                      // ÕÂËÁ‚ÂÒÚÌ‡ˇ ‚ÂÒËˇ Œ—
+  Result := wvUnknown;                      // –ù–µ–∏–∑–≤–µ—Å—Ç–Ω–∞—è –≤–µ—Ä—Å–∏—è –û–°
   OSVersionInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
   if GetVersionEx(OSVersionInfo)
     then
@@ -550,7 +745,7 @@ begin
       end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËÂ ‚ÂÒËË Windows }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏–µ –≤–µ—Ä—Å–∏–∏ Windows }
 function DetectWinVersionStr: String;
 const
   VersStr : Array[TWinVersion] of String = (
@@ -571,7 +766,7 @@ begin
   Result := VersStr[DetectWinVersion];
 end;
 
-{ ŒÔÂ‰ÂÎˇÂÚ ‡ÁÏÂ Ù‡ÈÎ‡, ÂÒÎË Ù‡ÈÎ‡ ÌÂÚ ‚ÓÁ‚‡˘‡ÂÚ -1 }
+{ –û–ø—Ä–µ–¥–µ–ª—è–µ—Ç —Ä–∞–∑–º–µ—Ä —Ñ–∞–π–ª–∞, –µ—Å–ª–∏ —Ñ–∞–π–ª–∞ –Ω–µ—Ç –≤–æ–∑–≤—Ä–∞—â–∞–µ—Ç -1 }
 function GetFileSize(FileName: String): Integer;
 var
   FS: TFileStream;
@@ -588,7 +783,7 @@ begin
   FS.Free;
 end;
 
-{ œÓÁ‡˜ÌÓÒÚ¸ ÓÍÌ‡ MessageBox }
+{ –ü—Ä–æ–∑—Ä–∞—á–Ω–æ—Å—Ç—å –æ–∫–Ω–∞ MessageBox }
 procedure MakeTransp(winHWND: HWND);
 var
   exStyle: Longint;
@@ -602,7 +797,7 @@ begin
   SetLayeredWindowAttributes(winHWND, 0, AlphaBlendEnableValue, LWA_ALPHA);
 end;
 
-// ƒÎˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË
+// –î–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏
 procedure MsgDie(Caption, Msg: WideString);
 begin
   if AlphaBlendEnable then
@@ -610,7 +805,7 @@ begin
   MessageBoxW(GetForegroundWindow, PWideChar(Msg), PWideChar(Caption), MB_ICONERROR);
 end;
 
-// ƒÎˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË
+// –î–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏
 procedure MsgInf(Caption, Msg: WideString);
 begin
   if AlphaBlendEnable then
@@ -618,7 +813,7 @@ begin
   MessageBoxW(GetForegroundWindow, PWideChar(Msg), PWideChar(Caption), MB_ICONINFORMATION);
 end;
 
-{ ‘ÛÌÍˆËˇ ‰Îˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË }
+{ –§—É–Ω–∫—Ü–∏—è –¥–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏ }
 procedure CoreLanguageChanged;
 var
   LangFile: String;
@@ -650,7 +845,7 @@ begin
   end;
 end;
 
-// ƒÎˇ ÏÛÎ¸ÚËˇÁ˚ÍÓ‚ÓÈ ÔÓ‰‰ÂÊÍË
+// –î–ª—è –º—É–ª—å—Ç–∏—è–∑—ã–∫–æ–≤–æ–π –ø–æ–¥–¥–µ—Ä–∂–∫–∏
 function GetLangStr(StrID: String): WideString;
 begin
   if (not Assigned(LangDoc)) or (not LangDoc.Active) then
@@ -672,12 +867,12 @@ begin
   Result := StrPas(WinLanguage);
 end;
 
-{‘ÛÌÍˆËˇ ÓÒÛ˘ÂÒÚ‚ÎˇÂÚ Ò‡‚ÌÂÌËÂ ‰‚Ûı ÒÚÓÍ. œÂ‚‡ˇ ÒÚÓÍ‡
-ÏÓÊÂÚ ·˚Ú¸ Î˛·ÓÈ, ÌÓ ÓÌ‡ ÌÂ ‰ÓÎÊÌ‡ ÒÓ‰ÂÊ‡Ú¸ ÒËÏ‚ÓÎÓ‚ ÒÓÓÚ‚ÂÚÒÚ‚Ëˇ (* Ë ?).
-—ÚÓÍ‡ ÔÓËÒÍ‡ (ËÒÍÓÏ˚È Ó·‡Á) ÏÓÊÂÚ ÒÓ‰ÂÊ‡Ú¸ ‡·ÒÓÎ˛ÚÌÓ Î˛·˚Â ÒËÏ‚ÓÎ˚.
-ƒÎˇ ÔËÏÂ‡: MatchStrings('David Stidolph','*St*') ‚ÓÁ‚‡ÚËÚ True.
-¿‚ÚÓ ÓË„ËÌ‡Î¸ÌÓ„Ó C-ÍÓ‰‡ Sean Stanley
-¿‚ÚÓ ÔÓÚ‡ˆËË Ì‡ Delphi David Stidolph}
+{–§—É–Ω–∫—Ü–∏—è –æ—Å—É—â–µ—Å—Ç–≤–ª—è–µ—Ç —Å—Ä–∞–≤–Ω–µ–Ω–∏–µ –¥–≤—É—Ö —Å—Ç—Ä–æ–∫. –ü–µ—Ä–≤–∞—è —Å—Ç—Ä–æ–∫–∞
+–º–æ–∂–µ—Ç –±—ã—Ç—å –ª—é–±–æ–π, –Ω–æ –æ–Ω–∞ –Ω–µ –¥–æ–ª–∂–Ω–∞ —Å–æ–¥–µ—Ä–∂–∞—Ç—å —Å–∏–º–≤–æ–ª–æ–≤ —Å–æ–æ—Ç–≤–µ—Ç—Å—Ç–≤–∏—è (* –∏ ?).
+–°—Ç—Ä–æ–∫–∞ –ø–æ–∏—Å–∫–∞ (–∏—Å–∫–æ–º—ã–π –æ–±—Ä–∞–∑) –º–æ–∂–µ—Ç —Å–æ–¥–µ—Ä–∂–∞—Ç—å –∞–±—Å–æ–ª—é—Ç–Ω–æ –ª—é–±—ã–µ —Å–∏–º–≤–æ–ª—ã.
+–î–ª—è –ø—Ä–∏–º–µ—Ä–∞: MatchStrings('David Stidolph','*St*') –≤–æ–∑–≤—Ä–∞—Ç–∏—Ç True.
+–ê–≤—Ç–æ—Ä –æ—Ä–∏–≥–∏–Ω–∞–ª—å–Ω–æ–≥–æ C-–∫–æ–¥–∞ Sean Stanley
+–ê–≤—Ç–æ—Ä –ø–æ—Ä—Ç–∞—Ü–∏–∏ –Ω–∞ Delphi David Stidolph}
 function MatchStrings(source, pattern: String): Boolean;
 var
   pSource: array[0..255] of Char;
@@ -721,13 +916,13 @@ begin
   Result := MatchPattern(pSource, pPattern);
 end;
 
-{ ‘ÛÌÍˆËˇ ‰Îˇ ÔÓÎÛ˜ÂÌËˇ ËÏÂÌË Ù‡ÈÎ‡ ËÁ ÔÛÚË ·ÂÁ ËÎË Ò Â„Ó ‡Ò¯ËÂÌËÂÏ.
-  ¬ÓÁ‚‡˘‡ÂÚ ËÏˇ Ù‡ÈÎ‡, ·ÂÁ ËÎË Ò Â„Ó ‡Ò¯ËÂÌËÂÏ.
-  ¬ıÓ‰Ì˚Â Ô‡‡ÏÂÚ˚:
-  FileName - ËÏˇ Ù‡ÈÎ‡, ÍÓÚÓÓÂ Ì‡‰Ó Ó·‡·ÓÚ‡Ú¸
-  ShowExtension - ÂÒÎË TRUE, ÚÓ ÙÛÌÍˆËˇ ‚ÓÁ‚‡ÚËÚ ÍÓÓÚÍÓÂ ËÏˇ Ù‡ÈÎ‡
-  (·ÂÁ ÔÓÎÌÓ„Ó ÔÛÚË ‰ÓÒÚÛÔ‡ Í ÌÂÏÛ), Ò ‡Ò¯ËÂÌËÂÏ ˝ÚÓ„Ó Ù‡ÈÎ‡, ËÌ‡˜Â, ‚ÓÁ‚‡ÚËÚ
-  ÍÓÓÚÍÓÂ ËÏˇ Ù‡ÈÎ‡, ·ÂÁ ‡Ò¯ËÂÌËˇ ˝ÚÓ„Ó Ù‡ÈÎ‡. }
+{ –§—É–Ω–∫—Ü–∏—è –¥–ª—è –ø–æ–ª—É—á–µ–Ω–∏—è –∏–º–µ–Ω–∏ —Ñ–∞–π–ª–∞ –∏–∑ –ø—É—Ç–∏ –±–µ–∑ –∏–ª–∏ —Å –µ–≥–æ —Ä–∞—Å—à–∏—Ä–µ–Ω–∏–µ–º.
+  –í–æ–∑–≤—Ä–∞—â–∞–µ—Ç –∏–º—è —Ñ–∞–π–ª–∞, –±–µ–∑ –∏–ª–∏ —Å –µ–≥–æ —Ä–∞—Å—à–∏—Ä–µ–Ω–∏–µ–º.
+  –í—Ö–æ–¥–Ω—ã–µ –ø–∞—Ä–∞–º–µ—Ç—Ä—ã:
+  FileName - –∏–º—è —Ñ–∞–π–ª–∞, –∫–æ—Ç–æ—Ä–æ–µ –Ω–∞–¥–æ –æ–±—Ä–∞–±–æ—Ç–∞—Ç—å
+  ShowExtension - –µ—Å–ª–∏ TRUE, —Ç–æ —Ñ—É–Ω–∫—Ü–∏—è –≤–æ–∑–≤—Ä–∞—Ç–∏—Ç –∫–æ—Ä–æ—Ç–∫–æ–µ –∏–º—è —Ñ–∞–π–ª–∞
+  (–±–µ–∑ –ø–æ–ª–Ω–æ–≥–æ –ø—É—Ç–∏ –¥–æ—Å—Ç—É–ø–∞ –∫ –Ω–µ–º—É), —Å —Ä–∞—Å—à–∏—Ä–µ–Ω–∏–µ–º —ç—Ç–æ–≥–æ —Ñ–∞–π–ª–∞, –∏–Ω–∞—á–µ, –≤–æ–∑–≤—Ä–∞—Ç–∏—Ç
+  –∫–æ—Ä–æ—Ç–∫–æ–µ –∏–º—è —Ñ–∞–π–ª–∞, –±–µ–∑ —Ä–∞—Å—à–∏—Ä–µ–Ω–∏—è —ç—Ç–æ–≥–æ —Ñ–∞–π–ª–∞. }
 function ExtractFileNameEx(FileName: String; ShowExtension: Boolean): String;
 var
   I: Integer;
@@ -759,9 +954,9 @@ begin
     Result := '';
 end;
 
-{ ‘ÛÌÍˆËˇ ‡Á·Ë‚‡ÂÚ ÒÚÓÍÛ S Ì‡ ÒÎÓ‚‡, ‡Á‰ÂÎÂÌÌ˚Â ÒËÏ‚ÓÎ‡ÏË-‡Á‰ÂÎËÚÂÎˇÏË,
-ÛÍ‡Á‡ÌÌ˚ÏË ‚ ÒÚÓÍÂ Sep. ‘ÛÌÍˆËˇ ‚ÓÁ‚‡˘‡ÂÚ ÔÂ‚ÓÂ Ì‡È‰ÂÌÌÓÂ ÒÎÓ‚Ó, ÔË
-˝ÚÓÏ ËÁ ÒÚÓÍË S Û‰‡ÎˇÂÚÒˇ Ì‡˜‡Î¸Ì‡ˇ ˜‡ÒÚ¸ ‰Ó ÒÎÂ‰Û˛˘Â„Ó ÒÎÓ‚‡ }
+{ –§—É–Ω–∫—Ü–∏—è —Ä–∞–∑–±–∏–≤–∞–µ—Ç —Å—Ç—Ä–æ–∫—É S –Ω–∞ —Å–ª–æ–≤–∞, —Ä–∞–∑–¥–µ–ª–µ–Ω–Ω—ã–µ —Å–∏–º–≤–æ–ª–∞–º–∏-—Ä–∞–∑–¥–µ–ª–∏—Ç–µ–ª—è–º–∏,
+—É–∫–∞–∑–∞–Ω–Ω—ã–º–∏ –≤ —Å—Ç—Ä–æ–∫–µ Sep. –§—É–Ω–∫—Ü–∏—è –≤–æ–∑–≤—Ä–∞—â–∞–µ—Ç –ø–µ—Ä–≤–æ–µ –Ω–∞–π–¥–µ–Ω–Ω–æ–µ —Å–ª–æ–≤–æ, –ø—Ä–∏
+—ç—Ç–æ–º –∏–∑ —Å—Ç—Ä–æ–∫–∏ S —É–¥–∞–ª—è–µ—Ç—Å—è –Ω–∞—á–∞–ª—å–Ω–∞—è —á–∞—Å—Ç—å –¥–æ —Å–ª–µ–¥—É—é—â–µ–≥–æ —Å–ª–æ–≤–∞ }
 function Tok(Sep: String; var S: String): String;
 
   function isoneof(c, s: string): Boolean;
@@ -803,7 +998,7 @@ begin
   Result := t;
 end;
 
-{ ‘ÛÌÍˆËˇ ˜ÚÂÌËˇ ÁÌ‡˜ÂÌËˇ Ô‡‡ÏÂÚ‡ ËÁ Ù‡ÈÎ‡ Ì‡ÒÚÓÂÍ }
+{ –§—É–Ω–∫—Ü–∏—è —á—Ç–µ–Ω–∏—è –∑–Ω–∞—á–µ–Ω–∏—è –ø–∞—Ä–∞–º–µ—Ç—Ä–∞ –∏–∑ —Ñ–∞–π–ª–∞ –Ω–∞—Å—Ç—Ä–æ–µ–∫ }
 function ReadCustomINI(INIPath, CustomSection, CustomParams, DefaultParamsStr: String): String;
 var
   Path: String;
@@ -824,7 +1019,7 @@ begin
     MsgDie(ProgramsName, Format(GetLangStr('MsgErr4'), [Path]));
 end;
 
-{ ‘ÛÌÍˆËˇ ˜ÚÂÌËˇ ÁÌ‡˜ÂÌËˇ Ô‡‡ÏÂÚ‡ ËÁ Ù‡ÈÎ‡ Ì‡ÒÚÓÂÍ }
+{ –§—É–Ω–∫—Ü–∏—è —á—Ç–µ–Ω–∏—è –∑–Ω–∞—á–µ–Ω–∏—è –ø–∞—Ä–∞–º–µ—Ç—Ä–∞ –∏–∑ —Ñ–∞–π–ª–∞ –Ω–∞—Å—Ç—Ä–æ–µ–∫ }
 function ReadCustomINI(INIPath, CustomSection, CustomParams: String; DefaultParamsStr: Boolean): Boolean;
 var
   Path: String;
@@ -845,7 +1040,7 @@ begin
     MsgDie(ProgramsName, Format(GetLangStr('MsgErr4'), [Path]));
 end;
 
-{ œÓˆÂ‰Û‡ Á‡ÔËÒË ÁÌ‡˜ÂÌËˇ Ô‡‡ÏÂÚ‡ ‚ Ù‡ÈÎ Ì‡ÒÚÓÂÍ }
+{ –ü—Ä–æ—Ü–µ–¥—É—Ä–∞ –∑–∞–ø–∏—Å–∏ –∑–Ω–∞—á–µ–Ω–∏—è –ø–∞—Ä–∞–º–µ—Ç—Ä–∞ –≤ —Ñ–∞–π–ª –Ω–∞—Å—Ç—Ä–æ–µ–∫ }
 procedure WriteCustomINI(INIPath, CustomSection, CustomParams, ParamsStr: String);
 var
   Path: String;
@@ -856,7 +1051,7 @@ begin
   Path := INIPath + ININame;
   if FileExists(Path) then
   begin
-    // ∆‰ÂÏ ÔÓÍ‡ Ù‡ÈÎ ÓÒ‚Ó·Ó‰ËÚ ‡ÌÚË‚Ë¸ ËÎË Â˘Â Í‡Í‡ˇ-ÌË·Û‰¸ „‡‰ÓÒÚ¸
+    // –ñ–¥–µ–º –ø–æ–∫–∞ —Ñ–∞–π–ª –æ—Å–≤–æ–±–æ–¥–∏—Ç –∞–Ω—Ç–∏–≤–∏—Ä—å –∏–ª–∏ –µ—â–µ –∫–∞–∫–∞—è-–Ω–∏–±—É–¥—å –≥–∞–¥–æ—Å—Ç—å
     IsFileClosed := False;
     repeat
       sFile := CreateFile(PChar(Path),GENERIC_READ or GENERIC_WRITE,0,nil,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
@@ -878,7 +1073,7 @@ begin
     MsgDie(ProgramsName, Format(GetLangStr('MsgErr4'), [Path]));
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËÂ ÏÂÚÓ‰‡ ÔÂÂ‰‡˜Ë ÚÂÍÒÚ‡ }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏–µ –º–µ—Ç–æ–¥–∞ –ø–µ—Ä–µ–¥–∞—á–∏ —Ç–µ–∫—Å—Ç–∞ }
 function DetectMethodSendingText(Method: Integer): TMethodSendingText;
 begin
   case Method of
@@ -889,7 +1084,7 @@ begin
   end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÍÓÏ‡Ì‰˚ (ÒÚÓÍ‡) ÔÓ ÌÓÏÂÛ }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ –∫–æ–º–∞–Ω–¥—ã (—Å—Ç—Ä–æ–∫–∞) –ø–æ –Ω–æ–º–µ—Ä—É }
 function DetectCommandType(CType: Integer): String;
 begin
   Result := DetectCommandTypeName(mExecPrograms);
@@ -907,7 +1102,7 @@ begin
   end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÌÓÏÂ‡ ÚËÔ‡ ÍÓÏ‡Ì‰˚ ÔÓ TCommandType }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –Ω–æ–º–µ—Ä–∞ —Ç–∏–ø–∞ –∫–æ–º–∞–Ω–¥—ã –ø–æ TCommandType }
 function DetectCommandType(CType: TCommandType): Integer;
 begin
   Result := Integer(mExecPrograms);
@@ -925,13 +1120,13 @@ begin
   end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ËÏÂÌË ÍÓÏ‡Ì‰˚ ÔÓ TCommandType }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –∏–º–µ–Ω–∏ –∫–æ–º–∞–Ω–¥—ã –ø–æ TCommandType }
 function DetectCommandTypeName(CType: TCommandType): String;
 begin
   Result := GetLangStr(CommandStr[CType]);
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÍÓÏ‡Ì‰˚ (TCommandType) ÔÓ ËÏÂÌË }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ –∫–æ–º–∞–Ω–¥—ã (TCommandType) –ø–æ –∏–º–µ–Ω–∏ }
 function DetectCommandTypeName(CType: String): TCommandType;
 begin
   Result := mExecPrograms;
@@ -945,41 +1140,161 @@ begin
     Result := mTextToSpeech;
 end;
 
-{ œÂÂ‚Ó‰ ‚ÌÛÚÂÌÌÓ„Ó ID Â„ËÓÌ‡ ËÁ CBRegion ‚ Â„Ó ÍÓ‰ }
+{ –ü–µ—Ä–µ–≤–æ–¥ –≤–Ω—É—Ç—Ä–µ–Ω–Ω–æ–≥–æ ID —Ä–µ–≥–∏–æ–Ω–∞ –∏–∑ CBRegion –≤ –µ–≥–æ –∫–æ–¥ }
 function DetectRegionStr(RegionID: Integer): String;
 begin
-  Result := RegionArray[RegionID];
+  Result := GoogleRegionArray[RegionID];
 end;
 
-{ œÂÂ‚Ó‰ ÍÓ‰‡ Â„ËÓÌ‡ ‚ Â„Ó ‚ÌÛÚÂÌÌËÈ ID ËÁ CBRegion }
+{ –ü–µ—Ä–µ–≤–æ–¥ –∫–æ–¥–∞ —Ä–µ–≥–∏–æ–Ω–∞ –≤ –µ–≥–æ –≤–Ω—É—Ç—Ä–µ–Ω–Ω–∏–π ID –∏–∑ CBRegion }
 function DetectRegionID(RegionStr: String): Integer;
 var
   Cnt: Integer;
 begin
   Result := 0;
-  for Cnt := 0 to High(RegionArray) do
-    if RegionArray[Cnt] = RegionStr then
+  for Cnt := 0 to High(GoogleRegionArray) do
+    if GoogleRegionArray[Cnt] = RegionStr then
       Result := Cnt;
 end;
 
-{ œÂÂ‚Ó‰ ‚ÌÛÚÂÌÌÓ„Ó ID Â„ËÓÌ‡ ËÁ CBRegion ‚ Â„Ó ÍÓ‰ }
-function DetectTextToSpeechRegionStr(RegionID: Integer): String;
+// TTS Google
+
+function GetGoogleTTSLanguageCode(LangName: TGoogleTTSLanguage): String;
 begin
-  Result := TextToSpeechRegionArray[RegionID];
+  Result := GoogleTTSLanguageList[LangName].LangCode;
 end;
 
-{ œÂÂ‚Ó‰ ÍÓ‰‡ Â„ËÓÌ‡ ‚ Â„Ó ‚ÌÛÚÂÌÌËÈ ID ËÁ CBRegion }
-function DetectTextToSpeechRegionID(RegionStr: String): Integer;
+function GoogleTTSLanguageCodeToName(const Value: String) : String;
 var
-  Cnt: Integer;
+  sLng : TGoogleTTSLanguage;
+begin
+  Result := '';
+  for sLng := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
+    if SameText(String(AnsiString(GoogleTTSLanguageList[sLng].LangCode)), Value) then
+    begin
+      Result := GoogleTTSLanguageList[sLng].LangDisplayName;
+      Break;
+    end;
+end;
+
+function GoogleTTSLanguageNameToCode(const Value: String) : String;
+var
+  sLang : TGoogleTTSLanguage;
+begin
+  Result := '';
+  for sLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
+    if SameText(GoogleTTSLanguageList[sLang].LangDisplayName, Value) then
+    begin
+      Result := String(AnsiString(GoogleTTSLanguageList[sLang].LangCode));
+      Break;
+    end;
+end;
+
+// TTS Yandex
+
+function GetYandexTTSLanguageCode(LangName: TYandexTTSLanguage): String;
+begin
+  Result := YandexTTSLanguageList[LangName].LangCode;
+end;
+
+function YandexTTSLanguageCodeToName(const Value: String) : String;
+var
+  sLng : TYandexTTSLanguage;
+begin
+  Result := '';
+  for sLng := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
+    if SameText(String(AnsiString(YandexTTSLanguageList[sLng].LangCode)), Value) then
+    begin
+      Result := YandexTTSLanguageList[sLng].LangDisplayName;
+      Break;
+    end;
+end;
+
+function YandexTTSLanguageNameToCode(const Value: String) : String;
+var
+  sLang : TYandexTTSLanguage;
+begin
+  Result := '';
+  for sLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
+    if SameText(YandexTTSLanguageList[sLang].LangDisplayName, Value) then
+    begin
+      Result := String(AnsiString(YandexTTSLanguageList[sLang].LangCode));
+      Break;
+    end;
+end;
+
+// TTS
+
+function GetTTSLanguages(mDest: TStrings; mTTSEngine: TTTSEngine; mDisplayName: Boolean = False): Boolean;
+var
+  sGoogleLang: TGoogleTTSLanguage;
+  sYandexLang: TYandexTTSLanguage;
+begin
+  Result := False;
+  mDest.Clear;
+  if mTTSEngine= TTSGoogle then
+  begin
+    for sGoogleLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
+    begin
+      if mDisplayName then
+        mDest.Add(GoogleTTSLanguageList[sGoogleLang].LangDisplayName)
+      else
+        mDest.Add(String(AnsiString(GoogleTTSLanguageList[sGoogleLang].LangCode)));
+    end;
+  end
+  else if mTTSEngine= TTSYandex then
+  begin
+    for sYandexLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
+    begin
+      if mDisplayName then
+        mDest.Add(YandexTTSLanguageList[sYandexLang].LangDisplayName)
+      else
+        mDest.Add(String(AnsiString(YandexTTSLanguageList[sYandexLang].LangCode)));
+    end;
+  end;
+  if mDest.Count > 0 then
+    Result := True;
+end;
+
+function GetTTSEngines(mDest: TStrings): Boolean;
+var
+  sEngine: TTTSEngine;
+begin
+  Result := False;
+  mDest.Clear;
+  for sEngine := Low(TTSEngineList) to High(TTSEngineList) do
+    mDest.Add(TTSEngineList[sEngine].TTSDisplayName);
+  if mDest.Count > 0 then
+    Result := True;
+end;
+
+function GetTTSLanguageNum(mDest: TStrings; mTTSEngine: TTTSEngine): Integer;
+var
+  sGoogleLang: TGoogleTTSLanguage;
+  sYandexLang: TYandexTTSLanguage;
 begin
   Result := 0;
-  for Cnt := 0 to High(TextToSpeechRegionArray) do
-    if TextToSpeechRegionArray[Cnt] = RegionStr then
-      Result := Cnt;
+  if mTTSEngine= TTSGoogle then
+  begin
+    for sGoogleLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
+    begin
+      if GoogleTTSLanguageList[sGoogleLang].LangCode = GoogleTL then
+        Result := mDest.IndexOf(GoogleTTSLanguageCodeToName(GoogleTL))
+    end;
+  end
+  else if mTTSEngine= TTSYandex then
+  begin
+    for sYandexLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
+    begin
+      if YandexTTSLanguageList[sYandexLang].LangCode = YandexTL then
+        Result := mDest.IndexOf(YandexTTSLanguageCodeToName(YandexTL))
+    end;
+  end;
 end;
 
-{ «‡„ÛÊÍ‡ ‰‡ÌÌ˚ı Á‡ÏÂÌ˚ ‚ TStringGrid ËÁ Ù‡ÈÎ‡ }
+// End
+
+{ –ó–∞–≥—Ä—É–∂–∫–∞ –¥–∞–Ω–Ω—ã—Ö –∑–∞–º–µ–Ω—ã –≤ TStringGrid –∏–∑ —Ñ–∞–π–ª–∞ }
 procedure LoadReplaceDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 var
   k,l: Integer;
@@ -1020,15 +1335,15 @@ begin
     if CoreLanguage = 'Russian' then
     begin
       FileGrid.RowCount := 5;
-      FileGrid.Cells[0,0] := 'ÚÓ˜Í‡';
+      FileGrid.Cells[0,0] := '—Ç–æ—á–∫–∞';
       FileGrid.Cells[1,0] := '.';
-      FileGrid.Cells[0,1] := 'Á‡ÔˇÚ‡ˇ';
+      FileGrid.Cells[0,1] := '–∑–∞–ø—è—Ç–∞—è';
       FileGrid.Cells[1,1] := ',';
-      FileGrid.Cells[0,2] := '‚ÓÒÍÎËˆ‡ÚÂÎ¸Ì˚È ÁÌ‡Í';
+      FileGrid.Cells[0,2] := '–≤–æ—Å–∫–ª–∏—Ü–∞—Ç–µ–ª—å–Ω—ã–π –∑–Ω–∞–∫';
       FileGrid.Cells[1,2] := '!';
-      FileGrid.Cells[0,3] := '‚ÓÔÓÒËÚÂÎ¸Ì˚È ÁÌ‡Í';
+      FileGrid.Cells[0,3] := '–≤–æ–ø—Ä–æ—Å–∏—Ç–µ–ª—å–Ω—ã–π –∑–Ω–∞–∫';
       FileGrid.Cells[1,3] := '?';
-      FileGrid.Cells[0,4] := 'ÚËÂ';
+      FileGrid.Cells[0,4] := '—Ç–∏—Ä–µ';
       FileGrid.Cells[1,4] := '-';
     end
     else
@@ -1048,7 +1363,7 @@ begin
   end;
 end;
 
-{ —Óı‡ÌÂÌËÂ ‰‡ÌÌ˚ı Á‡ÏÂÌ˚ ËÁ TStringGrid ‚ Ù‡ÈÎ }
+{ –°–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ –¥–∞–Ω–Ω—ã—Ö –∑–∞–º–µ–Ω—ã –∏–∑ TStringGrid –≤ —Ñ–∞–π–ª }
 procedure SaveReplaceDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 var
   ColN, RowN: Integer;
@@ -1074,7 +1389,7 @@ begin
   INI.Free;
 end;
 
-{ «‡„ÛÊÍ‡ ‰‡ÌÌ˚ı ÍÓÏ‡Ì‰ ‚ TStringGrid ËÁ Ù‡ÈÎ‡ }
+{ –ó–∞–≥—Ä—É–∑–∫–∞ –¥–∞–Ω–Ω—ã—Ö –∫–æ–º–∞–Ω–¥ –≤ TStringGrid –∏–∑ —Ñ–∞–π–ª–∞ }
 procedure LoadCommandDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 var
   k,l: Integer;
@@ -1098,7 +1413,7 @@ begin
       begin
         for ColN := 0 to ColC-1 do
         begin
-          if k = 2 then // 3-È ÒÚÓÎ·Âˆ
+          if k = 2 then // 3-–π —Å—Ç–æ–ª–±–µ—Ü
           begin
             if IsNumber(INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
             begin
@@ -1143,32 +1458,32 @@ begin
     if CoreLanguage = 'Russian' then
     begin
       FileGrid.RowCount := 9;
-      FileGrid.Cells[0,0] := '·ÎÓÍÌÓÚ';
+      FileGrid.Cells[0,0] := '–±–ª–æ–∫–Ω–æ—Ç';
       FileGrid.Cells[1,0] := 'notepad.exe';
       FileGrid.Cells[2,0] := DetectCommandType(0);
       FileGrid.Cells[0,1] := 'paint';
       FileGrid.Cells[1,1] := 'mspaint.exe';
       FileGrid.Cells[2,1] := DetectCommandType(0);
-      FileGrid.Cells[0,2] := 'Ò‚ÂÌÛÚ¸ ‚ÒÂ ÔÓ„‡ÏÏ˚';
+      FileGrid.Cells[0,2] := '—Å–≤–µ—Ä–Ω—É—Ç—å –≤—Å–µ –ø—Ä–æ–≥—Ä–∞–º–º—ã';
       FileGrid.Cells[1,2] := 'script\Show_Desktop.scf';
       FileGrid.Cells[2,2] := DetectCommandType(0);
-      FileGrid.Cells[0,3] := 'Á‡·ÎÓÍËÓ‚‡Ú¸ ÍÓÏÔ¸˛ÚÂ';
+      FileGrid.Cells[0,3] := '–∑–∞–±–ª–æ–∫–∏—Ä–æ–≤–∞—Ç—å –∫–æ–º–ø—å—é—Ç–µ—Ä';
       FileGrid.Cells[1,3] := 'script\Lock_Workstation.cmd';
       FileGrid.Cells[2,3] := DetectCommandType(0);
-      FileGrid.Cells[0,4] := '‚˚ÍÎ˛˜ËÚ¸ ÍÓÏÔ¸˛ÚÂ';
+      FileGrid.Cells[0,4] := '–≤—ã–∫–ª—é—á–∏—Ç—å –∫–æ–º–ø—å—é—Ç–µ—Ä';
       FileGrid.Cells[1,4] := 'script\Halt_Workstation.cmd';
       FileGrid.Cells[2,4] := DetectCommandType(0);
-      FileGrid.Cells[0,5] := 'ÔÂÂÁ‡„ÛÁËÚ¸ ÍÓÏÔ¸˛ÚÂ';
+      FileGrid.Cells[0,5] := '–ø–µ—Ä–µ–∑–∞–≥—Ä—É–∑–∏—Ç—å –∫–æ–º–ø—å—é—Ç–µ—Ä';
       FileGrid.Cells[1,5] := 'script\Reboot_Workstation.cmd';
       FileGrid.Cells[2,5] := DetectCommandType(0);
-      FileGrid.Cells[0,6] := 'Á‡‚Â¯ËÚ¸ ÒÂ‡ÌÒ';
+      FileGrid.Cells[0,6] := '–∑–∞–≤–µ—Ä—à–∏—Ç—å —Å–µ–∞–Ω—Å';
       FileGrid.Cells[1,6] := 'script\Logoff_Workstation.cmd';
       FileGrid.Cells[2,6] := DetectCommandType(0);
-      FileGrid.Cells[0,7] := 'ËÌÚÂÌÂÚ';
+      FileGrid.Cells[0,7] := '–∏–Ω—Ç–µ—Ä–Ω–µ—Ç';
       FileGrid.Cells[1,7] := 'firefox.exe';
       FileGrid.Cells[2,7] := DetectCommandType(0);
-      FileGrid.Cells[0,8] := 'ÔË‚ÂÚ';
-      FileGrid.Cells[1,8] := '‰Ó·˚È ‰ÂÌ¸';
+      FileGrid.Cells[0,8] := '–ø—Ä–∏–≤–µ—Ç';
+      FileGrid.Cells[1,8] := '–¥–æ–±—Ä—ã–π –¥–µ–Ω—å';
       FileGrid.Cells[2,8] := DetectCommandType(3);
     end
     else
@@ -1205,7 +1520,7 @@ begin
   end;
 end;
 
-{ —Óı‡ÌÂÌËÂ ‰‡ÌÌ˚ı ÍÓÏ‡Ì‰ ËÁ TStringGrid ‚ Ù‡ÈÎ }
+{ –°–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ –¥–∞–Ω–Ω—ã—Ö –∫–æ–º–∞–Ω–¥ –∏–∑ TStringGrid –≤ —Ñ–∞–π–ª }
 procedure SaveCommandDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 var
   ColN, RowN: Integer;
@@ -1222,7 +1537,7 @@ begin
     begin
       for ColN := 0 to FileGrid.ColCount-1 do
       begin
-        if ColN = 2 then // 3-È ÒÚÓÎ·Âˆ
+        if ColN = 2 then // 3-–π —Å—Ç–æ–ª–±–µ—Ü
         begin
           CTypeName := FileGrid.Cells[ColN,RowN];
           INI.WriteInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectCommandTypeName(CTypeName)));
@@ -1244,8 +1559,8 @@ var
   Str1, Str2: String;
   I, J, RowN, ColN: Integer;
 begin
-  // √ÛÁËÏ ÒÚ‡˚È ÒÔËÒÓÍ ÍÓÏ‡Ì‰ ‚ StringGrid
-  // ƒÂÎ‡ÂÏ Ú‡ÍÓÈ ËÁ‚‡Ú ÎË¯¸ Ò Ó‰ÌÓÈ ˆÂÎ¸˛ - ÎÂ„ÍÓ Â‡ÎËÁÛÂÏ˚È ÔÓËÒÍ ÔÓ ÍÓÎÓÌÍ‡Ï
+  // –ì—Ä—É–∑–∏–º —Å—Ç–∞—Ä—ã–π —Å–ø–∏—Å–æ–∫ –∫–æ–º–∞–Ω–¥ –≤ StringGrid
+  // –î–µ–ª–∞–µ–º —Ç–∞–∫–æ–π –∏–∑–≤—Ä–∞—Ç –ª–∏—à—å —Å –æ–¥–Ω–æ–π —Ü–µ–ª—å—é - –ª–µ–≥–∫–æ —Ä–µ–∞–ª–∏–∑—É–µ–º—ã–π –ø–æ–∏—Å–∫ –ø–æ –∫–æ–ª–æ–Ω–∫–∞–º
   I := 0;
   AssignFile(TF, MyFile);
   Reset(TF);
@@ -1275,14 +1590,14 @@ begin
   begin
     for ColN := 0 to FileGrid.ColCount-1 do
     begin
-      if ColN = 2 then // 3-È ÒÚÓÎ·Âˆ
+      if ColN = 2 then // 3-–π —Å—Ç–æ–ª–±–µ—Ü
         FileGrid.Cells[ColN,RowN] := DetectCommandType(0)
     end;
   end;
   FileGrid.RowCount := FileGrid.RowCount-1;
 end;
 
-{ œÂÂ‚Ó‰ ÔÂ‚˚ı ·ÛÍ‚ ‚ ÛÒÒÍÓÏ ÚÂÍÒÚÂ ‚ ‚ÂıÌËÈ Â„ËÒÚ }
+{ –ü–µ—Ä–µ–≤–æ–¥ –ø–µ—Ä–≤—ã—Ö –±—É–∫–≤ –≤ —Ä—É—Å—Å–∫–æ–º —Ç–µ–∫—Å—Ç–µ –≤ –≤–µ—Ä—Ö–Ω–∏–π —Ä–µ–≥–∏—Å—Ç—Ä }
 function RusLowercaseToUppercase(MyText: String): String;
 const
   rzd = ['.','!','?'];
@@ -1302,7 +1617,7 @@ begin
   end;
 end;
 
-{ œÂÂ‚Ó‰ ÔÂ‚˚ı ·ÛÍ‚ ‚ ‡Ì„ÎËÈÒÍÓÏ ÚÂÍÒÚÂ ‚ ‚ÂıÌËÈ Â„ËÒÚ }
+{ –ü–µ—Ä–µ–≤–æ–¥ –ø–µ—Ä–≤—ã—Ö –±—É–∫–≤ –≤ –∞–Ω–≥–ª–∏–π—Å–∫–æ–º —Ç–µ–∫—Å—Ç–µ –≤ –≤–µ—Ä—Ö–Ω–∏–π —Ä–µ–≥–∏—Å—Ç—Ä }
 function EngLowercaseToUppercase(MyText: String): String;
 const
   rzd = ['.','!','?'];
@@ -1321,12 +1636,12 @@ begin
   Result := MyText;
 end;
 
-{ ”ÁÌ‡ÂÏ ÌÓÏÂ ‚ÂÒËË ËÁ ÂÒÛÒÓ‚ }
+{ –£–∑–Ω–∞–µ–º –Ω–æ–º–µ—Ä –≤–µ—Ä—Å–∏–∏ –∏–∑ —Ä–µ—Å—É—Ä—Å–æ–≤ }
 function GetMyExeVersion: String;
 type
   TVerInfo = packed record
-    Info: Array[0..47] of Byte;       // ›ÚË 48 ·‡ÈÚ Ì‡Ï ÌÂ ÌÛÊÌ˚
-    Minor,Major,Build,Release: Word;  // ¬ÂÒËˇ ÔÓ„‡ÏÏ˚
+    Info: Array[0..47] of Byte;       // –≠—Ç–∏ 48 –±–∞–π—Ç –Ω–∞–º –Ω–µ –Ω—É–∂–Ω—ã
+    Minor,Major,Build,Release: Word;  // –í–µ—Ä—Å–∏—è –ø—Ä–æ–≥—Ä–∞–º–º—ã
   end;
 var
   RS: TResourceStream;
@@ -1334,10 +1649,10 @@ var
 begin
   Result := ProgramsVer;
   try
-    RS := TResourceStream.Create(HInstance, '#1', RT_VERSION); // ƒÓÒÚ‡∏Ï ÂÒÛÒ
+    RS := TResourceStream.Create(HInstance, '#1', RT_VERSION); // –î–æ—Å—Ç–∞—ë–º —Ä–µ—Å—É—Ä—Å
     if RS.Size > 0 then
     begin
-      RS.Read(VI, SizeOf(VI)); // ◊ËÚ‡ÂÏ ÌÛÊÌ˚Â Ì‡Ï ·‡ÈÚ˚
+      RS.Read(VI, SizeOf(VI)); // –ß–∏—Ç–∞–µ–º –Ω—É–∂–Ω—ã–µ –Ω–∞–º –±–∞–π—Ç—ã
       Result := IntToStr(VI.Major)+'.'+IntToStr(VI.Minor)+'.'+IntToStr(VI.Release)+'.'+IntToStr(VI.Build);
     end;
     RS.Free;
@@ -1345,7 +1660,7 @@ begin
   end;
 end;
 
-{ ŒÚÔ‡‚Í‡ ÚÂÍÒÚ‡ ˜ÂÂÁ WM_COPYDATA }
+{ –û—Ç–ø—Ä–∞–≤–∫–∞ —Ç–µ–∫—Å—Ç–∞ —á–µ—Ä–µ–∑ WM_COPYDATA }
 function OnSendMessage(WinName, Msg: String): Boolean;
 var
   HToDB: HWND;
@@ -1353,7 +1668,7 @@ var
   AppNameStr: String;
 begin
   Result := False;
-  // »˘ÂÏ ÓÍÌÓ WinName Ë ÔÓÒ˚Î‡ÂÏ ÂÏÛ ÍÓÏ‡Ì‰Û
+  // –ò—â–µ–º –æ–∫–Ω–æ WinName –∏ –ø–æ—Å—ã–ª–∞–µ–º –µ–º—É –∫–æ–º–∞–Ω–¥—É
   HToDB := FindWindow(nil, pWideChar(WinName));
   if HToDB <> 0 then
   begin
@@ -1365,7 +1680,7 @@ begin
   end;
 end;
 
-{ ‘ÛÌÍˆËˇ ‚ÓÁ‚‡˘‡ÂÚ ÔÛÚ¸ ‰Ó ÔÓÎ¸ÁÓ‚‡ÚÂÎ¸ÒÍÓÈ ‚ÂÏÂÌÌÓÈ Ô‡ÔÍË }
+{ –§—É–Ω–∫—Ü–∏—è –≤–æ–∑–≤—Ä–∞—â–∞–µ—Ç –ø—É—Ç—å –¥–æ –ø–æ–ª—å–∑–æ–≤–∞—Ç–µ–ª—å—Å–∫–æ–π –≤—Ä–µ–º–µ–Ω–Ω–æ–π –ø–∞–ø–∫–∏ }
 function GetUserTempPath: WideString;
 var
   UserPath: WideString;
@@ -1408,7 +1723,7 @@ begin
     GlobalProcessPID := PID;
 end;
 
-{ œÓÎÛ˜ÂÌËÂ ID ‚ÒÂı ÔÓÚÓÍÓ‚ ÛÍ‡Á‡ÌÌÓ„Ó ÔÓˆÂÒÒ‡ }
+{ –ü–æ–ª—É—á–µ–Ω–∏–µ ID –≤—Å–µ—Ö –ø–æ—Ç–æ–∫–æ–≤ —É–∫–∞–∑–∞–Ω–Ω–æ–≥–æ –ø—Ä–æ—Ü–µ—Å—Å–∞ }
 function GetThreadsOfProcess(APID: Cardinal): TIntegerDynArray;
 var
  lSnap: DWord;
@@ -1434,7 +1749,7 @@ begin
   end;
 end;
 
-{ œÓ‚ÂÍ‡ ÔÓˆÂÒÒ‡ Ì‡ Ì‡ÎË˜ËÂ ‚ Ô‡ÏˇÚË ÔÓ Â„Ó ËÏÂÌË }
+{ –ü—Ä–æ–≤–µ—Ä–∫–∞ –ø—Ä–æ—Ü–µ—Å—Å–∞ –Ω–∞ –Ω–∞–ª–∏—á–∏–µ –≤ –ø–∞–º—è—Ç–∏ –ø–æ –µ–≥–æ –∏–º–µ–Ω–∏ }
 function IsProcessRun(ProcessName: String): Boolean; overload;
 var
   Snapshot: THandle;
@@ -1473,7 +1788,7 @@ begin
     if ((UpperCase(ExtractFileName(Proc.szExeFile)) = UpperCase(ProcessName))
      or (UpperCase(Proc.szExeFile) = UpperCase(ProcessName))) then
      begin
-      // œÓÎÛ˜ÂÌËÂ ClassName Ë «‡„ÓÎÓ‚ÍÓ‚ ÓÍÓÌ ‚ÒÂı ÔÓÚÓÍÓ‚ ÔÓˆÂÒÒ‡
+      // –ü–æ–ª—É—á–µ–Ω–∏–µ ClassName –∏ –ó–∞–≥–æ–ª–æ–≤–∫–æ–≤ –æ–∫–æ–Ω –≤—Å–µ—Ö –ø–æ—Ç–æ–∫–æ–≤ –ø—Ä–æ—Ü–µ—Å—Å–∞
       lThreads := GetThreadsOfProcess(Proc.th32ProcessID);
       for J := Low(lThreads) to High(lThreads) do
         EnumThreadWindows(lThreads[J], @EnumThreadWndProc, LPARAM(WinCaption));
@@ -1485,7 +1800,7 @@ begin
   CloseHandle(Snapshot);
 end;
 
-{ «‡Í˚ÚËÂ ÔÓ„‡ÏÏ˚ ˜ÂÂÁ WM_CLOSE ÔÓ Â∏ PID }
+{ –ó–∞–∫—Ä—ã—Ç–∏–µ –ø—Ä–æ–≥—Ä–∞–º–º—ã —á–µ—Ä–µ–∑ WM_CLOSE –ø–æ –µ—ë PID }
 function ProcCloseEnum(hwnd: THandle; data: Pointer):BOOL;stdcall;
 var
   Pid: DWORD;
@@ -1498,7 +1813,7 @@ begin
   end;
 end;
 
-{ «‡Í˚ÚËÂ ÔÓ„‡ÏÏ˚ ˜ÂÂÁ WM_QUIT ÔÓ Â∏ PID }
+{ –ó–∞–∫—Ä—ã—Ç–∏–µ –ø—Ä–æ–≥—Ä–∞–º–º—ã —á–µ—Ä–µ–∑ WM_QUIT –ø–æ –µ—ë PID }
 function ProcQuitEnum(hwnd: THandle; data: Pointer):BOOL;stdcall;
 var
   Pid: DWORD;
@@ -1511,7 +1826,7 @@ begin
   end;
 end;
 
-{ œÓˆÂ‰Û‡ ÓÚÔ‡‚ÎˇÂÚ WM_CLOSE ËÎË WM_QUIT ÔÓˆÂÒÒÛ }
+{ –ü—Ä–æ—Ü–µ–¥—É—Ä–∞ –æ—Ç–ø—Ä–∞–≤–ª—è–µ—Ç WM_CLOSE –∏–ª–∏ WM_QUIT –ø—Ä–æ—Ü–µ—Å—Å—É }
 procedure EndProcess(ProcessPID: DWord; EndType: Integer);
 begin
   if EndType = WM_CLOSE then //WM_CLOSE
@@ -1520,7 +1835,7 @@ begin
     EnumWindows(@ProcQuitEnum, ProcessPID);
 end;
 
-{ œÓÎÛ˜ÂÌËÂ PID ÔÓ„‡ÏÏ˚ ‚ Ô‡ÏˇÚË }
+{ –ü–æ–ª—É—á–µ–Ω–∏–µ PID –ø—Ä–æ–≥—Ä–∞–º–º—ã –≤ –ø–∞–º—è—Ç–∏ }
 function GetProcessID(ExeFileName: String): Cardinal;
 var
   ContinueLoop: BOOL;
@@ -1543,7 +1858,7 @@ begin
   CloseHandle(FSnapshotHandle);
 end;
 
-{ «‡‚Â¯ÂÌËÂ ÔÓˆÂÒÒ‡ ÔÓ ËÏÂÌË }
+{ –ó–∞–≤–µ—Ä—à–µ–Ω–∏–µ –ø—Ä–æ—Ü–µ—Å—Å–∞ –ø–æ –∏–º–µ–Ω–∏ }
 function KillTask(ExeFileName: String): Integer;
 const
   PROCESS_TERMINATE=$0001;
@@ -1567,7 +1882,7 @@ begin
   CloseHandle(FSnapshotHandle);
 end;
 
-{ «‡‚Â¯ÂÌËÂ ÔÓˆÂÒÒ‡ ÔÓ ËÏÂÌË Ë Á‡„ÓÎÓ‚ÍÛ ÓÍÌ‡ }
+{ –ó–∞–≤–µ—Ä—à–µ–Ω–∏–µ –ø—Ä–æ—Ü–µ—Å—Å–∞ –ø–æ –∏–º–µ–Ω–∏ –∏ –∑–∞–≥–æ–ª–æ–≤–∫—É –æ–∫–Ω–∞ }
 function KillTask(ExeFileName, WinCaption: String): Integer; overload;
 const
   PROCESS_TERMINATE=$0001;
@@ -1587,7 +1902,7 @@ begin
     if ((UpperCase(ExtractFileName(FProcessEntry32.szExeFile)) = UpperCase(ExeFileName))
      or (UpperCase(FProcessEntry32.szExeFile) = UpperCase(ExeFileName))) then
      begin
-      // œÓÎÛ˜ÂÌËÂ ClassName Ë «‡„ÓÎÓ‚ÍÓ‚ ÓÍÓÌ ‚ÒÂı ÔÓÚÓÍÓ‚ ÔÓˆÂÒÒ‡
+      // –ü–æ–ª—É—á–µ–Ω–∏–µ ClassName –∏ –ó–∞–≥–æ–ª–æ–≤–∫–æ–≤ –æ–∫–æ–Ω –≤—Å–µ—Ö –ø–æ—Ç–æ–∫–æ–≤ –ø—Ä–æ—Ü–µ—Å—Å–∞
       GlobalProcessPID := 0;
       lThreads := GetThreadsOfProcess(FProcessEntry32.th32ProcessID);
       for J := Low(lThreads) to High(lThreads) do
@@ -1601,7 +1916,7 @@ begin
   CloseHandle(FSnapshotHandle);
 end;
 
-// LogType = 0 - ÒÓÓ·˘ÂÌËˇ ‰Ó·‡‚Îˇ˛ÚÒˇ ‚ Ù‡ÈÎ DebugLogName
+// LogType = 0 - —Å–æ–æ–±—â–µ–Ω–∏—è –¥–æ–±–∞–≤–ª—è—é—Ç—Å—è –≤ —Ñ–∞–π–ª DebugLogName
 procedure WriteInLog(LogPath: WideString; TextString: String);
 var
   Path: WideString;
@@ -1624,8 +1939,8 @@ begin
   {$I+}
 end;
 
-// ŒÚÍ˚ÚËÂ ÎÓ„-Ù‡ÈÎ‡
-// LogType = 0 - ÒÓÓ·˘ÂÌËˇ ‰Ó·‡‚Îˇ˛ÚÒˇ ‚ Ù‡ÈÎ DebugLogName
+// –û—Ç–∫—Ä—ã—Ç–∏–µ –ª–æ–≥-—Ñ–∞–π–ª–∞
+// LogType = 0 - —Å–æ–æ–±—â–µ–Ω–∏—è –¥–æ–±–∞–≤–ª—è—é—Ç—Å—è –≤ —Ñ–∞–π–ª DebugLogName
 function OpenLogFile(LogPath: WideString): Boolean;
 var
   Path: WideString;
@@ -1658,7 +1973,7 @@ begin
   {$I+}
 end;
 
-// «‡Í˚ÚËÂ ÎÓ„-Ù‡ÈÎ‡
+// –ó–∞–∫—Ä—ã—Ç–∏–µ –ª–æ–≥-—Ñ–∞–π–ª–∞
 procedure CloseLogFile;
 begin
   {$I-}
@@ -1667,7 +1982,7 @@ begin
   {$I+}
 end;
 
-// ≈ÒÎË Ù‡ÈÎ ÌÂ ÒÛ˘ÂÒÚ‚ÛÂÚ, ÚÓ ‚ÏÂÒÚÓ ‡ÁÏÂ‡ Ù‡ÈÎ‡ ÙÛÌÍˆËˇ ‚ÂÌ∏Ú -1
+// –ï—Å–ª–∏ —Ñ–∞–π–ª –Ω–µ —Å—É—â–µ—Å—Ç–≤—É–µ—Ç, —Ç–æ –≤–º–µ—Å—Ç–æ —Ä–∞–∑–º–µ—Ä–∞ —Ñ–∞–π–ª–∞ —Ñ—É–Ω–∫—Ü–∏—è –≤–µ—Ä–Ω—ë—Ç -1
 function GetMyFileSize(const Path: WideString): Integer;
 var
   FD: TWin32FindData;
@@ -1684,7 +1999,7 @@ begin
   //FindClose(FH);
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÒÓ·˚ÚËˇ (ÒÚÓÍ‡) ÔÓ ÌÓÏÂÛ }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ —Å–æ–±—ã—Ç–∏—è (—Å—Ç—Ä–æ–∫–∞) –ø–æ –Ω–æ–º–µ—Ä—É }
 function DetectEventsType(CType: Integer): String;
 begin
   Result := DetectEventsTypeName(mWarningRecognize);
@@ -1700,7 +2015,7 @@ begin
   end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÌÓÏÂ‡ ÚËÔ‡ ÒÓ·˚ÚËˇ ÔÓ TEventsType }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –Ω–æ–º–µ—Ä–∞ —Ç–∏–ø–∞ —Å–æ–±—ã—Ç–∏—è –ø–æ TEventsType }
 function DetectEventsType(CType: TEventsType): Integer;
 begin
   Result := Integer(CType);
@@ -1718,13 +2033,13 @@ begin
   end;}
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ËÏÂÌË ÒÓ·˚ÚËˇ ÔÓ TEventsType }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –∏–º–µ–Ω–∏ —Å–æ–±—ã—Ç–∏—è –ø–æ TEventsType }
 function DetectEventsTypeName(CType: TEventsType): String;
 begin
   Result := GetLangStr(EventsTypeStr[CType]);
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÒÓ·˚ÚËˇ (TEventsType) ÔÓ ËÏÂÌË }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ —Å–æ–±—ã—Ç–∏—è (TEventsType) –ø–æ –∏–º–µ–Ω–∏ }
 function DetectEventsTypeName(CType: String): TEventsType;
 begin
   Result := mWarningRecognize;
@@ -1738,7 +2053,7 @@ begin
     Result := mErrorGoogleCommunication;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÒÚ‡ÚÛÒ‡ ÒÓ·˚ÚËˇ (ÒÚÓÍ‡) ÔÓ ÌÓÏÂÛ }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ —Å—Ç–∞—Ç—É—Å–∞ —Å–æ–±—ã—Ç–∏—è (—Å—Ç—Ä–æ–∫–∞) –ø–æ –Ω–æ–º–µ—Ä—É }
 function DetectEventsTypeStatus(CType: Integer): String;
 begin
   Result := DetectEventsTypeStatusName(mEnable);
@@ -1752,19 +2067,19 @@ begin
   end;
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÌÓÏÂ‡ ÚËÔ‡ ÒÚ‡ÚÛÒ‡ ÒÓ·˚ÚËˇ ÔÓ TEventsTypeStatus}
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –Ω–æ–º–µ—Ä–∞ —Ç–∏–ø–∞ —Å—Ç–∞—Ç—É—Å–∞ —Å–æ–±—ã—Ç–∏—è –ø–æ TEventsTypeStatus}
 function DetectEventsTypeStatus(CType: TEventsTypeStatus): Integer;
 begin
   Result := Integer(CType);
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ËÏÂÌË ÒÚ‡ÚÛÒ‡ ÒÓ·˚ÚËˇ ÔÓ TEventsTypeStatus }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è –∏–º–µ–Ω–∏ —Å—Ç–∞—Ç—É—Å–∞ —Å–æ–±—ã—Ç–∏—è –ø–æ TEventsTypeStatus }
 function DetectEventsTypeStatusName(CType: TEventsTypeStatus): String;
 begin
   Result := GetLangStr(EventsTypeStatusStr[CType]);
 end;
 
-{ ŒÔÂ‰ÂÎÂÌËˇ ÚËÔ‡ ÒÚ‡ÚÛÒ‡ ÒÓ·˚ÚËˇ (TEventsTypeStatus) ÔÓ ËÏÂÌË }
+{ –û–ø—Ä–µ–¥–µ–ª–µ–Ω–∏—è —Ç–∏–ø–∞ —Å—Ç–∞—Ç—É—Å–∞ —Å–æ–±—ã—Ç–∏—è (TEventsTypeStatus) –ø–æ –∏–º–µ–Ω–∏ }
 function DetectEventsTypeStatusName(CType: String): TEventsTypeStatus;
 begin
   Result := mEnable;
@@ -1774,7 +2089,7 @@ begin
     Result := mDisable;
 end;
 
-{ «‡„ÛÊÍ‡ ‰‡ÌÌ˚ı ‰Îˇ ÔÂÓ·‡ÁÓ‚‡ÌËˇ ÚÂÍÒÚ‡ ‚ Â˜¸ ‚ TStringGrid ËÁ Ù‡ÈÎ‡ }
+{ –ó–∞–≥—Ä—É–∂–∫–∞ –¥–∞–Ω–Ω—ã—Ö –¥–ª—è –ø—Ä–µ–æ–±—Ä–∞–∑–æ–≤–∞–Ω–∏—è —Ç–µ–∫—Å—Ç–∞ –≤ —Ä–µ—á—å –≤ TStringGrid –∏–∑ —Ñ–∞–π–ª–∞ }
 procedure LoadTextToSpeechDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 var
   k,l: Integer;
@@ -1798,14 +2113,14 @@ begin
       begin
         for ColN := 0 to ColC-1 do
         begin
-          if k = 1 then // 2-È ÒÚÓÎ·Âˆ
+          if k = 1 then // 2-–π —Å—Ç–æ–ª–±–µ—Ü
           begin
             if IsNumber(INI.ReadString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
               FileGrid.Cells[k,l] := DetectEventsType(INI.ReadInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))
             else
               FileGrid.Cells[k,l] := DetectEventsType(0);
           end
-          else if k = 2 then // 3-È ÒÚÓÎ·Âˆ
+          else if k = 2 then // 3-–π —Å—Ç–æ–ª–±–µ—Ü
           begin
             if IsNumber(INI.ReadString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
               FileGrid.Cells[k,l] := DetectEventsTypeStatus(INI.ReadInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))
@@ -1830,10 +2145,10 @@ begin
     if CoreLanguage = 'Russian' then
     begin
       FileGrid.RowCount := 2;
-      FileGrid.Cells[0,0] := 'œÓËÁÓ¯Î‡ Ó¯Ë·Í‡ ÔË ‡ÒÔÓÁÌ‡‚‡ÌËË „ÓÎÓÒ‡';
+      FileGrid.Cells[0,0] := '–ü—Ä–æ–∏–∑–æ—à–ª–∞ –æ—à–∏–±–∫–∞ –ø—Ä–∏ —Ä–∞—Å–ø–æ–∑–Ω–∞–≤–∞–Ω–∏–∏ –≥–æ–ª–æ—Å–∞';
       FileGrid.Cells[1,0] := DetectEventsType(0);
       FileGrid.Cells[2,0] := DetectEventsTypeStatus(1);
-      FileGrid.Cells[0,1] := '¬‡¯ „ÓÎÓÒ ÌÂ ‡ÒÔÓÁÌ‡Ì';
+      FileGrid.Cells[0,1] := '–í–∞—à –≥–æ–ª–æ—Å –Ω–µ —Ä–∞—Å–ø–æ–∑–Ω–∞–Ω';
       FileGrid.Cells[1,1] := DetectEventsType(1);
       FileGrid.Cells[2,1] := DetectEventsTypeStatus(1);
     end
@@ -1850,7 +2165,7 @@ begin
   end;
 end;
 
-{ —Óı‡ÌÂÌËÂ ‰‡ÌÌ˚ı ‰Îˇ ÔÂÓ·‡ÁÓ‚‡ÌËˇ ÚÂÍÒÚ‡ ‚ Â˜¸ ËÁ TStringGrid ‚ Ù‡ÈÎ }
+{ –°–æ—Ö—Ä–∞–Ω–µ–Ω–∏–µ –¥–∞–Ω–Ω—ã—Ö –¥–ª—è –ø—Ä–µ–æ–±—Ä–∞–∑–æ–≤–∞–Ω–∏—è —Ç–µ–∫—Å—Ç–∞ –≤ —Ä–µ—á—å –∏–∑ TStringGrid –≤ —Ñ–∞–π–ª }
 procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 var
   ColN, RowN: Integer;
@@ -1867,12 +2182,12 @@ begin
     begin
       for ColN := 0 to FileGrid.ColCount-1 do
       begin
-        if ColN = 1 then // 2-È ÒÚÓÎ·Âˆ
+        if ColN = 1 then // 2-–π —Å—Ç–æ–ª–±–µ—Ü
         begin
           CTypeName := FileGrid.Cells[ColN,RowN];
           INI.WriteInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectEventsTypeName(CTypeName)));
         end
-        else if ColN = 2 then // 3-È ÒÚÓÎ·Âˆ
+        else if ColN = 2 then // 3-–π —Å—Ç–æ–ª–±–µ—Ü
         begin
           CTypeName := FileGrid.Cells[ColN,RowN];
           INI.WriteInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectEventsTypeStatusName(CTypeName)));
@@ -1886,6 +2201,360 @@ begin
       MsgDie(ProgramsName, 'Exception in procedure SaveTextToSpeechDataStringGrid: Unable to write data in file ' + MyFile);
   end;
   INI.Free;
+end;
+
+{ –•–∞–∫ –¥–ª—è –±—ã—Å—Ç—Ä–æ–≥–æ –ø–æ–∏—Å–∫–∞ –≤—Å–µ—Ö –≤–∫–ª—é—á–µ–Ω–∏–π —Å—Ç—Ä–æ–∫ –≤ TStringGrid
+  –í –æ—Ä–∏–≥–∏–Ω–∞–ª—å–Ω–æ–º TStringGrid –µ—Å—Ç—å –º–µ—Ç–æ–¥ IndexOf('—Å—Ç—Ä–æ–∫–∞ –ø–æ–∏—Å–∫–∞'),
+  –Ω–æ –æ–Ω –∏—â–µ—Ç –¥–æ –ø–µ—Ä–≤–æ–≥–æ —Å–æ–≤–ø–∞–¥–µ–Ω–∏—è —Å—Ç—Ä–æ–∫–∏, –∞ –Ω–∞–º –Ω—É–∂–Ω—ã –Ω–æ–º–µ—Ä–∞ –≤—Å–µ—Ö —Å—Ç—Ä–æ–∫.
+  –í –ø–∞—Ä–∞–º–µ—Ç—Ä MyStrings –ø–µ—Ä–µ–¥–∞–µ—Ç—Å—è –Ω–æ–º–µ—Ä —Å—Ç–æ–ª–±—Ü–∞ –¥–ª—è –ø–æ–∏—Å–∫–∞, –Ω–∞–ø—Ä–∏–º–µ—Ä CommandSGrid.Cols[N],
+  –≥–¥–µ CommandSGrid - —ç—Ç–æ –Ω–∞—à TStringGrid,
+      N - –Ω–æ–º–µ—Ä —Å—Ç–æ–ª–±—Ü–∞ –≤ –∫–æ—Ç–æ—Ä–æ–º –±—É–¥–µ—Ç –∏–¥—Ç–∏ –ø–æ–∏—Å–∫.
+  –†–µ–∑—É–ª—å—Ç–∞—Ç–æ–º —Ñ—É–Ω–∫—Ü–∏–∏ HackTStringsIndexOf –±—É–¥–µ—Ç Array of Integer —Å –Ω–æ–º–µ—Ä–∞–º–∏ –≤—Å–µ—Ö –Ω–∞–π–¥–µ–Ω—ã—Ö —Å—Ç—Ä–æ–∫.
+}
+function HackTStringsIndexOf(MyStrings: TStrings; const S: String): TArrayOfInteger;
+var
+  HackGridCnt: Integer;
+begin
+  if Length(S)>0 then
+  begin
+    SetLength(Result, 0);
+    for HackGridCnt := 0 to THackStrings(MyStrings).GetCount - 1 do
+    begin
+      if THackStrings(MyStrings).CompareStrings(THackStrings(MyStrings).Get(HackGridCnt), S) = 0 then
+      begin
+        SetLength(Result, Length(Result)+1);
+        Result[Length(Result)-1] := HackGridCnt;
+      end;
+    end;
+  end;
+end;
+
+procedure AddAllUserAutorun(AppTitle, AppExe: String);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      Reg.WriteString(AppTitle, AppExe);
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure AddCurrentUserAutorun(AppTitle, AppExe: String);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      Reg.WriteString(AppTitle, AppExe);
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure DeleteAllUserAutorun(AppTitle: String);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      Reg.DeleteValue(AppTitle);
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+procedure DeleteCurrentUserAutorun(AppTitle: String);
+var
+  Reg: TRegistry;
+begin
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      Reg.DeleteValue(AppTitle);
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+function CheckAllUserAutorun(AppTitle: String): Boolean;
+var
+  Reg: TRegistry;
+begin
+  Result := False;
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_LOCAL_MACHINE;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      if Reg.ValueExists(AppTitle) then
+        Result := True;
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+function CheckCurrentUserAutorun(AppTitle: String): Boolean;
+var
+  Reg: TRegistry;
+begin
+  Result := False;
+  Reg := TRegistry.Create();
+  try
+    Reg.RootKey := HKEY_CURRENT_USER;
+    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
+    begin
+      if Reg.ValueExists(AppTitle) then
+        Result := True;
+      Reg.CloseKey();
+    end;
+  finally
+    Reg.Free;
+  end;
+end;
+
+{ –û—Ç–ø—Ä–∞–≤–∫–∞ —Ç–µ–∫—Å—Ç–æ–≤–æ–≥–æ –∑–∞–ø—Ä–æ—Å–∞ –≤ Google –∏ –ø—Ä–∏–µ–º mp3-—Ñ–∞–π–ª–∞ }
+function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
+const
+  CRLF = #$0D + #$0A;
+var
+  HTTP: THTTPSend;
+  MaxSize: int64;
+begin
+  Result := False;
+  HTTP := THTTPSend.Create;
+  try
+    if UseProxy then
+    begin
+      HTTP.ProxyHost := ProxyAddress;
+      if ProxyPort <> '' then
+        HTTP.ProxyPort := ProxyPort
+      else
+        HTTP.ProxyPort := '3128';
+      if ProxyAuth then
+      begin
+        HTTP.ProxyUser := ProxyUser;
+        HTTP.ProxyPass := ProxyUserPasswd;
+      end;
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: –ü—Ä–æ–±—É–µ–º –æ—Ç–ø—Ä–∞–≤–∏—Ç—å –¥–∞–Ω–Ω—ã–µ —á–µ—Ä–µ–∑ Proxy-—Å–µ—Ä–≤–µ—Ä (–ê–¥—Ä–µ—Å: %s, –ü–æ—Ä—Ç: %s, –õ–æ–≥–∏–Ω: %s, –ü–∞—Ä–æ–ª—å: %s)',
+                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
+    end;
+    //if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - –ó–∞–ø—Ä–æ—Å: ' + 'https://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
+    //MaxSize := HTTPGetSize('https://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
+    MaxSize := HTTPGetSize('https://translate.google.com/translate_tts?ie=UTF-8&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
+    if MaxSize > 0 then
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - –†–∞–∑–º–µ—Ä –¥–∞–Ω–Ω—ã—Ö = ' + inttostr(MaxSize) + ' –±–∞–π—Ç.');
+      if FileExists(MP3FileName) then
+        DeleteFile(MP3FileName);
+      HTTP.Document.Clear;
+      HTTP.Headers.Clear;
+      HTTP.MimeType := 'application/x-www-form-urlencoded';
+      HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+      Result := HTTP.HTTPMethod('GET', 'https://translate.google.com/translate_tts?ie=UTF-8&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
+      if LowerCase(HTTP.ResultString) = 'ok' then
+      begin
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - –î–∞–Ω–Ω—ã–µ –∏–∑ —Å–∏—Å—Ç–µ–º—ã TTS Google –ø–æ–ª—É—á–µ–Ω—ã.');
+        HTTP.Document.SaveToFile(MP3FileName);
+        Result := FileExists(MP3FileName);
+      end
+      else
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - –û—à–∏–±–∫–∞ –ø–µ—Ä–µ–¥–∞—á–∏ –¥–∞–Ω–Ω—ã—Ö –≤ —Å–∏—Å—Ç–µ–º—É TTS Google (' + HTTP.ResultString + ')');
+    end;
+  finally
+    HTTP.Free;
+  end;
+end;
+
+{ –û—Ç–ø—Ä–∞–≤–∫–∞ —Ç–µ–∫—Å—Ç–æ–≤–æ–≥–æ –∑–∞–ø—Ä–æ—Å–∞ –≤ Yandex –∏ –ø—Ä–∏–µ–º mp3-—Ñ–∞–π–ª–∞ }
+function YandexTextToSpeech(const Text, MP3FileName: String): Boolean;
+const
+  CRLF = #$0D + #$0A;
+var
+  HTTP: THTTPSend;
+  MaxSize: int64;
+begin
+  Result := False;
+  HTTP := THTTPSend.Create;
+  try
+    if UseProxy then
+    begin
+      HTTP.ProxyHost := ProxyAddress;
+      if ProxyPort <> '' then
+        HTTP.ProxyPort := ProxyPort
+      else
+        HTTP.ProxyPort := '3128';
+      if ProxyAuth then
+      begin
+        HTTP.ProxyUser := ProxyUser;
+        HTTP.ProxyPass := ProxyUserPasswd;
+      end;
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: –ü—Ä–æ–±—É–µ–º –æ—Ç–ø—Ä–∞–≤–∏—Ç—å –¥–∞–Ω–Ω—ã–µ —á–µ—Ä–µ–∑ Proxy-—Å–µ—Ä–≤–µ—Ä (–ê–¥—Ä–µ—Å: %s, –ü–æ—Ä—Ç: %s, –õ–æ–≥–∏–Ω: %s, –ü–∞—Ä–æ–ª—å: %s)',
+                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
+    end;
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - –ó–∞–ø—Ä–æ—Å: ' + 'https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
+    MaxSize := HTTPYandexGetSize('https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
+    if MaxSize > 0 then
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - –†–∞–∑–º–µ—Ä –¥–∞–Ω–Ω—ã—Ö = ' + inttostr(MaxSize) + ' –±–∞–π—Ç.');
+      if FileExists(MP3FileName) then
+        DeleteFile(MP3FileName);
+      HTTP.Document.Clear;
+      HTTP.Headers.Clear;
+      HTTP.MimeType := 'application/x-www-form-urlencoded';
+      HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+      Result := HTTP.HTTPMethod('GET', 'https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
+      if LowerCase(HTTP.ResultString) = 'ok' then
+      begin
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - –î–∞–Ω–Ω—ã–µ –∏–∑ —Å–∏—Å—Ç–µ–º—ã TTS Yandex –ø–æ–ª—É—á–µ–Ω—ã.');
+        HTTP.Document.SaveToFile(MP3FileName);
+        Result := FileExists(MP3FileName);
+      end
+      else
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - –û—à–∏–±–∫–∞ –ø–µ—Ä–µ–¥–∞—á–∏ –¥–∞–Ω–Ω—ã—Ö –≤ —Å–∏—Å—Ç–µ–º—É TTS Yandex (' + HTTP.ResultString + ')');
+    end;
+  finally
+    HTTP.Free;
+  end;
+end;
+
+function HTTPGetSize(URL: String): int64;
+const
+  CRLF = #$0D + #$0A;
+var
+  Size: String;
+  HTTP: THTTPSend;
+begin
+  Result := -1;
+  HTTP := THTTPSend.Create;
+  try
+    if UseProxy then
+    begin
+      HTTP.ProxyHost := ProxyAddress;
+      if ProxyPort <> '' then
+        HTTP.ProxyPort := ProxyPort
+      else
+        HTTP.ProxyPort := '3128';
+      if ProxyAuth then
+      begin
+        HTTP.ProxyUser := ProxyUser;
+        HTTP.ProxyPass := ProxyUserPasswd;
+      end;
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: –ü—Ä–æ–±—É–µ–º –æ—Ç–ø—Ä–∞–≤–∏—Ç—å –¥–∞–Ω–Ω—ã–µ —á–µ—Ä–µ–∑ Proxy-—Å–µ—Ä–≤–µ—Ä (–ê–¥—Ä–µ—Å: %s, –ü–æ—Ä—Ç: %s, –õ–æ–≥–∏–Ω: %s, –ü–∞—Ä–æ–ª—å: %s)',
+                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
+    end;
+    HTTP.Document.Clear;
+    HTTP.Headers.Clear;
+    HTTP.MimeType := 'application/x-www-form-urlencoded';
+    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+    if HTTP.HTTPMethod('HEAD', URL) then
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - –†–µ–∑—É–ª—å—Ç–∞—Ç –∑–∞–ø—Ä–æ—Å–∞ Headers = ' + HTTP.Headers.Text);
+      HeadersToList(HTTP.Headers);
+      Size := HTTP.Headers.Values['Content-Length'];
+      Result := StrToIntDef(Size, -1);
+      if Result > -1 then
+        Result := Result + Length(HTTP.Headers.Text);
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - –†–µ–∑—É–ª—å—Ç–∞—Ç –∑–∞–ø—Ä–æ—Å–∞ ResultString = ' + HTTP.ResultString);
+    end;
+  finally
+    HTTP.Free;
+  end;
+end;
+
+function HTTPYandexGetSize(URL: String): int64;
+const
+  CRLF = #$0D + #$0A;
+var
+  Size: String;
+  HTTP: THTTPSend;
+begin
+  Result := -1;
+  HTTP := THTTPSend.Create;
+  try
+    if UseProxy then
+    begin
+      HTTP.ProxyHost := ProxyAddress;
+      if ProxyPort <> '' then
+        HTTP.ProxyPort := ProxyPort
+      else
+        HTTP.ProxyPort := '3128';
+      if ProxyAuth then
+      begin
+        HTTP.ProxyUser := ProxyUser;
+        HTTP.ProxyPass := ProxyUserPasswd;
+      end;
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: –ü—Ä–æ–±—É–µ–º –æ—Ç–ø—Ä–∞–≤–∏—Ç—å –¥–∞–Ω–Ω—ã–µ —á–µ—Ä–µ–∑ Proxy-—Å–µ—Ä–≤–µ—Ä (–ê–¥—Ä–µ—Å: %s, –ü–æ—Ä—Ç: %s, –õ–æ–≥–∏–Ω: %s, –ü–∞—Ä–æ–ª—å: %s)',
+                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
+    end;
+    HTTP.Document.Clear;
+    HTTP.Headers.Clear;
+    HTTP.MimeType := 'application/x-www-form-urlencoded';
+    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+    if HTTP.HTTPMethod('GET', URL) then
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPYandexGetSize - –†–µ–∑—É–ª—å—Ç–∞—Ç –∑–∞–ø—Ä–æ—Å–∞ Headers = ' + HTTP.Headers.Text);
+      HeadersToList(HTTP.Headers);
+      Size := HTTP.Headers.Values['Content-Length'];
+      Result := StrToIntDef(Size, -1);
+      if Result > -1 then
+        Result := Result + Length(HTTP.Headers.Text);
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPYandexGetSize - –†–µ–∑—É–ª—å—Ç–∞—Ç –∑–∞–ø—Ä–æ—Å–∞ ResultString = ' + HTTP.ResultString);
+    end;
+  finally
+    HTTP.Free;
+  end;
+end;
+
+function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64;
+var
+  I: Integer;
+  Size: String;
+  Ch: Char;
+begin
+  Result := -1;
+  HTTP.Document.Clear;
+  HTTP.Headers.Clear;
+  HTTP.MimeType := 'application/x-www-form-urlencoded';
+  HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+  if HTTP.HTTPMethod('HEAD',URL) then
+  begin
+    for I := 0 to HTTP.Headers.Count - 1 do
+    begin
+      if Pos('content-length', lowercase(HTTP.Headers[I])) > 0 then
+      begin
+        Size := '';
+        for Ch in HTTP.Headers[i] do
+          if Ch in ['0'..'9'] then
+            Size := Size + Ch;
+        Result := StrToInt(Size) + Length(HTTP.Headers.Text);
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - –†–µ–∑—É–ª—å—Ç–∞—Ç –∑–∞–ø—Ä–æ—Å–∞ HTTP.Headers.Text = ' + HTTP.Headers.Text);
+        Break;
+      end;
+    end;
+  end;
 end;
 
 begin
