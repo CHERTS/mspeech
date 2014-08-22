@@ -1,7 +1,7 @@
 MSpeech
 -------
 
-Программа для распознавание речи используя Google Voice API и выполнения голосовых команд.
+Программа для распознавание речи используя Google Speech API, управления компьютером голосом, передачи текста в поля ввода других программ.
 
 Автор:		Михаил Григорьев
 E-Mail: 	sleuthhound@gmail.com
@@ -16,28 +16,27 @@ WWW:		http://www.programs74.ru
 Необходимые компоненты для сборки:
 ----------------------------------
 
-1. Embarcadero RAD Studio XE3 или XE4
+1. Embarcadero RAD Studio XE6
 
 2. JEDI Core 2.4 Build 4571 + JEDI VCL 3.47
-   http://www.delphi-jedi.org
-   http://sourceforge.net/projects/jcl/files/JCL%20Releases/JCL%202.4%20Build%204571/
-   http://sourceforge.net/projects/jvcl/files/JVCL%203/JVCL%203.47/
-   Скачать готовую сборку JEDI можно у меня: http://file.qip.ru/arch/53Pxmxm_/JEDI-Core-24-Build-4571-and-JEDI-VCL-347-and-MyPatch.html
+   Сайт: http://www.delphi-jedi.org
+   Сайт: http://sourceforge.net/projects/jcl/files/JCL%20Releases/JCL%202.4%20Build%204571/
+   Сайт: http://sourceforge.net/projects/jvcl/files/JVCL%203/JVCL%203.47/
+   Репозитарий JCL: https://github.com/project-jedi/jcl.git
+   Репозитарий JVCL: https://github.com/project-jedi/jvcl.git
 
 3. CoolTrayIcon
-   http://www.songbeamer.com/delphi/
-   Скачать готовую сборку CoolTrayIcon можно у меня: http://file.qip.ru/arch/DhK8ZWEj/CoolTrayIcon.html
+   Сайт: http://www.songbeamer.com/delphi/
 
 4. New Audio Components for Delphi
-   http://symmetrica.net/newac/
-   Скачать готовую сборку NewAC можно у меня: http://file.qip.ru/arch/pP61YS/NewAC.html
+   Сайт: http://symmetrica.net/newac/
+   Репозитарий: https://code.google.com/p/newac/
 
 5. Synapse
-   http://www.ararat.cz/synapse/doku.php/download
-   Скачать готовую сборку Synapse можно у меня: http://file.qip.ru/arch/ALLgL5Ah/synapse.html
+   Сайт: http://www.ararat.cz/synapse/doku.php/download
+   Репозитарий: http://svn.code.sf.net/p/synalist/code/trunk
 
 6. IMButtonGroup
    Находится в папке IMButtonGroupComponent.
 
-(c) 2012-2013 by Mikhail Grigorev
-
+(c) 2012-2014 by Mikhail Grigorev

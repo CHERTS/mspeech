@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.4 - Распознавание речи используя Google Speech API           # }
+{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -27,7 +27,7 @@ type
   TEventsTypeStatus = (mDisable, mEnable);
 
 const
-  ProgramsVer : WideString = '1.5.2.0';
+  ProgramsVer : WideString = '1.5.5.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -129,7 +129,6 @@ var
   // Для мультиязыковой поддержки
   CoreLanguage: String;
   MainFormHandle: HWND;
-  AboutFormHandle: HWND;
   SettingsFormHandle: HWND;
   LogFormHandle: HWND;
   LangDoc: IXMLDocument;
@@ -164,7 +163,12 @@ var
   VoiceFilterEnableAGC: Boolean = False;
   VoiceFilterEnableNoiseReduction: Boolean = False;
   VoiceFilterEnableVAD: Boolean = True;
+  // Google API Key
+  GoogleAPIKey: String = '';
+  // Yandex API Key
+  YandexAPIKey: String = '';
 
+function IsNumber(const S: String): Boolean;
 function BoolToStr(Bool: Boolean): String;
 function BoolToInt(Bool: Boolean): Integer;
 function IntToBool(Int: Integer): Boolean;
@@ -185,6 +189,7 @@ procedure CoreLanguageChanged;
 function Tok(Sep: String; var s: String): String;
 function ReadCustomINI(INIPath, CustomSection, CustomParams, DefaultParamsStr: String): String; overload;
 function ReadCustomINI(INIPath, CustomSection, CustomParams: String; DefaultParamsStr: Boolean): Boolean; overload;
+procedure WriteCustomINI(INIPath, CustomSection, CustomParams, ParamsStr: String);
 function DetectMethodSendingText(Method: Integer): TMethodSendingText;
 function DetectCommandType(CType: Integer): String; overload;
 function DetectCommandType(CType: TCommandType): Integer; overload;
@@ -196,7 +201,6 @@ procedure SaveReplaceDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 procedure LoadReplaceDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 procedure SaveCommandDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 procedure LoadCommandDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
-function IsNumber(const S: String): Boolean;
 procedure LoadOLDCommandFileToGrid(MyFile: String; FileGrid: TStringGrid);
 function RusLowercaseToUppercase(MyText: String): String;
 function EngLowercaseToUppercase(MyText: String): String;
@@ -232,6 +236,16 @@ procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 function GetSpecialFolderPath(FolderType: Integer) : WideString;
 
 implementation
+
+function IsNumber(const S: string): Boolean;
+begin
+  Result := True;
+  try
+    StrToInt(S);
+  except
+    Result := False;
+  end;
+end;
 
 function BoolToStr(Bool: Boolean): String;
 begin
@@ -270,6 +284,8 @@ begin
     begin
       EnableLogs := INI.ReadBool('Main', 'EnableLogs', False);
       MaxDebugLogSize := INI.ReadInteger('Main', 'MaxDebugLogSize', 1000);
+      GoogleAPIKey := INI.ReadString('Main', 'GoogleSpeechAPIKey', '');
+      YandexAPIKey := INI.ReadString('Main', 'YandexSpeechAPIKey', '');
       DefaultLanguage := INI.ReadString('Main', 'DefaultLanguage', 'Russian');
       DefaultSpeechRecognizeLang := INI.ReadString('Main', 'DefaultSpeechRecognizeLang', 'ru-RU');
       SecondSpeechRecognizeLang := INI.ReadString('Main', 'SecondSpeechRecognizeLang', 'en-US');
@@ -281,7 +297,7 @@ begin
       MaxLevelOnAutoRecordInterrupt := INI.ReadInteger('Main', 'MaxLevelOnAutoRecordInterrupt', 10);
       MinLevelOnAutoRecognize := INI.ReadInteger('Main', 'MinLevelOnAutoRecognize', 70);
       MinLevelOnAutoRecognizeInterrupt := INI.ReadInteger('Main', 'MinLevelOnAutoRecognizeInterrupt', 30);
-      EnableFilters := INI.ReadBool('Main', 'EnableFilters', False);
+      EnableFilters := False;//INI.ReadBool('Main', 'EnableFilters', False);
       FilterType := INI.ReadInteger('Main', 'FilterType', 0);
       SincFilterType := INI.ReadInteger('Main', 'SincFilterType', 1);
       SincFilterLowFreq := INI.ReadInteger('Main', 'SincFilterLowFreq', 300);
@@ -326,6 +342,8 @@ begin
     begin
       INI.WriteBool('Main', 'EnableLogs', EnableLogs);
       INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
+      INI.WriteString('Main', 'GoogleSpeechAPIKey', GoogleAPIKey);
+      INI.WriteString('Main', 'YandexSpeechAPIKey', YandexAPIKey);
       INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
       INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
       INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
@@ -396,6 +414,8 @@ begin
   INI := TIniFile.Create(Path);
   try
     INI.WriteBool('Main', 'EnableLogs', EnableLogs);
+    INI.WriteString('Main', 'GoogleSpeechAPIKey', GoogleAPIKey);
+    INI.WriteString('Main', 'YandexSpeechAPIKey', YandexAPIKey);
     INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
     INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
     INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
@@ -622,7 +642,6 @@ begin
     //Global.CoreLanguage := CoreLanguage;
     SendMessage(MainFormHandle, WM_LANGUAGECHANGED, 0, 0);
     SendMessage(SettingsFormHandle, WM_LANGUAGECHANGED, 0, 0);
-    SendMessage(AboutFormHandle, WM_LANGUAGECHANGED, 0, 0);
     SendMessage(LogFormHandle, WM_LANGUAGECHANGED, 0, 0);
   except
     on E: Exception do
@@ -818,6 +837,39 @@ begin
   begin
     try
       Result := INI.ReadBool(CustomSection, CustomParams, DefaultParamsStr);
+    finally
+      INI.Free;
+    end;
+  end
+  else
+    MsgDie(ProgramsName, Format(GetLangStr('MsgErr4'), [Path]));
+end;
+
+{ Процедура записи значения параметра в файл настроек }
+procedure WriteCustomINI(INIPath, CustomSection, CustomParams, ParamsStr: String);
+var
+  Path: String;
+  IsFileClosed: Boolean;
+  sFile: DWORD;
+  INI: TIniFile;
+begin
+  Path := INIPath + ININame;
+  if FileExists(Path) then
+  begin
+    // Ждем пока файл освободит антивирь или еще какая-нибудь гадость
+    IsFileClosed := False;
+    repeat
+      sFile := CreateFile(PChar(Path),GENERIC_READ or GENERIC_WRITE,0,nil,OPEN_EXISTING,FILE_ATTRIBUTE_NORMAL,0);
+      if (sFile <> INVALID_HANDLE_VALUE) then
+      begin
+        CloseHandle(sFile);
+        IsFileClosed := True;
+      end;
+    until IsFileClosed;
+    // End
+    INI := TIniFile.Create(Path);
+    try
+      INI.WriteString(CustomSection, CustomParams, ParamsStr);
     finally
       INI.Free;
     end;
@@ -1184,16 +1236,6 @@ begin
       MsgDie(ProgramsName, 'Exception in procedure SaveCommandDataStringGrid: Unable to write data in file ' + MyFile);
   end;
   INI.Free;
-end;
-
-function IsNumber(const S: string): Boolean;
-begin
-  Result := True;
-  try
-    StrToInt(S);
-  except
-    Result := False;
-  end;
 end;
 
 procedure LoadOLDCommandFileToGrid(MyFile: String; FileGrid: TStringGrid);

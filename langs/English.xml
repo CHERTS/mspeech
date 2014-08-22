@@ -8,7 +8,6 @@
   <MSpeechPopupMenuHide>Hide</MSpeechPopupMenuHide>
   <MSpeechPopupMenuSettings>Settings</MSpeechPopupMenuSettings>
   <MSpeechPopupMenuShowLog>Show log-file</MSpeechPopupMenuShowLog>
-  <MSpeechPopupMenuAbout>About</MSpeechPopupMenuAbout>
   <MSpeechPopupMenuExit>Exit</MSpeechPopupMenuExit>
   <GBMain>Management</GBMain>
   <LSignalLevel>Signal level</LSignalLevel>
@@ -24,6 +23,8 @@
   <TabSheetLog>Log</TabSheetLog>
   <TabSheetSendText>Transmission of text</TabSheetSendText>
   <TabSheetTextCorrection>Text  correction</TabSheetTextCorrection>
+  <TabSheetTextToSpeech>Text-to-voice</TabSheetTextToSpeech>
+  <TabSheetAbout>About</TabSheetAbout>
   <GBRecognizeSettings>Speech recognize settings</GBRecognizeSettings>
   <GBInterfaceSettings>Interface</GBInterfaceSettings>
   <CBAlphaBlend>Enable transparency windows</CBAlphaBlend>
@@ -64,6 +65,8 @@
   <LRegion>Main language of speech recognition:</LRegion>
   <LSecondRegion>Additional language speech recognition:</LSecondRegion>
   <LASR>ASR type:</LASR>
+  <LSpeechAPIKey>Your key to Speech API:</LSpeechAPIKey>
+  <GBAPINotes>Hint</GBAPINotes>
   <ExecProgramsCommandDesc>Run program</ExecProgramsCommandDesc>
   <CloseProgramsCommandDesc>Close program</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Kill program</KillProgramsCommandDesc>
@@ -90,7 +93,6 @@
   <LCommandClose>EXE-file and exit the program:</LCommandClose>
   <LCommandKill>EXE-file kills the program:</LCommandKill>
   <LCommandTextToSpeech>What to say:</LCommandTextToSpeech>
-  <TabSheetTextToSpeech>Text-to-voice</TabSheetTextToSpeech>
   <PleaseWait>Loading, please wait...</PleaseWait>
   <Copy>Copy</Copy>
   <SelectAll>Select all</SelectAll>
@@ -136,6 +138,7 @@
   <CBVoiceFilterEnableVAD>Enable VAD (Voice Activity Detection)</CBVoiceFilterEnableVAD>
   <LDefaultCommandExec>Default command:</LDefaultCommandExec>
   <LDefaultCommandExecDesc>Run if the command is not found in the list.</LDefaultCommandExecDesc>
+  <LAPINotes>If you do not specify your own key to access the Speech API, the public will be used, but we can not guarantee that with him recognition system will work. To get your own key, you can use the instructions posted on the site http://www.chromium.org/developers/how-tos/api-keys</LAPINotes>
 
   <StartStopRecord>Start\stop recording</StartStopRecord>
   <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>
@@ -152,10 +155,13 @@
   <Version>Version: </Version>
   <License>License: </License>
   <CloseButton>Close</CloseButton>
+  <BActivateLicense>Activate license</BActivateLicense>
+  <BActivate>Activate</BActivate>
+  <ActivateDone>License successfully activated.</ActivateDone>
 
   <MsgErr1>Not found the recording device. The program will be closed.</MsgErr1>
   <MsgErr2>Command file %s not found. The program will be closed.</MsgErr2>
-  <MsgErr3>Unknown error in the thread JvThreadRecognize</MsgErr3>
+  <MsgErr3>Unknown error in the Recognize thread</MsgErr3>
   <MsgErr4>Error! The configuration file %s not found.</MsgErr4>
   <MsgErr5>Error opening file</MsgErr5>
   <MsgErr6>Error opening file %s</MsgErr6>

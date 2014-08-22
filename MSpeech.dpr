@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.2 - Распознавание речи используя Google Speech API           # }
+{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -12,33 +12,30 @@ program MSpeech;
 
 uses
   {$IFDEF DEBUG}
-  madExcept,
-  madLinkDisAsm,
-  madListHardware,
-  madListProcesses,
-  madListModules,
-  {$ENDIF}
+  {$ENDIF }
   Vcl.Forms,
   OnlyOneRun in 'OnlyOneRun.pas',
   Main in 'Main.pas' {MainForm},
-  About in 'About.pas' {AboutForm},
   Global in 'Global.pas',
   Settings in 'Settings.pas' {SettingsForm},
-  Log in 'Log.pas' {LogForm};
+  Log in 'Log.pas' {LogForm},
+  Recognizer in 'Recognizer.pas';
 
 {$R *.res}
 
 begin
   if not Init_Mutex(ProgramsName) then
   begin
-    Application.MessageBox('Программа уже запущена.', 'Ошибка запуска', 0 or 48);
+    if GetSysLang = 'Русский' then
+      Application.MessageBox('Программа уже запущена.', 'Ошибка запуска', 0 or 48)
+    else
+      Application.MessageBox('The program is already running.', 'Error', 0 or 48);
     Exit;
   end;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
   Application.Title := 'MSpeech - Распознавание голоса с помощью GoogleSpeech';
   Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TAboutForm, AboutForm);
   Application.CreateForm(TSettingsForm, SettingsForm);
   Application.CreateForm(TLogForm, LogForm);
   Application.Run;

@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.4 - Распознавание речи используя Google Speech API           # }
+{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -18,7 +18,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, Types, StdCtrls, IniFiles, ComCtrls,  ExtCtrls, ButtonGroup, uIMButtonGroup,
   Buttons, Menus, ImgList, Vcl.Grids, Global, Vcl.Samples.Spin, ActiveX, SpeechLib_TLB,
-  ACS_Classes, ACS_DXAudio, JvComponentBase, JvFormPlacement
+  ACS_Classes, ACS_DXAudio, JvComponentBase, JvFormPlacement, ShellApi
   {$ifdef LICENSE}, License{$endif LICENSE};
 
 type
@@ -181,6 +181,25 @@ type
     LSecondRegion: TLabel;
     LASR: TLabel;
     CBASR: TComboBox;
+    TabSheetAbout: TTabSheet;
+    AboutImage: TImage;
+    BAbout: TBevel;
+    LProgramName: TLabel;
+    LCopyright: TLabel;
+    LAuthor: TLabel;
+    LVersionNum: TLabel;
+    LVersion: TLabel;
+    LWeb: TLabel;
+    LLicense: TLabel;
+    LLicenseType: TLabel;
+    LWebSite: TLabel;
+    ELicense: TEdit;
+    BActivate: TButton;
+    BActivateLicense: TButton;
+    LSpeechAPIKey: TLabel;
+    ESpeechAPIKey: TEdit;
+    GBAPINotes: TGroupBox;
+    LAPINotes: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SettingtButtonGroupClick(Sender: TObject);
@@ -242,6 +261,10 @@ type
     procedure CBEnableFiltersClick(Sender: TObject);
     procedure RGFiltersTypeClick(Sender: TObject);
     procedure SBDefaultCommandSelectClick(Sender: TObject);
+    procedure LAuthorClick(Sender: TObject);
+    procedure LWebSiteClick(Sender: TObject);
+    procedure BActivateLicenseClick(Sender: TObject);
+    procedure BActivateClick(Sender: TObject);
   private
     { Private declarations }
     HotKeySelectedCell: Integer;
@@ -278,6 +301,7 @@ var
 implementation
 
 {$R *.dfm}
+{$R About.res}
 
 procedure TSettingsForm.CloseButtonClick(Sender: TObject);
 begin
@@ -286,6 +310,7 @@ end;
 
 procedure TSettingsForm.FormCreate(Sender: TObject);
 var
+  AboutBitmap: TBitmap;
   I: Integer;
 begin
   // Для мультиязыковой поддержки
@@ -295,6 +320,16 @@ begin
   // Отключаем табы
   for I := 0 to SettingsPageControl.PageCount-1 do
     SettingsPageControl.Pages[I].TabVisible := False;
+  // О программе
+  // Грузим битовый образы из файла ресурсов
+  AboutBitmap := TBitmap.Create;
+  AboutBitmap.LoadFromResourceName(HInstance, 'About');
+  AboutImage.Picture.Assign(AboutBitmap);
+  AboutBitmap.Free;
+  LAuthor.Cursor := crHandPoint;
+  LWebSite.Cursor := crHandPoint;
+  // Указываем версию в окне "О плагине"
+  LVersionNum.Caption := GetMyExeVersion() + ' ' + PlatformType;
 end;
 
 procedure TSettingsForm.FormShow(Sender: TObject);
@@ -309,6 +344,8 @@ begin
   ActivateAddReplaceButton := False;
   ActivateDeleteReplaceButton := False;
   ActivateAddTextToSpeechButton := False;
+  // Читаем настройки
+  LoadINI(WorkPath);
   // Активируем настройки
   LoadSettings;
   // Загружаем язык интерфейса
@@ -327,6 +364,15 @@ begin
   // Прозрачность окна
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
+  // Информация о лицензии
+  {$ifdef LICENSE}
+  BActivateLicense.Visible := True;
+  BActivate.Visible := False;
+  ELicense.Visible := False;
+  ELicense.Text := '';
+  if CheckLicense(WorkPath, True) then
+    LLicenseType.Caption := '#' + ReadLicenseInfo(WorkPath, mLicNumber) + ', ' + ReadLicenseInfo(WorkPath, mLicName) + ', ' + ReadLicenseInfo(WorkPath, mLicDate);
+  {$endif LICENSE}
 end;
 
 procedure TSettingsForm.SaveSettingsButtonClick(Sender: TObject);
@@ -434,6 +480,8 @@ begin
   VoiceFilterEnableVAD := CBVoiceFilterEnableVAD.Checked;
   // Команда по-умолчанию
   DefaultCommandExec := EDefaultCommandExec.Text;
+  // API Key
+  GoogleAPIKey := ESpeechAPIKey.Text;
   // Сохраняем настройки
   SaveINI(WorkPath);
   SAPIDeactivate;
@@ -613,6 +661,8 @@ begin
   CBVoiceFilterEnableVAD.Checked := VoiceFilterEnableVAD;
   // Команда по-умолчанию
   EDefaultCommandExec.Text := DefaultCommandExec;
+  // API Key
+  ESpeechAPIKey.Text := GoogleAPIKey;
 end;
 
 procedure TSettingsForm.SetSAPISettings;
@@ -887,14 +937,10 @@ end;
 
 procedure TSettingsForm.MicSettingsButtonClick(Sender: TObject);
 begin
-  if (DetectWinVersionStr = 'Windows 7') then
-    WinExec('SndVol.exe /r', SW_SHOW)
-  else if (DetectWinVersionStr = 'Windows 8') then
-    WinExec('SndVol.exe /r', SW_SHOW)
-  else  if (DetectWinVersionStr = 'Windows XP') or (DetectWinVersionStr = 'Windows 2000') then
+  if (DetectWinVersionStr = 'Windows 7') or (DetectWinVersionStr = 'Windows 8') then
+    ShellExecute(Handle, nil, 'control.exe', 'mmsys.cpl,,1', '', SW_SHOWNORMAL)
+  else if (DetectWinVersionStr = 'Windows XP') or (DetectWinVersionStr = 'Windows 2000') then
     WinExec('SndVol32.exe /r', SW_SHOW)
-  //else if (DetectWinVersionStr = 'Windows Vista') or (DetectWinVersionStr = 'Windows 2008') then
-  //  MsgInf(ProgramName, 'Для настройки параметров микрофона зайдите в Панель управления.' + #13 + 'Ваша версия OS: ' + DetectWinVersionStr)
   else
     MsgInf(ProgramsName, Format(GetLangStr('MsgInf1'), [#13, DetectWinVersionStr]));
 end;
@@ -1441,6 +1487,40 @@ begin
     MakeTransp(msgbHandle);
 end;
 
+procedure TSettingsForm.LAuthorClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', 'mailto:sleuthhound@gmail.com?Subject=MSpeech', nil, nil, SW_RESTORE);
+end;
+
+procedure TSettingsForm.LWebSiteClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', 'http://www.programs74.ru', nil, nil, SW_RESTORE);
+end;
+
+procedure TSettingsForm.BActivateLicenseClick(Sender: TObject);
+begin
+  BActivate.Visible := True;
+  ELicense.Visible := True;
+  ELicense.Text := '';
+  ELicense.SetFocus;
+end;
+
+procedure TSettingsForm.BActivateClick(Sender: TObject);
+begin
+  WriteCustomINI(WorkPath, 'License', 'LicenseKey', ELicense.Text);
+  {$ifdef LICENSE}
+  if CheckLicense(WorkPath, True) then
+  begin
+    LLicenseType.Caption := '#' + ReadLicenseInfo(WorkPath, mLicNumber) + ', ' + ReadLicenseInfo(WorkPath, mLicName) + ', ' + ReadLicenseInfo(WorkPath, mLicDate);
+    MsgInf(ProgramsName, GetLangStr('ActivateDone'));
+  end
+  else
+    CheckLicense(WorkPath, False);
+  ELicense.Visible := False;
+  BActivate.Visible := False;
+  {$endif}
+end;
+
 { Смена языка интерфейса по событию WM_LANGUAGECHANGED }
 procedure TSettingsForm.OnLanguageChanged(var Msg: TMessage);
 begin
@@ -1460,10 +1540,12 @@ begin
   SettingtButtonGroup.Items[6].Caption := GetLangStr('TabSheetSendText');
   SettingtButtonGroup.Items[7].Caption := GetLangStr('TabSheetTextCorrection');
   SettingtButtonGroup.Items[8].Caption := GetLangStr('TabSheetTextToSpeech');
+  SettingtButtonGroup.Items[9].Caption := GetLangStr('TabSheetAbout');
   SaveSettingsButton.Caption := GetLangStr('SaveSettingsButton');
   HotKetStringGrid.Cells[0,0] := GetLangStr('StartStopRecord');
   HotKetStringGrid.Cells[0,1] := GetLangStr('StartStopRecordWithoutSendText');
   HotKetStringGrid.Cells[0,2] := GetLangStr('StartRecordWithoutExecCommand');
+  HotKetStringGrid.Cells[0,3] := GetLangStr('SwitchesLanguageRecognize');
   GBInterfaceSettings.Caption := Format(' %s ', [GetLangStr('GBInterfaceSettings')]);
   CBAlphaBlend.Caption := GetLangStr('CBAlphaBlend');
   CBShowTrayEvents.Caption := GetLangStr('CBShowTrayEvents');
@@ -1507,6 +1589,8 @@ begin
   LFirstRegion.Caption := GetLangStr('LRegion');
   LSecondRegion.Caption := GetLangStr('LSecondRegion');
   LASR.Caption := GetLangStr('LASR');
+  LSpeechAPIKey.Caption := GetLangStr('LSpeechAPIKey');
+  GBAPINotes.Caption := Format(' %s ', [GetLangStr('GBAPINotes')]);
   // Команды
   GBCommand.Caption := Format(' %s ', [GetLangStr('GBCommand')]);
   LCommandKey.Caption := GetLangStr('LCommandKey');
@@ -1569,6 +1653,14 @@ begin
   // Команда по-умолчанию
   LDefaultCommandExec.Caption := GetLangStr('LDefaultCommandExec');
   LDefaultCommandExecDesc.Caption := GetLangStr('LDefaultCommandExecDesc');
+  // О программе
+  LProgramName.Caption := ProgramsName;
+  LVersion.Caption := GetLangStr('Version');
+  LLicense.Caption := GetLangStr('License');
+  BActivateLicense.Caption := GetLangStr('BActivateLicense');
+  BActivate.Caption := GetLangStr('BActivate');
+  // API
+  LAPINotes.Caption := GetLangStr('LAPINotes');
   // Позиционируем контролы
   CBLang.Left := LLang.Left + LLang.Width + 5;
   CBDevice.Left := LDevice.Left + LDevice.Width + 5;
@@ -1577,6 +1669,8 @@ begin
   EProxyAddress.Left := LProxyAddress.Left + LProxyAddress.Width + 5;
   LProxyPort.Left := LProxyAddress.Left + LProxyAddress.Width + 5 + EProxyAddress.Width + 5;
   EProxyPort.Left := LProxyAddress.Left + LProxyAddress.Width + 5 + EProxyAddress.Width + 5 + LProxyPort.Width + 5;
+  LVersionNum.Left := LVersion.Left + 1 + LVersion.Width;
+  LLicenseType.Left := LLicense.Left + 1 + LLicense.Width;
   //CBFirstRegion.Left := LFirstRegion.Left + LFirstRegion.Width + 5;
   //CBSecondRegion.Left := LSecondRegion.Left + LSecondRegion.Width + 5;
 end;

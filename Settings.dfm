@@ -50,38 +50,33 @@
     Items = <
       item
         Caption = ' '#1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
-        ImageIndex = 5
       end
       item
         Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1079#1072#1087#1080#1089#1080
-        ImageIndex = 122
       end
       item
         Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103
       end
       item
         Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103
-        ImageIndex = 14
       end
       item
         Caption = ' '#1050#1086#1084#1072#1085#1076#1099
-        ImageIndex = 50
       end
       item
         Caption = ' '#1043#1086#1088#1103#1095#1080#1077' '#1082#1083#1072#1074#1080#1096#1080
-        ImageIndex = 59
       end
       item
         Caption = ' '#1055#1077#1088#1077#1076#1072#1095#1072' '#1090#1077#1082#1089#1090#1072
-        ImageIndex = 118
       end
       item
         Caption = ' '#1050#1086#1088#1088#1077#1082#1094#1080#1103' '#1090#1077#1082#1089#1090#1072
-        ImageIndex = 144
       end
       item
         Caption = ' '#1057#1080#1085#1090#1077#1079' '#1075#1086#1083#1086#1089#1072
-        ImageIndex = 31
+      end
+      item
+        Caption = ' '#1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
       end>
     TabOrder = 3
     OnClick = SettingtButtonGroupClick
@@ -107,11 +102,15 @@
     Top = 8
     Width = 622
     Height = 429
-    ActivePage = TabSheetRecognize
+    ActivePage = TabSheetAbout
     TabOrder = 0
     object TabSheetSettings: TTabSheet
       Caption = #1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -218,6 +217,10 @@
     object TabSheetRecord: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1079#1072#1087#1080#1089#1080
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -422,6 +425,7 @@
           Height = 17
           Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1092#1080#1083#1100#1090#1088#1072#1094#1080#1102' '#1079#1074#1091#1082#1072
           TabOrder = 15
+          Visible = False
           OnClick = CBEnableFiltersClick
         end
         object GBFilters: TGroupBox
@@ -609,9 +613,16 @@
         object LASR: TLabel
           Left = 16
           Top = 26
-          Width = 144
-          Height = 14
+          Width = 143
+          Height = 13
           Caption = #1052#1077#1090#1086#1076' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
+        end
+        object LSpeechAPIKey: TLabel
+          Left = 16
+          Top = 107
+          Width = 157
+          Height = 13
+          Caption = #1042#1072#1096' '#1082#1083#1102#1095' '#1082' Google Speech API:'
         end
         object CBFirstRegion: TComboBox
           Left = 209
@@ -769,10 +780,43 @@
           Items.Strings = (
             'Google (Online)')
         end
+        object ESpeechAPIKey: TEdit
+          Left = 209
+          Top = 104
+          Width = 280
+          Height = 21
+          TabOrder = 3
+        end
+        object GBAPINotes: TGroupBox
+          Left = 16
+          Top = 126
+          Width = 577
+          Height = 91
+          Caption = ' '#1055#1086#1076#1089#1082#1072#1079#1082#1072' '
+          TabOrder = 4
+          object LAPINotes: TLabel
+            Left = 18
+            Top = 19
+            Width = 543
+            Height = 62
+            AutoSize = False
+            Caption = 
+              #1045#1089#1083#1080' '#1042#1099' '#1085#1077' '#1091#1082#1072#1078#1080#1090#1077' '#1089#1086#1073#1089#1090#1074#1077#1085#1085#1099#1081' '#1082#1083#1102#1095' '#1076#1083#1103' '#1076#1086#1089#1090#1091#1087#1072' '#1082' Speech API, '#1090#1086 +
+              ' '#1073#1091#1076#1077#1090' '#1080#1089#1087#1086#1083#1100#1079#1086#1074#1072#1090#1100#1089#1103' '#1087#1091#1073#1083#1080#1095#1085#1099#1081', '#1085#1086' '#1084#1099' '#1085#1077' '#1076#1072#1105#1084' '#1075#1072#1088#1072#1085#1090#1080#1080', '#1095#1090#1086' '#1089' '#1085 +
+              #1080#1084' '#1089#1080#1089#1090#1077#1084#1072' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1073#1091#1076#1077#1090' '#1088#1072#1073#1086#1090#1072#1090#1100'. '#1044#1083#1103' '#1087#1086#1083#1091#1095#1077#1085#1080#1103' '#1089#1086#1073#1089#1090#1074#1077#1085#1085 +
+              #1086#1075#1086' '#1082#1083#1102#1095#1072' '#1084#1086#1078#1085#1086' '#1074#1086#1089#1087#1086#1083#1100#1079#1086#1074#1072#1090#1100#1089#1103' '#1080#1085#1089#1090#1088#1091#1082#1094#1080#1077#1081' '#1088#1072#1079#1084#1077#1097#1077#1085#1085#1086#1081' '#1085#1072' '#1089#1072#1081#1090#1077 +
+              ' http://www.chromium.org/developers/how-tos/api-keys'
+            WordWrap = True
+          end
+        end
       end
     end
     object TabSheetConnectSettings: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -868,6 +912,10 @@
     object TabSheetCommand: TTabSheet
       Caption = #1050#1086#1084#1072#1085#1076#1099
       ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1102,6 +1150,10 @@
     object TabSheetHotKey: TTabSheet
       Caption = #1043#1086#1088#1103#1095#1080#1077' '#1082#1083#1072#1074#1080#1096#1080
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1181,6 +1233,10 @@
     object TabSheetSendText: TTabSheet
       Caption = #1055#1077#1088#1077#1076#1072#1095#1072' '#1090#1077#1082#1089#1090#1072
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1280,6 +1336,10 @@
     object TabSheetTextCorrection: TTabSheet
       Caption = #1050#1086#1088#1088#1077#1082#1094#1080#1103' '#1090#1077#1082#1089#1090#1072
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1420,6 +1480,10 @@
     object TabSheetTextToSpeech: TTabSheet
       Caption = #1057#1080#1085#1090#1077#1079' '#1075#1086#1083#1086#1089#1072
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1665,6 +1729,138 @@
         end
       end
     end
+    object TabSheetAbout: TTabSheet
+      Caption = #1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
+      ImageIndex = 9
+      object AboutImage: TImage
+        Left = 144
+        Top = 16
+        Width = 325
+        Height = 55
+        Transparent = True
+      end
+      object BAbout: TBevel
+        Left = 16
+        Top = 77
+        Width = 585
+        Height = 116
+      end
+      object LProgramName: TLabel
+        Left = 24
+        Top = 88
+        Width = 54
+        Height = 13
+        Caption = 'MSpeech'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = [fsBold]
+        ParentFont = False
+      end
+      object LCopyright: TLabel
+        Left = 24
+        Top = 104
+        Width = 130
+        Height = 13
+        Caption = 'Copyright '#169' 2011-2014 by'
+      end
+      object LAuthor: TLabel
+        Left = 156
+        Top = 104
+        Width = 76
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'Mikhail Grigorev'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        OnClick = LAuthorClick
+      end
+      object LVersionNum: TLabel
+        Left = 65
+        Top = 120
+        Width = 36
+        Height = 13
+        Caption = '1.0.0.0'
+      end
+      object LVersion: TLabel
+        Left = 24
+        Top = 120
+        Width = 42
+        Height = 13
+        Caption = 'Version: '
+      end
+      object LWeb: TLabel
+        Left = 24
+        Top = 136
+        Width = 29
+        Height = 13
+        Caption = 'Web: '
+      end
+      object LLicense: TLabel
+        Left = 24
+        Top = 152
+        Width = 42
+        Height = 13
+        Caption = 'License: '
+      end
+      object LLicenseType: TLabel
+        Left = 65
+        Top = 152
+        Width = 519
+        Height = 32
+        AutoSize = False
+        Caption = 'GPLv3'
+        WordWrap = True
+      end
+      object LWebSite: TLabel
+        Left = 53
+        Top = 136
+        Width = 94
+        Height = 13
+        Cursor = crHandPoint
+        Caption = 'www.programs74.ru'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clBlue
+        Font.Height = -11
+        Font.Name = 'MS Sans Serif'
+        Font.Style = []
+        ParentFont = False
+        OnClick = LWebSiteClick
+      end
+      object ELicense: TEdit
+        Left = 16
+        Top = 238
+        Width = 585
+        Height = 21
+        TabOrder = 1
+        Visible = False
+      end
+      object BActivate: TButton
+        Left = 16
+        Top = 265
+        Width = 97
+        Height = 25
+        Caption = #1040#1082#1090#1080#1074#1080#1088#1086#1074#1072#1090#1100
+        TabOrder = 2
+        Visible = False
+        OnClick = BActivateClick
+      end
+      object BActivateLicense: TButton
+        Left = 16
+        Top = 207
+        Width = 150
+        Height = 25
+        Caption = #1040#1082#1090#1080#1074#1080#1088#1086#1074#1072#1090#1100' '#1083#1080#1094#1077#1085#1079#1080#1102
+        TabOrder = 0
+        Visible = False
+        OnClick = BActivateLicenseClick
+      end
+    end
   end
   object ImageList_Main: TImageList
     ColorDepth = cd32Bit
@@ -1672,7 +1868,7 @@
     Left = 48
     Top = 232
     Bitmap = {
-      494C01010C00B000380210001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010C001100240010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

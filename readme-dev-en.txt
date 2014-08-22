@@ -1,7 +1,7 @@
 MSpeech
 -------
 
-The program for speech recognition using the Google Voice API and voice commands.
+Program for speech recognition using the Google Speech API, voice control computer, transmission of text in the input field of other programs.
 
 Author:		Mikhail Grigorev
 E-Mail: 	sleuthhound@gmail.com
@@ -16,28 +16,27 @@ OS: Win2000/XP/2003/Vista/7/8
 The necessary components for the assembly:
 ------------------------------------------
 
-1. Embarcadero RAD Studio XE or XE3 or XE4
+1. Embarcadero RAD Studio XE6
 
 2. JEDI Core 2.4 Build 4571 + JEDI VCL 3.47
-    http://www.delphi-jedi.org
-    http://sourceforge.net/projects/jcl/files/JCL% 20Releases/JCL% 202.4% 20Build% 204571 /
-    http://sourceforge.net/projects/jvcl/files/JVCL% 203/JVCL% 203.47 /
-    Download my JEDI: http://file.qip.ru/arch/53Pxmxm_/JEDI-Core-24-Build-4571-and-JEDI-VCL-347-and-MyPatch.html
+   Web-site 1: http://www.delphi-jedi.org
+   Web-site 2: http://sourceforge.net/projects/jcl/files/JCL% 20Releases/JCL% 202.4% 20Build% 204571 /
+   Web-site 3: http://sourceforge.net/projects/jvcl/files/JVCL% 203/JVCL% 203.47 /
+   Latest version JCL: https://github.com/project-jedi/jcl.git
+   Latest version JVCL: https://github.com/project-jedi/jvcl.git
 
 3. CoolTrayIcon
-    http://www.songbeamer.com/delphi/
-    Download my CoolTrayIcon: http://file.qip.ru/arch/DhK8ZWEj/CoolTrayIcon.html
+   Web-site: http://www.songbeamer.com/delphi/
 
 4. New Audio Components for Delphi
-    http://symmetrica.net/newac/
-    Download my NewAC: http://file.qip.ru/arch/pP61YS/NewAC.html
+   Web-site: http://symmetrica.net/newac/
+   Latest version: https://code.google.com/p/newac/
 
 5. Synapse
-    http://www.ararat.cz/synapse/doku.php/download
-    Download my Synapse: http://file.qip.ru/arch/ALLgL5Ah/synapse.html
+   Web-site: http://www.ararat.cz/synapse/doku.php/download
+   Latest version: http://svn.code.sf.net/p/synalist/code/trunk
 
 6. IMButtonGroup
    Look in the folder IMButtonGroupComponent.
 
-(c) 2012-2013 by Mikhail Grigorev
-
+(c) 2012-2014 by Mikhail Grigorev

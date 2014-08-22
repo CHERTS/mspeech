@@ -5,7 +5,7 @@ object MainForm: TMainForm
   BorderStyle = bsSingle
   Caption = 'MSpeech'
   ClientHeight = 106
-  ClientWidth = 405
+  ClientWidth = 386
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -21,20 +21,20 @@ object MainForm: TMainForm
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignSize = (
-    405
+    386
     106)
   PixelsPerInch = 96
   TextHeight = 13
   object GBMain: TGroupBox
     Left = 8
     Top = 4
-    Width = 389
+    Width = 370
     Height = 93
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = ' '#1059#1087#1088#1072#1074#1083#1077#1085#1080#1077' '
     TabOrder = 0
     DesignSize = (
-      389
+      370
       93)
     object LSignalLevel: TLabel
       Left = 7
@@ -46,12 +46,12 @@ object MainForm: TMainForm
     object ProgressBar: TProgressBar
       Left = 99
       Top = 23
-      Width = 282
+      Width = 263
       Height = 16
       Anchors = [akLeft, akTop, akRight]
       BarColor = clLime
       BackgroundColor = clBlack
-      TabOrder = 4
+      TabOrder = 3
     end
     object StartButton: TButton
       Left = 8
@@ -78,23 +78,13 @@ object MainForm: TMainForm
     object SettingsButton: TButton
       Left = 260
       Top = 54
-      Width = 92
+      Width = 102
       Height = 25
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080
       ImageIndex = 1
       Images = ImageList_Main
       TabOrder = 2
       OnClick = SettingsButtonClick
-    end
-    object AboutButton: TButton
-      Left = 358
-      Top = 54
-      Width = 24
-      Height = 25
-      ImageIndex = 2
-      Images = ImageList_Main
-      TabOrder = 3
-      OnClick = AboutButtonClick
     end
   end
   object DXAudioIn: TDXAudioIn
@@ -103,7 +93,7 @@ object MainForm: TMainForm
     DeviceNumber = 0
     InBitsPerSample = 16
     InChannels = 1
-    InSampleRate = 8000
+    InSampleRate = 44100
     RecTime = -1
     EchoRecording = False
     FramesInBuffer = 24576
@@ -189,14 +179,14 @@ object MainForm: TMainForm
     MinimizeToTray = True
     OnDblClick = MSpeechTrayDblClick
     OnStartup = MSpeechTrayStartup
-    Left = 320
-    Top = 8
+    Left = 136
+    Top = 40
   end
   object TrayImageList: TImageList
     Left = 256
     Top = 8
     Bitmap = {
-      494C0101060009000C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C010106000900400010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       00000000000000000000A8A8A8577777778AA8A8A85700000000000000009D79
@@ -469,8 +459,8 @@ object MainForm: TMainForm
   end
   object MSpeechPopupMenu: TPopupMenu
     Images = ImageList_Main
-    Left = 352
-    Top = 8
+    Left = 104
+    Top = 40
     object MSpeechShowHide: TMenuItem
       Caption = #1055#1086#1082#1072#1079#1072#1090#1100
       Hint = 'MSpeechPopupMenuShow'
@@ -489,13 +479,6 @@ object MainForm: TMainForm
       Hint = 'MSpeechPopupMenuShowLog'
       ImageIndex = 12
       OnClick = MSpeechShowLogClick
-    end
-    object MSpeechAbout: TMenuItem
-      Caption = #1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
-      SubMenuImages = ImageList_Main
-      Hint = 'MSpeechPopupMenuAbout'
-      ImageIndex = 2
-      OnClick = MSpeechAboutClick
     end
     object MSpeechExit: TMenuItem
       Caption = #1042#1099#1081#1090#1080
@@ -522,23 +505,13 @@ object MainForm: TMainForm
     Left = 191
     Top = 8
   end
-  object JvThreadRecognize: TJvThread
-    Exclusive = True
-    MaxCount = 0
-    RunOnCreate = True
-    FreeOnTerminate = True
-    OnExecute = JvThreadRecognizeExecute
-    OnFinish = JvThreadRecognizeFinish
-    Left = 288
-    Top = 8
-  end
   object ImageList_Main: TImageList
     ColorDepth = cd32Bit
     DrawingStyle = dsTransparent
     Left = 224
     Top = 8
     Bitmap = {
-      494C01010D00B000380210001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010D001100400010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.4 - Распознавание речи используя Google Speech API           # }
+{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -15,13 +15,13 @@ interface
 {$I MSpeech.inc}
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, NewACIndicators, ACS_FLAC, ACS_DXAudio,
-  HTTPSend, SSL_OpenSSL, uJSON, ShellApi, Global, About, Settings, Log, ACS_Misc, ACS_Filters, ACS_Wave,
+  HTTPSend, SSL_OpenSSL, ShellApi, Global, Settings, Log, ACS_Misc, ACS_Filters, ACS_Wave,
   CoolTrayIcon, ImgList, Menus, JvAppStorage, JvAppIniStorage, JvComponentBase,
-  JvFormPlacement, JvThread, Grids, JvAppHotKey, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
-  XMLIntf, XMLDoc, JvExControls, JvSpeedButton, ActiveX, SpeechLib_TLB, JclStringConversions,
-  AudioDMO, ACS_Procs, synautil, ACS_WinMedia, ACS_smpeg, SHFolder, StrUtils;
+  JvFormPlacement, Grids, JvAppHotKey, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
+  XMLIntf, XMLDoc, JvExControls, ActiveX, SpeechLib_TLB, JclStringConversions,
+  AudioDMO, ACS_Procs, synautil, ACS_WinMedia, ACS_smpeg, SHFolder, StrUtils, Recognizer;
 
 type
   TMainForm = class(TForm)
@@ -33,18 +33,15 @@ type
     TrayImageList: TImageList;
     MSpeechPopupMenu: TPopupMenu;
     MSpeechShowHide: TMenuItem;
-    MSpeechAbout: TMenuItem;
     MSpeechExit: TMenuItem;
     JvFormStorage: TJvFormStorage;
     JvAppIniFileStorage: TJvAppIniFileStorage;
-    JvThreadRecognize: TJvThread;
     GBMain: TGroupBox;
     LSignalLevel: TLabel;
     ProgressBar: TProgressBar;
     StartButton: TButton;
     StopButton: TButton;
     SettingsButton: TButton;
-    AboutButton: TButton;
     MSpeechSettings: TMenuItem;
     ImageList_Main: TImageList;
     MSpeechShowLog: TMenuItem;
@@ -64,16 +61,12 @@ type
     procedure StartButtonClick(Sender: TObject);
     procedure StopButtonClick(Sender: TObject);
     procedure SettingsButtonClick(Sender: TObject);
-    procedure AboutButtonClick(Sender: TObject);
     procedure MSpeechTrayDblClick(Sender: TObject);
     procedure MSpeechShowLogClick(Sender: TObject);
     procedure MSpeechSettingsClick(Sender: TObject);
-    procedure MSpeechAboutClick(Sender: TObject);
     procedure MSpeechExitClick(Sender: TObject);
-    procedure JvThreadRecognizeExecute(Sender: TObject; Params: Pointer);
-    procedure JvThreadRecognizeFinish(Sender: TObject);
     procedure Start;
-    procedure StartRecognize;
+    procedure StartRecognizer;
     procedure StartRecord;
     procedure StartNULLRecord;
     procedure StopNULLRecord;
@@ -108,7 +101,6 @@ type
     SincFilter: TSincFilter;
     function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64; overload;
     function HTTPGetSize(URL: String): int64; overload;
-    function HTTPPostFile(Const URL, FieldName, FileName: String; Const Data: TStream; Const ResultData: TStrings): Boolean;
     function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
     procedure RegisterHotKeys;
     procedure UnRegisterHotKeys;
@@ -127,6 +119,8 @@ type
     procedure TextToSpeech(EType: TEventsType); overload;
     procedure TextToSpeech(SayText: String); overload;
     procedure Filters;
+    procedure RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
+    procedure RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
   end;
 
 var
@@ -298,13 +292,6 @@ end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
-  if not JvThreadRecognize.Terminated then
-    JvThreadRecognize.Terminate;
-  while not (JvThreadRecognize.Terminated) do
-  begin
-    Sleep(1);
-    Forms.Application.ProcessMessages;
-  end;
   if FileExists(OutFileName) then
     DeleteFile(OutFileName);
   // Разрегистрация гор. клавиш
@@ -354,11 +341,6 @@ begin
     SettingsForm.Position := poMainFormCenter;
 end;
 
-procedure TMainForm.MSpeechAboutClick(Sender: TObject);
-begin
-  AboutForm.Show;
-end;
-
 procedure TMainForm.MSpeechExitClick(Sender: TObject);
 begin
   MSpeechMainFormHidden := True;
@@ -405,13 +387,17 @@ end;
 procedure TMainForm.FastGainIndicatorGainData(Sender: TComponent);
 begin
   try
-    ProgressBar.Position := FastGainIndicator.GainValue;
+    if MainForm.Showing then
+      ProgressBar.Position := FastGainIndicator.GainValue;
     if not NULLOutStart then
     begin
       if FastGainIndicator.GainValue < MinLevelOnAutoRecognize then
         Inc(FLACDoneCnt);
-      SettingsForm.StaticTextMinLevel.Caption := IntToStr(FastGainIndicator.GainValue);
-      SettingsForm.StaticTextMinLevelInterrupt.Caption := IntToStr(FLACDoneCnt);
+      if SettingsForm.Showing then
+      begin
+        SettingsForm.StaticTextMinLevel.Caption := IntToStr(FastGainIndicator.GainValue);
+        SettingsForm.StaticTextMinLevelInterrupt.Caption := IntToStr(FLACDoneCnt);
+      end;
       if (StopRecordAction >= 0) and (StopRecordAction < 2) then
       begin
         if FLACDoneCnt >= MinLevelOnAutoRecognizeInterrupt then
@@ -422,7 +408,8 @@ begin
     begin
       if FastGainIndicator.GainValue > MaxLevelOnAutoRecord then
         Inc(NULLOutDoneCnt);
-      SettingsForm.StaticTextMaxLevelInterrupt.Caption := IntToStr(NULLOutDoneCnt);
+      if SettingsForm.Showing then
+        SettingsForm.StaticTextMaxLevelInterrupt.Caption := IntToStr(NULLOutDoneCnt);
       if NULLOutDoneCnt >= MaxLevelOnAutoRecordInterrupt then
         StartButton.Click;
     end;
@@ -445,7 +432,7 @@ begin
     if (StopRecordAction = 1) or (StopRecordAction = 3) then
     begin
       if StopRecord then
-        StartRecognize;
+        StartRecognizer;
     end;
   end;
 end;
@@ -458,11 +445,6 @@ begin
   StartButton.Enabled := True;
   StopButton.Enabled := False;
   StopRecord := True;
-end;
-
-procedure TMainForm.AboutButtonClick(Sender: TObject);
-begin
-  AboutForm.Show;
 end;
 
 procedure TMainForm.Filters;
@@ -625,318 +607,219 @@ begin
     FLACOut.FileName := OutFileName;
     FLACOut.Run;
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Начата запись в файл ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InSampleRate = ' + IntToStr(DXAudioIn.InSampleRate));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InBitsPerSample = ' + IntToStr(DXAudioIn.InBitsPerSample));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InChannels = ' + IntToStr(DXAudioIn.InChannels));
   end
   else
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Не найдена библиотека libFLAC.dll');
 end;
 
 { Запуск потока отправки данных и выполнения команды }
-procedure TMainForm.StartRecognize;
+procedure TMainForm.StartRecognizer;
 begin
-  if not JvThreadRecognize.Terminated then
-      JvThreadRecognize.Terminate;
   if FileExists(OutFileName) then
-    JvThreadRecognize.Execute(Self)
+  begin
+    MSpeechTray.IconIndex := 4;
+    StartRecognize(GoogleAPIKey, OutFileName, CurrentSpeechRecognizeLang , UseProxy, ProxyAddress, ProxyPort, ProxyAuth, ProxyUser, ProxyUserPasswd, RecognizeResultCallBack, RecognizeErrorCallBack)
+  end
   else
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognize - Ошибка чтения файла ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognizer - Ошибка чтения файла ' + OutFileName);
     StartButton.Enabled := True;
     StopButton.Enabled := False;
   end;
 end;
 
-{ Поток отправки данных и выполнения команды }
-procedure TMainForm.JvThreadRecognizeExecute(Sender: TObject; Params: Pointer);
+procedure TMainForm.RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
 var
-  Stream: TFileStream;
-  Str: String;
-  JSON, Jo: TJSONobject;
-  ReplStr: String;
-  RecognizeConfidence: Real;
-  StrList: TStringList;
-  StrListCnt: Integer;
+  ErrStr: String;
+begin
+  case E of
+    reErrorGoogleCommunication: ErrStr := 'Ошибка связи с сервером Google: ' + EStr;
+    reFileSizeNull: ErrStr := 'Ошибка: Нулевой размер файла для распознавания: ' + EStr;
+    reErrorHostNotFound: ErrStr := 'Ошибка: ' + EStr + '. Проверьте настройки Firewall''а.';
+    reErrorConnectionTimedOut: ErrStr := 'Ошибка: ' + EStr + '. Проверьте настройки Firewall''а или прокси-сервера.';
+    reErrorGoogleResponse: ErrStr := 'Ошибка ответа сервера Google: ' + EStr;
+    else ErrStr := 'Ошибка: ' + EStr;
+  end;
+  if EnableLogs then WriteInLog(WorkPath, Format('%s: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), ErrStr]));
+  if E = reErrorGoogleResponse then
+  begin
+    MSpeechTray.IconIndex := 5;
+    ShowBalloonHint(ProgramsName, GetLangStr('MsgErr3'),  bitError);
+    StopNULLRecord;
+    if MaxLevelOnAutoControl then
+      StartNULLRecord;
+  end;
+  StartButton.Enabled := True;
+  StopButton.Enabled := False;
+  CloseLogFile;
+  if LogForm.Showing then
+    SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
+  MSpeechTray.IconIndex := 0;
+end;
+
+procedure TMainForm.RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
+var
   RecognizeStr: String;
   K: Integer;
   RowN: Integer;
 begin
-  if GetFileSize(OutFileName) > 0 then
+  if EnableLogs then
   begin
-    MSpeechTray.IconIndex := 4;
-    StrList := TStringList.Create;
-    StrList.Clear;
-    StartButton.Enabled := False;
-    StopButton.Enabled := False;
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ждите, идет отправка запроса в Google...');
-    try
-      Stream := TFileStream.Create(OutFileName, fmOpenRead or fmShareDenyWrite);
-    except
-      on e: Exception do
+    if pStatus = rsResolving then
+      WriteInLog(WorkPath, Format('%s: Разрешение имени сервера.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+    if pStatus = rsConnect then
+      WriteInLog(WorkPath, Format('%s: Подключение к серверу.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+    if pStatus = rsSendRequest then
+      WriteInLog(WorkPath, Format('%s: Отправка запроса на сервер.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+    if pStatus = rsResponseReceived then
+      WriteInLog(WorkPath, Format('%s: Получение ответа от сервера.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+    if pStatus = rsRecognizeAbort then
+      WriteInLog(WorkPath, Format('%s: Отмена отправки данных.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+  end;
+  if pStatus = rsRecordingNotRecognized then // Запись не распознана
+  begin
+    MSpeechTray.IconIndex := 2;
+    TextToSpeech(mRecordingNotRecognized);
+    ShowBalloonHint(ProgramsName, GetLangStr('MsgInf2'), bitWarning);
+    CloseLogFile;
+    if LogForm.Showing then
+      SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
+    StopNULLRecord;
+    if MaxLevelOnAutoControl then
+      StartNULLRecord;
+    MSpeechTray.IconIndex := 0;
+  end;
+  if pStatus = rsRecognizeDone then // Запись распознана
+  begin
+    if EnableLogs then
+    begin
+      WriteInLog(WorkPath, Format('%s: Статус распознавания = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FStatus]));
+      WriteInLog(WorkPath, Format('%s: Распознанная строка = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript]));
+      WriteInLog(WorkPath, Format('%s: Достоверность распознавания = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FloatToStr(pInfo.FConfidence)]));
+    end;
+    RecognizeStr := pInfo.FTranscript;
+    // Замена текста
+    if EnableTextСorrection then
+    begin
+      if EnableTextReplace then
       begin
-        MSpeechTray.IconIndex := 5;
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Поток JvThreadRecognize не может получить доступ к файлу ' + OutFileName + ' Ошибка: ' + e.Message);
+        for RowN := 0 to ReplaceSGrid.RowCount-1 do
+          RecognizeStr := StringReplace(RecognizeStr, ReplaceSGrid.Cells[0,RowN], ReplaceSGrid.Cells[1,RowN], [rfReplaceAll]);
+      end;
+      if FirstLetterUpper then
+      begin
+        if CurrentSpeechRecognizeLang = 'ru-RU' then
+          RecognizeStr := RusLowercaseToUppercase(RecognizeStr)
+        else
+          RecognizeStr := EngLowercaseToUppercase(RecognizeStr);
       end;
     end;
-    try
-      HTTPPostFile('https://www.google.com/speech-api/v1/recognize?xjerr=1&client=chromium&lang='+CurrentSpeechRecognizeLang, 'userfile', OutFileName, Stream, StrList);
-    finally
-      Stream.Free;
-    end;
-    if JvThreadRecognize.Terminated then
-    begin
-      StrList.Free;
-      Exit;
-    end;
-    {$IFDEF DEBUG}
-    WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DEBUG_MODE: ' + 'StrList.Count = ' + IntToStr(StrList.Count));
-    for StrListCnt := 0 to StrList.Count-1 do
-      WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DEBUG_MODE: ' + 'StrList['+IntToStr(StrListCnt)+'] = ' + UTF8ToString(StrList[StrListCnt]));
-    {$ENDIF}
-    for StrListCnt := 0 to StrList.Count-1 do
-    begin
-      Str := UTF8ToString(StrList[StrListCnt]);
-      if Length(Str) > 0  then
+    // Передача текста
+    if EnableSendText then
+    begin // Передача текста в неактивное окно программы
+      if EnableSendTextInactiveWindow then
       begin
-        MSpeechTray.IconIndex := 4;
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': JSON ответ сервера Google = ' + Trim(Str));
-        try
-          JSON := TJSONObject.Create(Str);
-        except
-          on e: Exception do
-          begin
-            MSpeechTray.IconIndex := 5;
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Неизвестное исключение в потоке JvThreadRecognize - ' + e.Message);
-            ShowBalloonHint(ProgramsName, GetLangStr('MsgErr3'),  bitError);
-            JSON.Free;
-            StopNULLRecord;
-            if MaxLevelOnAutoControl then
-              StartNULLRecord;
-            Exit;
-          end;
+        if OnSendMessage(InactiveWindowCaption, RecognizeStr) then
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Текст передан методом WM_COPYDATA.')
+        else
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Программа с заголовком ' + InactiveWindowCaption + ' не найдена.')
+      end
+      else
+      begin // Передача текста в активное окно программы
+        if ClassNameReciver <> '' then
+        begin // Если указан класс поля ввода
+          if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
+            InsTextWnd(ClassNameReciver, RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
+            CopyPasteTextWnd(ClassNameReciver, RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_CHAR then
+            SetCharTextWnd(RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
+            CopyPasteTextWnd(ClassNameReciver, RecognizeStr)
+        end
+        else
+        begin // Если класс поля ввода не указан
+          if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
+            InsTextWnd(RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
+            CopyPasteTextWnd(RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_CHAR then
+            SetCharTextWnd(RecognizeStr)
+          else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
+            CopyPasteTextWnd(RecognizeStr)
         end;
-        try
-          MSpeechTray.IconIndex := 4;
-          // Запись не распознана
-          if JSON.optString('status') = '5' then
+      end;
+    end;
+    // End
+    // Выполнение команд
+    if EnableExecCommand then
+    begin
+      K := CommandSGrid.Cols[0].IndexOf(RecognizeStr);
+      if K <> -1 then // Команда найдена в списке
+      begin
+        if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mExecPrograms then
+        begin
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,K]);
+          //Beep;
+          if (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.bat') then
+            ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_HIDE)
+          else
+            ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_SHOWNORMAL);
+        end
+        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mClosePrograms then
+        begin
+          if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
           begin
-            MSpeechTray.IconIndex := 2;
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf2'));
-            TextToSpeech(mRecordingNotRecognized);
-            ShowBalloonHint(ProgramsName, GetLangStr('MsgInf2'), bitWarning);
-            StopNULLRecord;
-            if MaxLevelOnAutoControl then
-              StartNULLRecord;
-          end
-          // Запись успешно распознана
-          else if JSON.optString('status') = '0' then
-          begin
-            MSpeechTray.IconIndex := 4;
-            ReplStr := StringReplace(JSON.getString('hypotheses'),'[','',[RFReplaceall]);
-            ReplStr := StringReplace(ReplStr,']','',[RFReplaceall]);
-            Jo := TJSONObject.Create(ReplStr);
-            try
-              RecognizeStr := Jo.getString('utterance');
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Распознанная строка = ' + RecognizeStr);
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Фраза: '+ Jo.getString('utterance'));
-              FormatSettings.DecimalSeparator := '.';
-              RecognizeConfidence := (StrToFloat(Jo.getString('confidence')))*100;
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Достоверность распознавания = ' + FloatToStr(RecognizeConfidence) + '%');
-              // Замена текста
-              if EnableTextСorrection then
-              begin
-                if EnableTextReplace then
-                begin
-                  for RowN := 0 to ReplaceSGrid.RowCount-1 do
-                  begin
-                    RecognizeStr := StringReplace(RecognizeStr, ReplaceSGrid.Cells[0,RowN], ReplaceSGrid.Cells[1,RowN], [rfReplaceAll]);
-                  end;
-                end;
-                if FirstLetterUpper then
-                begin
-                  if CurrentSpeechRecognizeLang = 'ru-RU' then
-                    RecognizeStr := RusLowercaseToUppercase(RecognizeStr)
-                  else
-                    RecognizeStr := EngLowercaseToUppercase(RecognizeStr);
-                end;
-              end;
-              // Передача текста
-              if EnableSendText then
-              begin // Передача текста в неактивное окно программы
-                if EnableSendTextInactiveWindow then
-                begin
-                  if OnSendMessage(InactiveWindowCaption, RecognizeStr) then
-                    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Текст передан методом WM_COPYDATA.')
-                  else
-                    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Программа с заголовком ' + InactiveWindowCaption + ' не найдена.')
-                end
-                else
-                begin // Передача текста в активное окно программы
-                  if ClassNameReciver <> '' then
-                  begin // Если указан класс поля ввода
-                    if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
-                      InsTextWnd(ClassNameReciver, RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
-                      CopyPasteTextWnd(ClassNameReciver, RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_CHAR then
-                      SetCharTextWnd(RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
-                      CopyPasteTextWnd(ClassNameReciver, RecognizeStr)
-                  end
-                  else
-                  begin // Если класс поля ввода не указан
-                    if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
-                      InsTextWnd(RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
-                      CopyPasteTextWnd(RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_CHAR then
-                      SetCharTextWnd(RecognizeStr)
-                    else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
-                      CopyPasteTextWnd(RecognizeStr)
-                  end;
-                end;
-              end;
-              // End
-              // Выполнение команд
-              if EnableExecCommand then
-              begin
-                K := CommandSGrid.Cols[0].IndexOf(RecognizeStr);
-                if K <> -1 then // Команда найдена в списке
-                begin
-                  if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mExecPrograms then
-                  begin
-                    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,K]);
-                    //Beep;
-                    if (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,K]) = '.bat') then
-                      ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_HIDE)
-                    else
-                      ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,K]), nil, nil, SW_SHOWNORMAL);
-                  end
-                  else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mClosePrograms then
-                  begin
-                    if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
-                    begin
-                      EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,K])), WM_CLOSE);
-                      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,K]);
-                      Beep;
-                    end;
-                  end
-                  else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mKillPrograms then
-                  begin
-                    if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
-                    begin
-                      KillTask(ExtractFileName(CommandSGrid.Cells[1,K]));
-                      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,K]);
-                      Beep;
-                    end;
-                  end
-                  else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mTextToSpeech then
-                    TextToSpeech(CommandSGrid.Cells[1,K]);
-                end
-                else
-                begin
-                  if DefaultCommandExec  <> '' then // Выполняем команду по умолчанию
-                  begin
-                    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
-                    if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
-                      ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
-                    else
-                      ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
-                  end
-                  else
-                  begin
-                    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf3'));
-                    TextToSpeech(mCommandNotFound);
-                    ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
-                  end;
-                  StopNULLRecord;
-                  if MaxLevelOnAutoControl then
-                    StartNULLRecord;
-                end;
-              end;
-              // Остановка потока
-              if JvThreadRecognize.Terminated then
-              begin
-                if (Assigned(JSON)) then JSON.Free;
-                if (Assigned(Jo)) then Jo.Free;
-                Exit;
-              end;
-              StopNULLRecord;
-              if MaxLevelOnAutoControl then
-                StartNULLRecord;
-            finally
-              Jo.Free;
-            end;
+            EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,K])), WM_CLOSE);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,K]);
+            Beep;
           end;
-        finally
-          JSON.Free;
-        end;
+        end
+        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mKillPrograms then
+        begin
+          if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,K])) then
+          begin
+            KillTask(ExtractFileName(CommandSGrid.Cells[1,K]));
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,K]);
+            Beep;
+          end;
+        end
+        else if DetectCommandTypeName(CommandSGrid.Cells[2,K]) = mTextToSpeech then
+          TextToSpeech(CommandSGrid.Cells[1,K]);
       end
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf4'));
-        TextToSpeech(mErrorGoogleCommunication);
-        ShowBalloonHint(ProgramsName, GetLangStr('MsgInf4'), bitError);
+        if DefaultCommandExec  <> '' then // Выполняем команду по умолчанию
+        begin
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
+          if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
+            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
+          else
+            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
+        end
+        else
+        begin
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf3'));
+          TextToSpeech(mCommandNotFound);
+          ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
+        end;
+        StopNULLRecord;
+        if MaxLevelOnAutoControl then
+          StartNULLRecord;
       end;
     end;
-    StrList.Free;
-  end
-  else
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': JvThreadRecognizeExecute - Ошибка чтения файла ' + OutFileName);
-end;
-
-procedure TMainForm.JvThreadRecognizeFinish(Sender: TObject);
-begin
-  StartButton.Enabled := True;
-  StopButton.Enabled := False;
-  MSpeechTray.IconIndex := 0;
-  CloseLogFile;
-  if LogForm.Showing then
-    SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
-end;
-
-{ Отправка flac-файлы }
-function TMainForm.HTTPPostFile(Const URL, FieldName, FileName: String; Const Data: TStream; Const ResultData: TStrings): Boolean;
-const
-  CRLF = #$0D + #$0A;
-var
-  HTTP: THTTPSend;
-  Bound, Str: String;
-begin
-  Bound := IntToHex(Random(MaxInt), 8) + '_Synapse_boundary';
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, {$IFDEF DEBUG}HTTP.ProxyPass{$ELSE}IfThen(HTTP.ProxyPass='', '', '******'){$ENDIF}]));
-    end;
-    Str := '--' + Bound + CRLF;
-    Str := Str + 'content-disposition: form-data; name="' + FieldName + '";';
-    Str := Str + ' filename="' + FileName + '"' + CRLF;
-    Str := Str + 'Content-Type: audio/x-flac; rate='+IntToStr(DXAudioIn.InSampleRate) + CRLF + CRLF;
-    HTTP.Document.Write(Pointer(Str)^, Length(Str));
-    HTTP.Document.CopyFrom(Data, 0);
-    Str := CRLF + '--' + Bound + '--' + CRLF;
-    HTTP.Document.Write(Pointer(Str)^, Length(Str));
-    HTTP.MimeType := 'audio/x-flac; rate='+IntToStr(DXAudioIn.InSampleRate);
-    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-    Result := HTTP.HTTPMethod('POST', URL);
-    ResultData.LoadFromStream(HTTP.Document);
-    {$IFDEF DEBUG}
-    WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DEBUG_MODE: ' + 'HTTP.ResultString = ' + HTTP.ResultString);
-    WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DEBUG_MODE: ' + 'ResultData.Count = ' + IntToStr(ResultData.Count));
-    {$ENDIF}
-  finally
-    HTTP.Free;
+    StartButton.Enabled := True;
+    StopButton.Enabled := False;
+    MSpeechTray.IconIndex := 0;
+    CloseLogFile;
+    if LogForm.Showing then
+      SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
+    StopNULLRecord;
+    if MaxLevelOnAutoControl then
+      StartNULLRecord;
   end;
 end;
 
@@ -1608,10 +1491,6 @@ procedure TMainForm.InitSaveSettings(var Msg: TMessage);
 begin
   if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Вызов InitSaveSettings.');
   StopButton.Click;
-  if not JvThreadRecognize.Terminated then
-    JvThreadRecognize.Terminate;
-  while not (JvThreadRecognize.Terminated) do
-    Sleep(1);
   StopNULLRecord;
 end;
 
@@ -1633,8 +1512,6 @@ begin
   AlphaBlend := AlphaBlendEnable;
   LogForm.AlphaBlend := AlphaBlendEnable;
   LogForm.AlphaBlendValue := AlphaBlendEnableValue;
-  AboutForm.AlphaBlend := AlphaBlendEnable;
-  AboutForm.AlphaBlendValue := AlphaBlendEnableValue;
   // Настройки синтеза голоса
   if EnableTextToSpeech and Assigned(gpIVTxt) and (TextToSpeechEngine = 0) then
   begin
@@ -1675,8 +1552,7 @@ begin
   end;
   MSpeechPopupMenu.Items[1].Caption := GetLangStr('MSpeechPopupMenuSettings');
   MSpeechPopupMenu.Items[2].Caption := GetLangStr('MSpeechPopupMenuShowLog');
-  MSpeechPopupMenu.Items[3].Caption := GetLangStr('MSpeechPopupMenuAbout');
-  MSpeechPopupMenu.Items[4].Caption := GetLangStr('MSpeechPopupMenuExit');
+  MSpeechPopupMenu.Items[3].Caption := GetLangStr('MSpeechPopupMenuExit');
   GBMain.Caption := Format(' %s ', [GetLangStr('GBMain')]);
   LSignalLevel.Caption := GetLangStr('LSignalLevel');
   StartButton.Caption := GetLangStr('StartButton');
