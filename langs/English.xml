@@ -17,17 +17,19 @@
   <SettingsButton>Settings</SettingsButton>
   <TabSheetSettings>General settings</TabSheetSettings>
   <TabSheetRecord>Record settings</TabSheetRecord>
+  <TabSheetRecognize>Recognize settings</TabSheetRecognize>
   <TabSheetConnectSettings>Connection settings</TabSheetConnectSettings>
   <TabSheetCommand>Commands</TabSheetCommand>
   <TabSheetHotKey>Hotkeys</TabSheetHotKey>
   <TabSheetLog>Log</TabSheetLog>
   <TabSheetSendText>Transmission of text</TabSheetSendText>
   <TabSheetTextCorrection>Text  correction</TabSheetTextCorrection>
+  <GBRecognizeSettings>Speech recognize settings</GBRecognizeSettings>
   <GBInterfaceSettings>Interface</GBInterfaceSettings>
   <CBAlphaBlend>Enable transparency windows</CBAlphaBlend>
   <CBShowTrayEvents>Show pop-up messages</CBShowTrayEvents>
   <LLang>Language:</LLang>
-  <GBRecordSettings>Recording settings and voice recognition (Google Voice API)</GBRecordSettings>
+  <GBRecordSettings>Recording settings</GBRecordSettings>
   <LDevice>Source:</LDevice>
   <MicSettingsButton>Microphone settings</MicSettingsButton>
   <LMaxLevel>The maximum signal level to start recording:</LMaxLevel>
@@ -59,7 +61,9 @@
   <LNote>WARNING! The recognized text will be sent to the active window. Class input field can be left blank or specify using the optional SearchApplicationClassName.exe</LNote>
   <LNoteInactive>WARNING! The recognized text will be sent to the inactive window. The 'Window title' must contain an accurate and complete name of the title bar of the program receiving the data.</LNoteInactive>
   <SaveSettingsButton>Save settings</SaveSettingsButton>
-  <LRegion>Language speech recognition:</LRegion>
+  <LRegion>Main language of speech recognition:</LRegion>
+  <LSecondRegion>Additional language speech recognition:</LSecondRegion>
+  <LASR>ASR type:</LASR>
   <ExecProgramsCommandDesc>Run program</ExecProgramsCommandDesc>
   <CloseProgramsCommandDesc>Close program</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Kill program</KillProgramsCommandDesc>
@@ -136,6 +140,7 @@
   <StartStopRecord>Start\stop recording</StartStopRecord>
   <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>
   <StartRecordWithoutExecCommand>Start\stop recording without exec command</StartRecordWithoutExecCommand>
+  <SwitchesLanguageRecognize>Switch language recognize</SwitchesLanguageRecognize>
   <HotKeyAlredyUses>This hot key is already in use!</HotKeyAlredyUses>
   
   <LangButton>Language</LangButton>

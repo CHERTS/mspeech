@@ -66,7 +66,7 @@ object AboutForm: TAboutForm
     Left = 16
     Top = 63
     Width = 325
-    Height = 107
+    Height = 109
   end
   object LProgramName: TLabel
     Left = 24
@@ -157,7 +157,7 @@ object AboutForm: TAboutForm
   end
   object CloseButton: TButton
     Left = 266
-    Top = 176
+    Top = 178
     Width = 75
     Height = 25
     Caption = #1047#1072#1082#1088#1099#1090#1100

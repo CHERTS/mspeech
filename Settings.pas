@@ -45,7 +45,6 @@ type
     LEMinLevelInterrupt: TLabel;
     LDevice: TLabel;
     LStopRecordAction: TLabel;
-    LRegion: TLabel;
     EMaxLevel: TEdit;
     UpDownMaxLevel: TUpDown;
     CBMaxLevelControl: TCheckBox;
@@ -61,7 +60,6 @@ type
     CBDevice: TComboBox;
     MicSettingsButton: TButton;
     CBStopRecordAction: TComboBox;
-    CBRegion: TComboBox;
     TabSheetConnectSettings: TTabSheet;
     GBConnectSettings: TGroupBox;
     LProxyAddress: TLabel;
@@ -175,6 +173,14 @@ type
     EDefaultCommandExec: TEdit;
     LDefaultCommandExecDesc: TLabel;
     SBDefaultCommandSelect: TSpeedButton;
+    TabSheetRecognize: TTabSheet;
+    GBRecognizeSettings: TGroupBox;
+    LFirstRegion: TLabel;
+    CBFirstRegion: TComboBox;
+    CBSecondRegion: TComboBox;
+    LSecondRegion: TLabel;
+    LASR: TLabel;
+    CBASR: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure SettingtButtonGroupClick(Sender: TObject);
@@ -295,8 +301,8 @@ procedure TSettingsForm.FormShow(Sender: TObject);
 var
   DevCnt: Integer;
 begin
-  // Создаем горячие клавиши
-  HotKetStringGrid.RowCount := 3;
+  // Кол. горячих клавиш
+  HotKetStringGrid.RowCount := 4;
   // Замена текста
   ReplaceStringGrid.ColWidths[0] := 170;
   ReplaceStringSelectedCell := 1;
@@ -394,8 +400,10 @@ begin
   StartRecordHotKey := HotKetStringGrid.Cells[1,0];
   StartRecordWithoutSendTextHotKey := HotKetStringGrid.Cells[1,1];
   StartRecordWithoutExecCommandHotKey := HotKetStringGrid.Cells[1,2];
+  SwitchesLanguageRecognizeHotKey := HotKetStringGrid.Cells[1,3];
   // Язык распознавания
-  DefaultSpeechRecognizeLang := DetectRegionStr(CBRegion.ItemIndex);
+  DefaultSpeechRecognizeLang := DetectRegionStr(CBFirstRegion.ItemIndex);
+  SecondSpeechRecognizeLang := DetectRegionStr(CBSecondRegion.ItemIndex);
   // Замена текста
   if EnableTextReplace then
     SaveReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceStringGrid);
@@ -503,9 +511,11 @@ begin
   HotKetStringGrid.Cells[0,0] := GetLangStr('StartStopRecord');
   HotKetStringGrid.Cells[0,1] := GetLangStr('StartStopRecordWithoutSendText');
   HotKetStringGrid.Cells[0,2] := GetLangStr('StartRecordWithoutExecCommand');
+  HotKetStringGrid.Cells[0,3] := GetLangStr('SwitchesLanguageRecognize');
   HotKetStringGrid.Cells[1,0] := StartRecordHotKey;
   HotKetStringGrid.Cells[1,1] := StartRecordWithoutSendTextHotKey;
   HotKetStringGrid.Cells[1,2] := StartRecordWithoutExecCommandHotKey;
+  HotKetStringGrid.Cells[1,3] := SwitchesLanguageRecognizeHotKey;
   IMHotKey.HotKey := TextToShortCut(HotKetStringGrid.Cells[1,0]);
   // Прозрачность окна
   AlphaBlend := AlphaBlendEnable;
@@ -562,7 +572,8 @@ begin
   EInactiveWindowCaption.Text := InactiveWindowCaption;
   {$endif FREE_MSPEECH}
   // Язык распознавания
-  CBRegion.ItemIndex := DetectRegionID(DefaultSpeechRecognizeLang);
+  CBFirstRegion.ItemIndex := DetectRegionID(DefaultSpeechRecognizeLang);
+  CBSecondRegion.ItemIndex := DetectRegionID(SecondSpeechRecognizeLang);
   // Замена текста
   if EnableTextReplace then
     LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceStringGrid);
@@ -1442,12 +1453,13 @@ begin
   Caption := ProgramsName + ' - ' + GetLangStr('SettingsFormCaption');
   SettingtButtonGroup.Items[0].Caption := GetLangStr('TabSheetSettings');
   SettingtButtonGroup.Items[1].Caption := GetLangStr('TabSheetRecord');
-  SettingtButtonGroup.Items[2].Caption := GetLangStr('TabSheetConnectSettings');
-  SettingtButtonGroup.Items[3].Caption := GetLangStr('TabSheetCommand');
-  SettingtButtonGroup.Items[4].Caption := GetLangStr('TabSheetHotKey');
-  SettingtButtonGroup.Items[5].Caption := GetLangStr('TabSheetSendText');
-  SettingtButtonGroup.Items[6].Caption := GetLangStr('TabSheetTextCorrection');
-  SettingtButtonGroup.Items[7].Caption := GetLangStr('TabSheetTextToSpeech');
+  SettingtButtonGroup.Items[2].Caption := GetLangStr('TabSheetRecognize');
+  SettingtButtonGroup.Items[3].Caption := GetLangStr('TabSheetConnectSettings');
+  SettingtButtonGroup.Items[4].Caption := GetLangStr('TabSheetCommand');
+  SettingtButtonGroup.Items[5].Caption := GetLangStr('TabSheetHotKey');
+  SettingtButtonGroup.Items[6].Caption := GetLangStr('TabSheetSendText');
+  SettingtButtonGroup.Items[7].Caption := GetLangStr('TabSheetTextCorrection');
+  SettingtButtonGroup.Items[8].Caption := GetLangStr('TabSheetTextToSpeech');
   SaveSettingsButton.Caption := GetLangStr('SaveSettingsButton');
   HotKetStringGrid.Cells[0,0] := GetLangStr('StartStopRecord');
   HotKetStringGrid.Cells[0,1] := GetLangStr('StartStopRecordWithoutSendText');
@@ -1490,7 +1502,11 @@ begin
     LNote.Caption := GetLangStr('LNoteInactive')
   else
     LNote.Caption := GetLangStr('LNote');
-  LRegion.Caption := GetLangStr('LRegion');
+  // Распознавание
+  GBRecognizeSettings.Caption := Format(' %s ', [GetLangStr('GBRecognizeSettings')]);
+  LFirstRegion.Caption := GetLangStr('LRegion');
+  LSecondRegion.Caption := GetLangStr('LSecondRegion');
+  LASR.Caption := GetLangStr('LASR');
   // Команды
   GBCommand.Caption := Format(' %s ', [GetLangStr('GBCommand')]);
   LCommandKey.Caption := GetLangStr('LCommandKey');
@@ -1561,7 +1577,8 @@ begin
   EProxyAddress.Left := LProxyAddress.Left + LProxyAddress.Width + 5;
   LProxyPort.Left := LProxyAddress.Left + LProxyAddress.Width + 5 + EProxyAddress.Width + 5;
   EProxyPort.Left := LProxyAddress.Left + LProxyAddress.Width + 5 + EProxyAddress.Width + 5 + LProxyPort.Width + 5;
-  CBRegion.Left := LRegion.Left + LRegion.Width + 5;
+  //CBFirstRegion.Left := LFirstRegion.Left + LFirstRegion.Width + 5;
+  //CBSecondRegion.Left := LSecondRegion.Left + LSecondRegion.Width + 5;
 end;
 
 end.

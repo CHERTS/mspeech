@@ -1,7 +1,6 @@
 __history
 dcu
 *.bsc
-*.bsc
 *.~*
 *.dcu
 *.local
@@ -21,3 +20,4 @@ dcu
 *.vlb
 *.local
 *.identcache 
+License.pas

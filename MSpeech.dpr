@@ -11,11 +11,6 @@
 program MSpeech;
 
 uses
-  {madExcept,
-  madLinkDisAsm,
-  madListHardware,
-  madListProcesses,
-  madListModules,}
   Vcl.Forms,
   OnlyOneRun in 'OnlyOneRun.pas',
   Main in 'Main.pas' {MainForm},

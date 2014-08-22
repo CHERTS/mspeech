@@ -1,12 +1,12 @@
 MSpeech
 -------
 
-Программа для распознавание речи используя Google Speech API и выполнения голосовых команд.
+Программа для распознавание речи используя Google Voice API и выполнения голосовых команд.
 
 Автор:		Михаил Григорьев
 E-Mail: 	sleuthhound@gmail.com
 ICQ: 		161867489
-WWW:		http://www.im-history.ru
+WWW:		http://www.programs74.ru
 Лицензия:	GNU GPLv3
 
 Системные требования:
@@ -16,7 +16,7 @@ WWW:		http://www.im-history.ru
 Необходимые компоненты для сборки:
 ----------------------------------
 
-1. Embarcadero RAD Studio XE или XE3 или XE4
+1. Embarcadero RAD Studio XE3 или XE4
 
 2. JEDI Core 2.4 Build 4571 + JEDI VCL 3.47
    http://www.delphi-jedi.org
@@ -36,6 +36,8 @@ WWW:		http://www.im-history.ru
    http://www.ararat.cz/synapse/doku.php/download
    Скачать готовую сборку Synapse можно у меня: http://file.qip.ru/arch/ALLgL5Ah/synapse.html
 
+6. IMButtonGroup
+   Находится в папке IMButtonGroupComponent.
 
 (c) 2012-2013 by Mikhail Grigorev
 

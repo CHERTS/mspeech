@@ -17,17 +17,19 @@
   <SettingsButton>Настройки</SettingsButton>
   <TabSheetSettings>Общие настройки</TabSheetSettings>
   <TabSheetRecord>Настройки записи</TabSheetRecord>
+  <TabSheetRecognize>Настроки распознавания</TabSheetRecognize>
   <TabSheetConnectSettings>Настройки соединения</TabSheetConnectSettings>
   <TabSheetCommand>Команды</TabSheetCommand>
   <TabSheetHotKey>Горячие клавиши</TabSheetHotKey>
   <TabSheetLog>Лог работы</TabSheetLog>
   <TabSheetSendText>Передача текста</TabSheetSendText>
   <TabSheetTextCorrection>Коррекция текста</TabSheetTextCorrection>
+  <GBRecognizeSettings>Настроки распознавания речи</GBRecognizeSettings>
   <GBInterfaceSettings>Интерфейс</GBInterfaceSettings>
   <CBAlphaBlend>Включить прозрачность окон</CBAlphaBlend>
   <CBShowTrayEvents>Показывать всплывающие сообщения</CBShowTrayEvents>
   <LLang>Язык программы:</LLang>
-  <GBRecordSettings>Настройки записи и распознавания голоса (Google Voice API)</GBRecordSettings>
+  <GBRecordSettings>Настройки записи</GBRecordSettings>
   <LDevice>Источник:</LDevice>
   <MicSettingsButton>Настройки микрофона</MicSettingsButton>
   <LMaxLevel>Максимальный уровень сигнала для  начала записи:</LMaxLevel>
@@ -59,7 +61,9 @@
   <LNote>ВНИМАНИЕ! Распознанный текст будет передаваться в АКТИВНОЕ окно программы. Класс поля ввода можно оставить пустым или определить с помощью дополнительной программы SearchApplicationClassName.exe</LNote>
   <LNoteInactive>ВНИМАНИЕ! Распознанный текст будет передаваться в НЕАКТИВНОЕ окно программы методом WM_COPYDATA. Поле 'Заголовок окна' должен содержать точное и полное имя заголовка окна программы-получателя данных.</LNoteInactive>
   <SaveSettingsButton>Сохранить настройки</SaveSettingsButton>
-  <LRegion>Язык распознавания речи:</LRegion>
+  <LRegion>Основной язык распознавания речи:</LRegion>
+  <LSecondRegion>Дополн. язык распознавания речи:</LSecondRegion>
+  <LASR>Тип ASR:</LASR>
   <ExecProgramsCommandDesc>Запустить программу</ExecProgramsCommandDesc>
   <CloseProgramsCommandDesc>Закрыть программу</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Прибить программу</KillProgramsCommandDesc>
@@ -137,6 +141,7 @@
   <StartStopRecord>Начать\остановить запись</StartStopRecord>
   <StartStopRecordWithoutSendText>Начать\остановить запись без передачи текста</StartStopRecordWithoutSendText>
   <StartRecordWithoutExecCommand>Начать\остановить запись без выполнения команд</StartRecordWithoutExecCommand>
+  <SwitchesLanguageRecognize>Переключение языка распознавания</SwitchesLanguageRecognize>
   <HotKeyAlredyUses>Такая горячая клавиша уже используется!</HotKeyAlredyUses>
 
   <LangButton>Язык программы</LangButton>

@@ -83,12 +83,14 @@
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
+        <VerInfo_Build>2</VerInfo_Build>
+        <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
+        <VerInfo_Release>1</VerInfo_Release>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
         <VerInfo_MinorVer>5</VerInfo_MinorVer>
         <DCC_AssertionsAtRuntime>false</DCC_AssertionsAtRuntime>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.0.0;InternalName=MSpeech;LegalCopyright=Michael Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.0.0;Comments=http://www.im-history.ru</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.1.2;InternalName=MSpeech;LegalCopyright=Michael Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.1.0;Comments=http://www.im-history.ru</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">
@@ -158,9 +160,9 @@
                     <Source Name="MainSource">MSpeech.dpr</Source>
                 </Source>
                 <Excluded_Packages>
-                    <Excluded_Packages Name="C:\Documents and Settings\All Users\My documents\RAD Studio\11.0\Bpl\OpenCV.bpl">File C:\Documents and Settings\All Users\My documents\RAD Studio\11.0\Bpl\OpenCV.bpl not found</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k180.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
-                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp180.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="C:\Users\Public\Documents\Embarcadero\Studio\14.0\Bpl\dclOpenCV200.bpl">OpenCV Component</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k200.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp200.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Platforms>

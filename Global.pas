@@ -27,7 +27,7 @@ type
   TEventsTypeStatus = (mDisable, mEnable);
 
 const
-  ProgramsVer : WideString = '1.5.0.0';
+  ProgramsVer : WideString = '1.5.1.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -64,14 +64,14 @@ const
     'EventDisable',
     'EventEnable');
   // Список регионов для распознавания голоса через Google
-  RegionArray: Array[0..61] of String = (
+  RegionArray: Array[0..62] of String = (
     'af-ZA', 'id-ID', 'ms-MY', 'ca-ES', 'cs-CZ', 'de-DE', 'en-AU', 'en-CA', 'en-IN',
     'en-NZ', 'en-ZA', 'en-GB', 'en-US', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR',
     'es-EC', 'es-SV', 'es-ES', 'es-US', 'es-GT', 'es-HN', 'es-MX', 'es-NI', 'es-PA',
     'es-PY', 'es-PE', 'es-PR', 'es-DO', 'es-UY', 'es-VE', 'eu-ES', 'fr-FR', 'gl-ES',
-    'hr_HR', 'zu-ZA', 'is-IS', 'it-IT', 'it-CH', 'hu-HU', 'nl-NL', 'nb-NO', 'pl-PL',
-    'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG', 'ru-RU',
-    'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
+    'he-HE', 'hr_HR', 'zu-ZA', 'is-IS', 'it-IT', 'it-CH', 'hu-HU', 'nl-NL', 'nb-NO',
+    'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG',
+    'ru-RU', 'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
     'ja-JP', 'la');
   // Список регионов для синтеза голоса через Google
   TextToSpeechRegionArray: Array[0..1] of String = ('ru', 'en');
@@ -89,6 +89,7 @@ var
   MaxDebugLogSize: Integer = 1000;
   TFDebugLog: TextFile;
   DebugLogOpened: Boolean = False;
+  // Запись
   DefaultAudioDeviceNumber: Integer = 0;
   MaxLevelOnAutoRecord: Integer = 57;
   MaxLevelOnAutoRecordInterrupt: Integer = 4;
@@ -111,6 +112,7 @@ var
   StartRecordHotKey: String = 'Ctrl+Alt+F10';
   StartRecordWithoutSendTextHotKey: String = 'Ctrl+Alt+F11';
   StartRecordWithoutExecCommandHotKey: String = 'Ctrl+Alt+F12';
+  SwitchesLanguageRecognizeHotKey: String = 'Ctrl+Alt+R';
   // Действие кнопки "Остановить запись"
   StopRecordAction: Integer = 0;
   // Всплывающие сообщения
@@ -137,7 +139,9 @@ var
   EnableTextReplace: Boolean = False;
   FirstLetterUpper: Boolean = False;
   // Язык распознавания по умолчанию
+  CurrentSpeechRecognizeLang: String;
   DefaultSpeechRecognizeLang: String = 'ru-RU';
+  SecondSpeechRecognizeLang: String = 'en-US';
   // PID процесса
   GlobalProcessPID: DWORD = 0;
   // Синтез голоса
@@ -268,6 +272,7 @@ begin
       MaxDebugLogSize := INI.ReadInteger('Main', 'MaxDebugLogSize', 1000);
       DefaultLanguage := INI.ReadString('Main', 'DefaultLanguage', 'Russian');
       DefaultSpeechRecognizeLang := INI.ReadString('Main', 'DefaultSpeechRecognizeLang', 'ru-RU');
+      SecondSpeechRecognizeLang := INI.ReadString('Main', 'SecondSpeechRecognizeLang', 'en-US');
       AlphaBlendEnable := INI.ReadBool('Main', 'AlphaBlendEnable', False);
       AlphaBlendEnableValue := INI.ReadInteger('Main', 'AlphaBlendEnableValue', 255);
       DefaultAudioDeviceNumber := INI.ReadInteger('Main', 'DefaultAudioDeviceNumber', 0);
@@ -308,6 +313,7 @@ begin
       StartRecordHotKey := INI.ReadString('HotKey', 'StartRecordHotKey', 'Ctrl+Alt+F10');
       StartRecordWithoutSendTextHotKey := INI.ReadString('HotKey', 'StartRecordWithoutSendText', 'Ctrl+Alt+F11');
       StartRecordWithoutExecCommandHotKey := INI.ReadString('HotKey', 'StartRecordWithoutExecCommand', 'Ctrl+Alt+F12');
+      SwitchesLanguageRecognizeHotKey := INI.ReadString('HotKey', 'SwitchesLanguageRecognizeHotKey', 'Ctrl+Alt+R');
       EnableTextToSpeech := INI.ReadBool('TextToSpeech', 'EnableTextToSpeech', False);
       TextToSpeechEngine := INI.ReadInteger('TextToSpeech', 'TextToSpeechEngine', 0);
       SAPIVoiceNum := INI.ReadInteger('TextToSpeech', 'SAPIVoiceNum', 0);
@@ -321,6 +327,7 @@ begin
       INI.WriteBool('Main', 'EnableLogs', EnableLogs);
       INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
       INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
+      INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
       INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
       INI.WriteInteger('Main', 'AlphaBlendEnableValue', AlphaBlendEnableValue);
       INI.WriteInteger('Main', 'DefaultAudioDeviceNumber', DefaultAudioDeviceNumber);
@@ -361,6 +368,7 @@ begin
       INI.WriteString('HotKey', 'StartRecordHotKey', StartRecordHotKey);
       INI.WriteString('HotKey', 'StartRecordWithoutSendText', StartRecordWithoutSendTextHotKey);
       INI.WriteString('HotKey', 'StartRecordWithoutExecCommand', StartRecordWithoutExecCommandHotKey);
+      INI.WriteString('HotKey', 'SwitchesLanguageRecognizeHotKey', SwitchesLanguageRecognizeHotKey);
       INI.WriteBool('TextToSpeech', 'EnableTextToSpeech', EnableTextToSpeech);
       INI.WriteInteger('TextToSpeech', 'TextToSpeechEngine', TextToSpeechEngine);
       INI.WriteInteger('TextToSpeech', 'SAPIVoiceNum', SAPIVoiceNum);
@@ -390,6 +398,7 @@ begin
     INI.WriteBool('Main', 'EnableLogs', EnableLogs);
     INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
     INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
+    INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
     INI.WriteString('Main', 'DefaultLanguage', DefaultLanguage);
     INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
     INI.WriteInteger('Main', 'AlphaBlendEnableValue', AlphaBlendEnableValue);
@@ -431,6 +440,7 @@ begin
     INI.WriteString('HotKey', 'StartRecordHotKey', StartRecordHotKey);
     INI.WriteString('HotKey', 'StartRecordWithoutSendText', StartRecordWithoutSendTextHotKey);
     INI.WriteString('HotKey', 'StartRecordWithoutExecCommand', StartRecordWithoutExecCommandHotKey);
+    INI.WriteString('HotKey', 'SwitchesLanguageRecognizeHotKey', SwitchesLanguageRecognizeHotKey);
     INI.WriteBool('TextToSpeech', 'EnableTextToSpeech', EnableTextToSpeech);
     INI.WriteInteger('TextToSpeech', 'TextToSpeechEngine', TextToSpeechEngine);
     INI.WriteInteger('TextToSpeech', 'SAPIVoiceNum', SAPIVoiceNum);

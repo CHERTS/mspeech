@@ -57,6 +57,9 @@
         ImageIndex = 122
       end
       item
+        Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103
+      end
+      item
         Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103
         ImageIndex = 14
       end
@@ -104,7 +107,7 @@
     Top = 8
     Width = 622
     Height = 429
-    ActivePage = TabSheetCommand
+    ActivePage = TabSheetRecognize
     TabOrder = 0
     object TabSheetSettings: TTabSheet
       Caption = #1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
@@ -228,28 +231,28 @@
         TabOrder = 0
         object LMaxLevel: TLabel
           Left = 16
-          Top = 75
+          Top = 59
           Width = 268
           Height = 13
           Caption = #1052#1072#1082#1089#1080#1084#1072#1083#1100#1085#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1089#1080#1075#1085#1072#1083#1072' '#1076#1083#1103'  '#1085#1072#1095#1072#1083#1072' '#1079#1072#1087#1080#1089#1080':'
         end
         object LMaxLevelInterrupt: TLabel
           Left = 16
-          Top = 97
+          Top = 81
           Width = 305
           Height = 13
           Caption = #1050#1086#1083'. '#1089#1088#1072#1073#1072#1090#1099#1074#1072#1085#1080#1081' '#1085#1072' '#1084#1072#1082#1089'-'#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1076#1083#1103' '#1085#1072#1095#1072#1083#1072' '#1079#1072#1087#1080#1089#1080':'
         end
         object LMinLevel: TLabel
           Left = 16
-          Top = 121
+          Top = 105
           Width = 321
           Height = 13
           Caption = #1052#1080#1085#1080#1084#1072#1083#1100#1085#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1089#1080#1075#1085#1072#1083#1072' '#1076#1083#1103'  '#1085#1072#1095#1072#1083#1072' '#1072#1074#1090#1086'-'#1088#1072#1089#1087#1086#1079#1085#1072#1085#1080#1103':'
         end
         object LEMinLevelInterrupt: TLabel
           Left = 16
-          Top = 143
+          Top = 127
           Width = 358
           Height = 13
           Caption = #1050#1086#1083'. '#1089#1088#1072#1073#1072#1090#1099#1074#1072#1085#1080#1081' '#1085#1072' '#1084#1080#1085'-'#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1076#1083#1103' '#1085#1072#1095#1072#1083#1072' '#1072#1074#1090#1086'-'#1088#1072#1089#1087#1086#1079#1085#1072#1085#1080#1103':'
@@ -263,21 +266,14 @@
         end
         object LStopRecordAction: TLabel
           Left = 16
-          Top = 171
+          Top = 155
           Width = 201
           Height = 13
           Caption = #1044#1077#1081#1089#1090#1074#1080#1077' '#1082#1085#1086#1087#1082#1080' "'#1054#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1079#1072#1087#1080#1089#1100'":'
         end
-        object LRegion: TLabel
-          Left = 16
-          Top = 51
-          Width = 136
-          Height = 13
-          Caption = #1071#1079#1099#1082' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
-        end
         object EMaxLevel: TEdit
           Left = 441
-          Top = 71
+          Top = 55
           Width = 25
           Height = 21
           NumbersOnly = True
@@ -287,7 +283,7 @@
         end
         object UpDownMaxLevel: TUpDown
           Left = 466
-          Top = 71
+          Top = 55
           Width = 16
           Height = 21
           Associate = EMaxLevel
@@ -296,7 +292,7 @@
         end
         object CBMaxLevelControl: TCheckBox
           Left = 487
-          Top = 73
+          Top = 57
           Width = 98
           Height = 17
           Caption = #1040#1074#1090#1086'-'#1079#1072#1087#1080#1089#1100
@@ -305,7 +301,7 @@
         end
         object EMinLevelInterrupt: TEdit
           Left = 441
-          Top = 139
+          Top = 123
           Width = 25
           Height = 21
           NumbersOnly = True
@@ -315,7 +311,7 @@
         end
         object UpDownMinLevelInterrupt: TUpDown
           Left = 466
-          Top = 139
+          Top = 123
           Width = 16
           Height = 21
           Associate = EMinLevelInterrupt
@@ -324,7 +320,7 @@
         end
         object UpDownMaxLevelInterrupt: TUpDown
           Left = 466
-          Top = 93
+          Top = 77
           Width = 15
           Height = 21
           TabOrder = 6
@@ -332,7 +328,7 @@
         end
         object UpDownMinLevel: TUpDown
           Left = 466
-          Top = 117
+          Top = 101
           Width = 16
           Height = 21
           Associate = EMinLevel
@@ -341,7 +337,7 @@
         end
         object EMinLevel: TEdit
           Left = 441
-          Top = 117
+          Top = 101
           Width = 25
           Height = 21
           NumbersOnly = True
@@ -351,7 +347,7 @@
         end
         object StaticTextMinLevel: TStaticText
           Left = 487
-          Top = 118
+          Top = 102
           Width = 40
           Height = 20
           Alignment = taCenter
@@ -362,7 +358,7 @@
         end
         object StaticTextMaxLevelInterrupt: TStaticText
           Left = 487
-          Top = 94
+          Top = 78
           Width = 40
           Height = 20
           Alignment = taCenter
@@ -373,7 +369,7 @@
         end
         object StaticTextMinLevelInterrupt: TStaticText
           Left = 487
-          Top = 140
+          Top = 124
           Width = 40
           Height = 20
           Alignment = taCenter
@@ -384,7 +380,7 @@
         end
         object EMaxLevelInterrupt: TEdit
           Left = 441
-          Top = 94
+          Top = 78
           Width = 25
           Height = 21
           NumbersOnly = True
@@ -412,100 +408,29 @@
         end
         object CBStopRecordAction: TComboBox
           Left = 223
-          Top = 168
+          Top = 152
           Width = 350
           Height = 21
           Style = csDropDownList
           TabOrder = 11
           OnChange = CBStopRecordActionChange
         end
-        object CBRegion: TComboBox
-          Left = 158
-          Top = 48
-          Width = 277
-          Height = 21
-          Style = csDropDownList
-          TabOrder = 15
-          Items.Strings = (
-            'Afrikaans'
-            'Bahasa Indonesia'
-            'Bahasa Melayu'
-            'Catal'#224
-            #268'e'#353'tina'
-            'Deutsch'
-            'English - Australia'
-            'English - Canada'
-            'English - India'
-            'English - New Zealand'
-            'English - South Africa'
-            'English - United Kingdom'
-            'English - United States'
-            'Espa'#241'ol - Argentina'
-            'Espa'#241'ol - Bolivia'
-            'Espa'#241'ol - Chile'
-            'Espa'#241'ol - Colombia'
-            'Espa'#241'ol - Costa Rica'
-            'Espa'#241'ol - Ecuador'
-            'Espa'#241'ol - El Salvador'
-            'Espa'#241'ol - Espa'#241'a'
-            'Espa'#241'ol - Estados Unidos'
-            'Espa'#241'ol - Guatemala'
-            'Espa'#241'ol - Honduras'
-            'Espa'#241'ol - M'#233'xico'
-            'Espa'#241'ol - Nicaragua'
-            'Espa'#241'ol - Panam'#225
-            'Espa'#241'ol - Paraguay'
-            'Espa'#241'ol - Per'#250
-            'Espa'#241'ol - Puerto Rico'
-            'Espa'#241'ol - Rep'#250'blica Dominicana'
-            'Espa'#241'ol - Uruguay'
-            'Espa'#241'ol - Venezuela'
-            'Euskara'
-            'Fran'#231'ais'
-            'Galego'
-            'Hrvatski'
-            'IsiZulu'
-            #205'slenska'
-            'Italiano - Italia'
-            'Italiano - Svizzera'
-            'Magyar'
-            'Nederlands'
-            'Norsk bokm'#229'l'
-            'Polski'
-            'Portugu'#234's - Brasil'
-            'Portugu'#234's - Portugal'
-            'Rom'#226'n'#259
-            'Sloven'#269'ina'
-            'Suomi'
-            'Svenska'
-            'T'#252'rk'#231'e'
-            #1073#1098#1083#1075#1072#1088#1089#1082#1080
-            'P'#1091#1089#1089#1082#1080#1081
-            #1057#1088#1087#1089#1082#1080
-            'Korean'
-            'Mandarin Chinese (Simplified)'
-            'Hong Kong Chinese (Simplified)'
-            'Taiwan Chinese (Traditional)'
-            'Hong Kong Chinese (Traditional)'
-            'Japanese'
-            'Lingua lat'#299'na')
-        end
         object CBEnableFilters: TCheckBox
           Left = 16
-          Top = 195
+          Top = 179
           Width = 321
           Height = 17
           Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1092#1080#1083#1100#1090#1088#1072#1094#1080#1102' '#1079#1074#1091#1082#1072
-          TabOrder = 16
+          TabOrder = 15
           OnClick = CBEnableFiltersClick
         end
         object GBFilters: TGroupBox
           Left = 16
-          Top = 218
+          Top = 202
           Width = 577
-          Height = 172
+          Height = 193
           Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1092#1080#1083#1100#1090#1088#1086#1074' '
-          TabOrder = 17
+          TabOrder = 16
           object RGFiltersType: TRadioGroup
             Left = 16
             Top = 16
@@ -623,7 +548,7 @@
             end
           end
           object GBVoiceFilter: TGroupBox
-            Left = 18
+            Left = 16
             Top = 85
             Width = 287
             Height = 101
@@ -654,6 +579,195 @@
               TabOrder = 2
             end
           end
+        end
+      end
+    end
+    object TabSheetRecognize: TTabSheet
+      Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103
+      ImageIndex = 8
+      object GBRecognizeSettings: TGroupBox
+        Left = 3
+        Top = 0
+        Width = 608
+        Height = 398
+        Caption = ' '#1053#1072#1089#1090#1088#1086#1082#1080' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080' '
+        TabOrder = 0
+        object LFirstRegion: TLabel
+          Left = 16
+          Top = 53
+          Width = 187
+          Height = 13
+          Caption = #1054#1089#1085#1086#1074#1085#1086#1081' '#1103#1079#1099#1082' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
+        end
+        object LSecondRegion: TLabel
+          Left = 16
+          Top = 80
+          Width = 180
+          Height = 13
+          Caption = #1044#1086#1087#1086#1083#1085'. '#1103#1079#1099#1082' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
+        end
+        object LASR: TLabel
+          Left = 16
+          Top = 26
+          Width = 144
+          Height = 14
+          Caption = #1052#1077#1090#1086#1076' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
+        end
+        object CBFirstRegion: TComboBox
+          Left = 209
+          Top = 50
+          Width = 277
+          Height = 21
+          Style = csDropDownList
+          TabOrder = 0
+          Items.Strings = (
+            'Afrikaans'
+            'Bahasa Indonesia'
+            'Bahasa Melayu'
+            'Catal'#224
+            #268'e'#353'tina'
+            'Deutsch'
+            'English - Australia'
+            'English - Canada'
+            'English - India'
+            'English - New Zealand'
+            'English - South Africa'
+            'English - United Kingdom'
+            'English - United States'
+            'Espa'#241'ol - Argentina'
+            'Espa'#241'ol - Bolivia'
+            'Espa'#241'ol - Chile'
+            'Espa'#241'ol - Colombia'
+            'Espa'#241'ol - Costa Rica'
+            'Espa'#241'ol - Ecuador'
+            'Espa'#241'ol - El Salvador'
+            'Espa'#241'ol - Espa'#241'a'
+            'Espa'#241'ol - Estados Unidos'
+            'Espa'#241'ol - Guatemala'
+            'Espa'#241'ol - Honduras'
+            'Espa'#241'ol - M'#233'xico'
+            'Espa'#241'ol - Nicaragua'
+            'Espa'#241'ol - Panam'#225
+            'Espa'#241'ol - Paraguay'
+            'Espa'#241'ol - Per'#250
+            'Espa'#241'ol - Puerto Rico'
+            'Espa'#241'ol - Rep'#250'blica Dominicana'
+            'Espa'#241'ol - Uruguay'
+            'Espa'#241'ol - Venezuela'
+            'Euskara'
+            'Fran'#231'ais'
+            'Galego'
+            'Hebrew'
+            'Hrvatski'
+            'IsiZulu'
+            #205'slenska'
+            'Italiano - Italia'
+            'Italiano - Svizzera'
+            'Magyar'
+            'Nederlands'
+            'Norsk bokm'#229'l'
+            'Polski'
+            'Portugu'#234's - Brasil'
+            'Portugu'#234's - Portugal'
+            'Rom'#226'n'#259
+            'Sloven'#269'ina'
+            'Suomi'
+            'Svenska'
+            'T'#252'rk'#231'e'
+            #1073#1098#1083#1075#1072#1088#1089#1082#1080
+            'P'#1091#1089#1089#1082#1080#1081
+            #1057#1088#1087#1089#1082#1080
+            'Korean'
+            'Mandarin Chinese (Simplified)'
+            'Hong Kong Chinese (Simplified)'
+            'Taiwan Chinese (Traditional)'
+            'Hong Kong Chinese (Traditional)'
+            'Japanese'
+            'Lingua lat'#299'na')
+        end
+        object CBSecondRegion: TComboBox
+          Left = 209
+          Top = 77
+          Width = 277
+          Height = 21
+          Style = csDropDownList
+          TabOrder = 1
+          Items.Strings = (
+            'Afrikaans'
+            'Bahasa Indonesia'
+            'Bahasa Melayu'
+            'Catal'#224
+            #268'e'#353'tina'
+            'Deutsch'
+            'English - Australia'
+            'English - Canada'
+            'English - India'
+            'English - New Zealand'
+            'English - South Africa'
+            'English - United Kingdom'
+            'English - United States'
+            'Espa'#241'ol - Argentina'
+            'Espa'#241'ol - Bolivia'
+            'Espa'#241'ol - Chile'
+            'Espa'#241'ol - Colombia'
+            'Espa'#241'ol - Costa Rica'
+            'Espa'#241'ol - Ecuador'
+            'Espa'#241'ol - El Salvador'
+            'Espa'#241'ol - Espa'#241'a'
+            'Espa'#241'ol - Estados Unidos'
+            'Espa'#241'ol - Guatemala'
+            'Espa'#241'ol - Honduras'
+            'Espa'#241'ol - M'#233'xico'
+            'Espa'#241'ol - Nicaragua'
+            'Espa'#241'ol - Panam'#225
+            'Espa'#241'ol - Paraguay'
+            'Espa'#241'ol - Per'#250
+            'Espa'#241'ol - Puerto Rico'
+            'Espa'#241'ol - Rep'#250'blica Dominicana'
+            'Espa'#241'ol - Uruguay'
+            'Espa'#241'ol - Venezuela'
+            'Euskara'
+            'Fran'#231'ais'
+            'Galego'
+            'Hebrew'
+            'Hrvatski'
+            'IsiZulu'
+            #205'slenska'
+            'Italiano - Italia'
+            'Italiano - Svizzera'
+            'Magyar'
+            'Nederlands'
+            'Norsk bokm'#229'l'
+            'Polski'
+            'Portugu'#234's - Brasil'
+            'Portugu'#234's - Portugal'
+            'Rom'#226'n'#259
+            'Sloven'#269'ina'
+            'Suomi'
+            'Svenska'
+            'T'#252'rk'#231'e'
+            #1073#1098#1083#1075#1072#1088#1089#1082#1080
+            'P'#1091#1089#1089#1082#1080#1081
+            #1057#1088#1087#1089#1082#1080
+            'Korean'
+            'Mandarin Chinese (Simplified)'
+            'Hong Kong Chinese (Simplified)'
+            'Taiwan Chinese (Traditional)'
+            'Hong Kong Chinese (Traditional)'
+            'Japanese'
+            'Lingua lat'#299'na')
+        end
+        object CBASR: TComboBox
+          Left = 209
+          Top = 23
+          Width = 277
+          Height = 21
+          Style = csDropDownList
+          ItemIndex = 0
+          TabOrder = 2
+          Text = 'Google (Online)'
+          Items.Strings = (
+            'Google (Online)')
         end
       end
     end
@@ -841,7 +955,7 @@
         object LDefaultCommandExecDesc: TLabel
           Left = 304
           Top = 341
-          Width = 298
+          Width = 259
           Height = 13
           Caption = #1042#1099#1087#1086#1083#1085#1103#1077#1090#1089#1103' '#1077#1089#1083#1080' '#1085#1077' '#1085#1072#1081#1076#1077#1085#1099' '#1082#1086#1084#1072#1085#1076#1099' '#1080#1079' '#1089#1087#1080#1089#1082#1072'.'
         end

@@ -1,12 +1,12 @@
 MSpeech
 -------
 
-The program for speech recognition using the Google Speech API and voice commands.
+The program for speech recognition using the Google Voice API and voice commands.
 
 Author:		Mikhail Grigorev
 E-Mail: 	sleuthhound@gmail.com
 ICQ:		161867489
-WWW:		http://www.im-history.ru/index-en.html
+WWW:		http://www.programs74.ru/index-en.html
 License:	GNU GPLv3
 
 System requirements:
@@ -36,6 +36,8 @@ The necessary components for the assembly:
     http://www.ararat.cz/synapse/doku.php/download
     Download my Synapse: http://file.qip.ru/arch/ALLgL5Ah/synapse.html
 
+6. IMButtonGroup
+   Look in the folder IMButtonGroupComponent.
 
 (c) 2012-2013 by Mikhail Grigorev
 

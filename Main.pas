@@ -145,6 +145,7 @@ var
   JvStartRecordHotKey: TJvApplicationHotKey;
   JvStartRecordWithoutSendTextHotKey: TJvApplicationHotKey;
   JvStartRecordWithoutExecCommandHotKey: TJvApplicationHotKey;
+  JvSwitchesLanguageRecognizeHotKey: TJvApplicationHotKey;
 
 procedure TMainForm.WMQueryEndSession(var Message: TMessage);
 begin
@@ -254,6 +255,13 @@ begin
     Active := False;
     OnHotKey := DoHotKey;
   end;
+  JvSwitchesLanguageRecognizeHotKey := TJvApplicationHotKey.Create(self);
+  with JvSwitchesLanguageRecognizeHotKey do
+  begin
+    HotKey := TextToShortCut(SwitchesLanguageRecognizeHotKey);
+    Active := False;
+    OnHotKey := DoHotKey;
+  end;
   // Активируем горячие клавиши
   RegisterHotKeys;
   StopRecord := True;
@@ -284,6 +292,8 @@ begin
   // Авто-активация записи
   if MaxLevelOnAutoControl then
     StartNULLRecord;
+  // Язык распознавания
+  CurrentSpeechRecognizeLang := DefaultSpeechRecognizeLang;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -666,7 +676,7 @@ begin
       end;
     end;
     try
-      HTTPPostFile('https://www.google.com/speech-api/v1/recognize?xjerr=1&client=chromium&lang='+DefaultSpeechRecognizeLang, 'userfile', OutFileName, Stream, StrList);
+      HTTPPostFile('https://www.google.com/speech-api/v1/recognize?xjerr=1&client=chromium&lang='+CurrentSpeechRecognizeLang, 'userfile', OutFileName, Stream, StrList);
     finally
       Stream.Free;
     end;
@@ -735,7 +745,7 @@ begin
               end;
               if FirstLetterUpper then
               begin
-                if DefaultSpeechRecognizeLang = 'ru-RU' then
+                if CurrentSpeechRecognizeLang = 'ru-RU' then
                   RecognizeStr := RusLowercaseToUppercase(RecognizeStr)
                 else
                   RecognizeStr := EngLowercaseToUppercase(RecognizeStr);
@@ -1065,6 +1075,17 @@ begin
   end
   else
     JvStartRecordWithoutExecCommandHotKey.Active := False;
+  // Переключения языков распознавания
+  if (SwitchesLanguageRecognizeHotKey <> '') and GlobalHotKeyEnable then
+  begin
+    with JvSwitchesLanguageRecognizeHotKey do
+    begin
+      HotKey := TextToShortCut(SwitchesLanguageRecognizeHotKey);
+      Active := True;
+    end;
+  end
+  else
+    JvSwitchesLanguageRecognizeHotKey.Active := False;
 end;
 
 { Разрегистрируем глобальные горячие клавиши }
@@ -1076,6 +1097,8 @@ begin
     JvStartRecordWithoutSendTextHotKey.Free;
   if Assigned(JvStartRecordWithoutExecCommandHotKey) then
     JvStartRecordWithoutExecCommandHotKey.Free;
+  if Assigned(JvSwitchesLanguageRecognizeHotKey) then
+    JvSwitchesLanguageRecognizeHotKey.Free;
 end;
 
 { Нажата горячая клавиша }
@@ -1116,6 +1139,15 @@ begin
     end
     else
       StopButton.Click;
+  end;
+  // Смена языка распознавания
+  if ShortCutToText((Sender as TJvApplicationHotKey).HotKey) = SwitchesLanguageRecognizeHotKey then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+ShortCutToText((Sender as TJvApplicationHotKey).HotKey));
+    if CurrentSpeechRecognizeLang = DefaultSpeechRecognizeLang then
+      CurrentSpeechRecognizeLang := SecondSpeechRecognizeLang
+    else
+      CurrentSpeechRecognizeLang := DefaultSpeechRecognizeLang;
   end;
 end;
 
