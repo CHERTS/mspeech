@@ -27,7 +27,7 @@ type
   TEventsTypeStatus = (mDisable, mEnable);
 
 const
-  ProgramsVer : WideString = '1.5.1.0';
+  ProgramsVer : WideString = '1.5.2.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';

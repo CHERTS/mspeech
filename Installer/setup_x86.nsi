@@ -5,7 +5,7 @@
 
 !define PRODUCT_NAME "MSpeech"
 !define NAME "MSpeech"
-!define VERSION 1.5.1
+!define VERSION 1.5.2
 !define COMPANY "Mikhael Grigorev"
 !define URL http://www.im-history.ru
 

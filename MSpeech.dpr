@@ -11,6 +11,13 @@
 program MSpeech;
 
 uses
+  {$IFDEF DEBUG}
+  madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,
+  {$ENDIF}
   Vcl.Forms,
   OnlyOneRun in 'OnlyOneRun.pas',
   Main in 'Main.pas' {MainForm},
