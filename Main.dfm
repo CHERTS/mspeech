@@ -1,54 +1,17 @@
-﻿object MainForm: TMainForm
+object MainForm: TMainForm
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
-  Caption = 'MSpeech - '#1056#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1077' '#1075#1086#1083#1086#1089#1072' '#1089' '#1087#1086#1084#1086#1097#1100#1102' GoogleSpeech'
-  ClientHeight = 405
-  ClientWidth = 623
+  Caption = 'MSpeech'
+  ClientHeight = 106
+  ClientWidth = 405
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  Icon.Data = {
-    0000010001001010000001002000680400001600000028000000100000002000
-    000001002000000000004004000000000000000000000000000000000000FFFF
-    FF0000000004000000180000002E0000003300000033010101570404048A0101
-    01570000003300000033000000300000001B00000005FFFFFF00FFFFFF00FFFF
-    FF00000000020000000C000000170000001A0000001A0404048ABBAAAAFF0404
-    048A0000001A0000001A000000180000000E00000003FFFFFF00FFFFFF00FFFF
-    FF0000000000050505000606060005050525050505600404048AA29999FF0404
-    048A0505056005050525060606000505050000000000FFFFFF00FFFFFF00FFFF
-    FF0013131300131313030F0F0F4A2624248D8F8686C4D5C7C7EDEADADAFFD5C7
-    C7ED8F8686C42624248D0F0F0F4A131313030F0F0F00FFFFFF00FFFFFF00FFFF
-    FF00262626002424243436343487C2B6B6E0BBB3B3FF9E9C9CFF989898FF9C99
-    99FFBBB3B3FFC2B6B6E0363434872424243426262600FFFFFF00FFFFFF00FFFF
-    FF003131310031313162958F8FBDACA6A6FF787777FFA19E9EFFACABABFFA19F
-    9FFF797878FFADA7A7FF958F8FBD3131316231313100FFFFFF00FFFFFF00FFFF
-    FF003939390039393973C1BBBBEA706F6FFF9C9999FFBAB8B8FFC3C3C3FFBCBA
-    BAFF9F9B9BFF727171FFC1BBBBEA3939397339393900FFFFFF00FFFFFF00FFFF
-    FF00414141004141416FC3C1C1FF595959FFB5B3B3FFC6C5C5FFD0D0D0FFC8C7
-    C7FFB9B6B6FF5C5C5CFFC3C1C1FF4141416F41414100FFFFFF00FFFFFF00FFFF
-    FF00494949004949496CBDBCBCFF595959FF979797FFAEAEAEFFB9B9B9FFADAD
-    ADFF999999FF5C5C5CFFBDBCBCFF4949496C49494900FFFFFF00FFFFFF00FFFF
-    FF005050500050505069DDDDDDFFBBBBBBFFE1E1E1FFF2F2F2FFFEFEFEFFF5F5
-    F5FFE4E4E4FFBBBBBBFFDDDDDDFF5050506950505000FFFFFF00FFFFFF00FFFF
-    FF00535353005454544E54545467121212857E7E7EFFBDBDBDFF7E7E7EFFBABA
-    BAFF7E7E7EFF12121285545454675454544E53535300FFFFFF00FFFFFF00FFFF
-    FF0053535300545454004C4C4C002A2A2A7AB7B7B7FF8D8D8DFFDFDFDFFF8D8D
-    8DFFB1B1B1FF2A2A2A7A4C4C4C005454540053535300FFFFFF00FFFFFF00FFFF
-    FF00474747004848480038383800383838739D9D9DFFDBDBDBFF9D9D9DFFD7D7
-    D7FF9D9D9DFF38383873383838004848480047474700FFFFFF00FFFFFF00FFFF
-    FF004343430043434300434343004343435AB2B2B2DCADADADFFF5F5F5FFADAD
-    ADFFACACACDC4343435A434343004343430043434300FFFFFF00FFFFFF00FFFF
-    FF004A4A4A004A4A4A004A4A4A004C4C4C276161617CD3D3D3DBB9B9B9FFD0D0
-    D0DB6161617C4C4C4C274A4A4A004A4A4A004A4A4A00FFFFFF00FFFFFF00FFFF
-    FF004A4A4A004A4A4A004A4A4A004D4D4D005353532654545454545454675454
-    5454535353264D4D4D004A4A4A004A4A4A004A4A4A00FFFFFF00FFFFFF008003
-    260080032600F01F2600C0072600C0072600C0072600C0072600C0072600C007
-    2600C0072600C0072600F01F2600F01F2600F01F2600F01F2600F83F2600}
   KeyPreview = True
   OldCreateOrder = False
   Position = poScreenCenter
@@ -58,18 +21,21 @@
   OnKeyDown = FormKeyDown
   OnShow = FormShow
   DesignSize = (
-    623
-    405)
+    405
+    106)
   PixelsPerInch = 96
   TextHeight = 13
   object GBMain: TGroupBox
     Left = 8
     Top = 4
-    Width = 607
+    Width = 389
     Height = 93
-    Anchors = [akLeft, akTop, akRight]
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = ' '#1059#1087#1088#1072#1074#1083#1077#1085#1080#1077' '
     TabOrder = 0
+    DesignSize = (
+      389
+      93)
     object LSignalLevel: TLabel
       Left = 7
       Top = 23
@@ -80,14 +46,15 @@
     object ProgressBar: TProgressBar
       Left = 99
       Top = 23
-      Width = 494
+      Width = 282
       Height = 16
+      Anchors = [akLeft, akTop, akRight]
       BarColor = clLime
       BackgroundColor = clBlack
       TabOrder = 4
     end
     object StartButton: TButton
-      Left = 7
+      Left = 8
       Top = 54
       Width = 108
       Height = 25
@@ -130,958 +97,6 @@
       OnClick = AboutButtonClick
     end
   end
-  object SettingsPanel: TPanel
-    Left = 0
-    Top = 103
-    Width = 629
-    Height = 301
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    BevelOuter = bvNone
-    Caption = 'SettingsPanel'
-    TabOrder = 1
-    object SettingsPageControl: TPageControl
-      Left = 8
-      Top = 4
-      Width = 607
-      Height = 257
-      ActivePage = TabSheetConnectSettings
-      TabOrder = 0
-      object TabSheetLog: TTabSheet
-        Caption = #1051#1086#1075' '#1088#1072#1073#1086#1090#1099
-        ImageIndex = 1
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        DesignSize = (
-          599
-          229)
-        object LogMemo: TMemo
-          Left = 3
-          Top = 32
-          Width = 593
-          Height = 194
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          ReadOnly = True
-          ScrollBars = ssVertical
-          TabOrder = 1
-        end
-        object ClearLogButton: TButton
-          Left = 3
-          Top = 1
-          Width = 94
-          Height = 25
-          Caption = #1054#1095#1080#1089#1090#1080#1090#1100' '#1083#1086#1075
-          TabOrder = 0
-          OnClick = ClearLogButtonClick
-        end
-      end
-      object TabSheetSettings: TTabSheet
-        Caption = #1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
-        ImageIndex = 2
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        object GBInterfaceSettings: TGroupBox
-          Left = 3
-          Top = 0
-          Width = 593
-          Height = 206
-          Caption = ' '#1048#1085#1090#1077#1088#1092#1077#1081#1089' '
-          TabOrder = 0
-          object LLang: TLabel
-            Left = 11
-            Top = 73
-            Width = 88
-            Height = 13
-            Caption = #1071#1079#1099#1082' '#1087#1088#1086#1075#1088#1072#1084#1084#1099':'
-          end
-          object AlphaBlendVar: TLabel
-            Left = 386
-            Top = 25
-            Width = 18
-            Height = 13
-            Caption = '255'
-          end
-          object CBShowTrayEvents: TCheckBox
-            Left = 11
-            Top = 47
-            Width = 233
-            Height = 17
-            Caption = #1055#1086#1082#1072#1079#1099#1074#1072#1090#1100' '#1074#1089#1087#1083#1099#1074#1072#1102#1097#1080#1077' '#1089#1086#1086#1073#1097#1077#1085#1080#1103
-            TabOrder = 2
-          end
-          object CBAlphaBlend: TCheckBox
-            Left = 11
-            Top = 24
-            Width = 177
-            Height = 17
-            Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1087#1088#1086#1079#1088#1072#1095#1085#1086#1089#1090#1100' '#1086#1082#1086#1085
-            TabOrder = 0
-            OnClick = CBAlphaBlendClick
-          end
-          object AlphaBlendTrackBar: TTrackBar
-            Left = 194
-            Top = 18
-            Width = 186
-            Height = 23
-            Ctl3D = True
-            Max = 255
-            ParentCtl3D = False
-            Frequency = 20
-            ShowSelRange = False
-            TabOrder = 1
-            ThumbLength = 12
-            TickMarks = tmTopLeft
-            OnChange = AlphaBlendTrackBarChange
-          end
-          object CBLang: TComboBox
-            Left = 105
-            Top = 70
-            Width = 161
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 3
-            OnChange = CBLangChange
-          end
-        end
-      end
-      object TabSheetRecord: TTabSheet
-        Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1079#1072#1087#1080#1089#1080
-        ImageIndex = 5
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        DesignSize = (
-          599
-          229)
-        object GBRecordSettings: TGroupBox
-          Left = 3
-          Top = 0
-          Width = 593
-          Height = 226
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1079#1072#1087#1080#1089#1080' '
-          TabOrder = 0
-          object LMaxLevel: TLabel
-            Left = 16
-            Top = 75
-            Width = 268
-            Height = 13
-            Caption = #1052#1072#1082#1089#1080#1084#1072#1083#1100#1085#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1089#1080#1075#1085#1072#1083#1072' '#1076#1083#1103'  '#1085#1072#1095#1072#1083#1072' '#1079#1072#1087#1080#1089#1080':'
-          end
-          object LMaxLevelInterrupt: TLabel
-            Left = 16
-            Top = 97
-            Width = 305
-            Height = 13
-            Caption = #1050#1086#1083'. '#1089#1088#1072#1073#1072#1090#1099#1074#1072#1085#1080#1081' '#1085#1072' '#1084#1072#1082#1089'-'#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1076#1083#1103' '#1085#1072#1095#1072#1083#1072' '#1079#1072#1087#1080#1089#1080':'
-          end
-          object LMinLevel: TLabel
-            Left = 16
-            Top = 121
-            Width = 321
-            Height = 13
-            Caption = #1052#1080#1085#1080#1084#1072#1083#1100#1085#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1089#1080#1075#1085#1072#1083#1072' '#1076#1083#1103'  '#1085#1072#1095#1072#1083#1072' '#1072#1074#1090#1086'-'#1088#1072#1089#1087#1086#1079#1085#1072#1085#1080#1103':'
-          end
-          object LEMinLevelInterrupt: TLabel
-            Left = 16
-            Top = 143
-            Width = 358
-            Height = 13
-            Caption = #1050#1086#1083'. '#1089#1088#1072#1073#1072#1090#1099#1074#1072#1085#1080#1081' '#1085#1072' '#1084#1080#1085'-'#1099#1081' '#1091#1088#1086#1074#1077#1085#1100' '#1076#1083#1103' '#1085#1072#1095#1072#1083#1072' '#1072#1074#1090#1086'-'#1088#1072#1089#1087#1086#1079#1085#1072#1085#1080#1103':'
-          end
-          object LDevice: TLabel
-            Left = 16
-            Top = 24
-            Width = 52
-            Height = 13
-            Caption = #1048#1089#1090#1086#1095#1085#1080#1082':'
-          end
-          object LStopRecordAction: TLabel
-            Left = 16
-            Top = 171
-            Width = 201
-            Height = 13
-            Caption = #1044#1077#1081#1089#1090#1074#1080#1077' '#1082#1085#1086#1087#1082#1080' "'#1054#1089#1090#1072#1085#1086#1074#1080#1090#1100' '#1079#1072#1087#1080#1089#1100'":'
-          end
-          object LRegion: TLabel
-            Left = 16
-            Top = 51
-            Width = 136
-            Height = 13
-            Caption = #1071#1079#1099#1082' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103' '#1088#1077#1095#1080':'
-          end
-          object EMaxLevel: TEdit
-            Left = 441
-            Top = 71
-            Width = 25
-            Height = 21
-            NumbersOnly = True
-            TabOrder = 2
-            Text = '0'
-            OnKeyDown = EMaxLevelKeyDown
-          end
-          object UpDownMaxLevel: TUpDown
-            Left = 466
-            Top = 71
-            Width = 16
-            Height = 21
-            Associate = EMaxLevel
-            TabOrder = 3
-            OnClick = UpDownMaxLevelClick
-          end
-          object CBMaxLevelControl: TCheckBox
-            Left = 487
-            Top = 73
-            Width = 98
-            Height = 17
-            Caption = #1040#1074#1090#1086'-'#1079#1072#1087#1080#1089#1100
-            TabOrder = 4
-            OnClick = CBMaxLevelControlClick
-          end
-          object EMinLevelInterrupt: TEdit
-            Left = 441
-            Top = 139
-            Width = 25
-            Height = 21
-            NumbersOnly = True
-            TabOrder = 9
-            Text = '0'
-            OnKeyDown = EMinLevelInterruptKeyDown
-          end
-          object UpDownMinLevelInterrupt: TUpDown
-            Left = 466
-            Top = 139
-            Width = 16
-            Height = 21
-            Associate = EMinLevelInterrupt
-            TabOrder = 10
-            OnClick = UpDownMinLevelInterruptClick
-          end
-          object UpDownMaxLevelInterrupt: TUpDown
-            Left = 466
-            Top = 93
-            Width = 15
-            Height = 21
-            TabOrder = 6
-            OnClick = UpDownMaxLevelInterruptClick
-          end
-          object UpDownMinLevel: TUpDown
-            Left = 466
-            Top = 117
-            Width = 16
-            Height = 21
-            Associate = EMinLevel
-            TabOrder = 8
-            OnClick = UpDownMinLevelClick
-          end
-          object EMinLevel: TEdit
-            Left = 441
-            Top = 117
-            Width = 25
-            Height = 21
-            NumbersOnly = True
-            TabOrder = 7
-            Text = '0'
-            OnKeyDown = EMinLevelKeyDown
-          end
-          object StaticTextMinLevel: TStaticText
-            Left = 487
-            Top = 118
-            Width = 40
-            Height = 20
-            Alignment = taCenter
-            AutoSize = False
-            BorderStyle = sbsSunken
-            Caption = '0'
-            TabOrder = 12
-          end
-          object StaticTextMaxLevelInterrupt: TStaticText
-            Left = 487
-            Top = 94
-            Width = 40
-            Height = 20
-            Alignment = taCenter
-            AutoSize = False
-            BorderStyle = sbsSunken
-            Caption = '0'
-            TabOrder = 13
-          end
-          object StaticTextMinLevelInterrupt: TStaticText
-            Left = 487
-            Top = 140
-            Width = 40
-            Height = 20
-            Alignment = taCenter
-            AutoSize = False
-            BorderStyle = sbsSunken
-            Caption = '0'
-            TabOrder = 14
-          end
-          object EMaxLevelInterrupt: TEdit
-            Left = 441
-            Top = 94
-            Width = 25
-            Height = 21
-            NumbersOnly = True
-            TabOrder = 5
-            Text = '0'
-            OnKeyDown = EMaxLevelInterruptKeyDown
-          end
-          object CBDevice: TComboBox
-            Left = 74
-            Top = 21
-            Width = 361
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 0
-            OnChange = CBDeviceChange
-          end
-          object MicSettingsButton: TButton
-            Left = 441
-            Top = 19
-            Width = 137
-            Height = 25
-            Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1084#1080#1082#1088#1086#1092#1086#1085#1072
-            TabOrder = 1
-            OnClick = MicSettingsButtonClick
-          end
-          object CBStopRecordAction: TComboBox
-            Left = 223
-            Top = 168
-            Width = 350
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 11
-            OnChange = CBStopRecordActionChange
-          end
-          object CBRegion: TComboBox
-            Left = 158
-            Top = 48
-            Width = 277
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 15
-            Items.Strings = (
-              'Afrikaans'
-              'Bahasa Indonesia'
-              'Bahasa Melayu'
-              'Catal'#224
-              #268'e'#353'tina'
-              'Deutsch'
-              'English - Australia'
-              'English - Canada'
-              'English - India'
-              'English - New Zealand'
-              'English - South Africa'
-              'English - United Kingdom'
-              'English - United States'
-              'Espa'#241'ol - Argentina'
-              'Espa'#241'ol - Bolivia'
-              'Espa'#241'ol - Chile'
-              'Espa'#241'ol - Colombia'
-              'Espa'#241'ol - Costa Rica'
-              'Espa'#241'ol - Ecuador'
-              'Espa'#241'ol - El Salvador'
-              'Espa'#241'ol - Espa'#241'a'
-              'Espa'#241'ol - Estados Unidos'
-              'Espa'#241'ol - Guatemala'
-              'Espa'#241'ol - Honduras'
-              'Espa'#241'ol - M'#233'xico'
-              'Espa'#241'ol - Nicaragua'
-              'Espa'#241'ol - Panam'#225
-              'Espa'#241'ol - Paraguay'
-              'Espa'#241'ol - Per'#250
-              'Espa'#241'ol - Puerto Rico'
-              'Espa'#241'ol - Rep'#250'blica Dominicana'
-              'Espa'#241'ol - Uruguay'
-              'Espa'#241'ol - Venezuela'
-              'Euskara'
-              'Fran'#231'ais'
-              'Galego'
-              'Hrvatski'
-              'IsiZulu'
-              #205'slenska'
-              'Italiano - Italia'
-              'Italiano - Svizzera'
-              'Magyar'
-              'Nederlands'
-              'Norsk bokm'#229'l'
-              'Polski'
-              'Portugu'#234's - Brasil'
-              'Portugu'#234's - Portugal'
-              'Rom'#226'n'#259
-              'Sloven'#269'ina'
-              'Suomi'
-              'Svenska'
-              'T'#252'rk'#231'e'
-              #1073#1098#1083#1075#1072#1088#1089#1082#1080
-              'P'#1091#1089#1089#1082#1080#1081
-              #1057#1088#1087#1089#1082#1080
-              'Korean'
-              'Mandarin Chinese (Simplified)'
-              'Hong Kong Chinese (Simplified)'
-              'Taiwan Chinese (Traditional)'
-              'Hong Kong Chinese (Traditional)'
-              'Japanese'
-              'Lingua lat'#299'na')
-          end
-        end
-      end
-      object TabSheetConnectSettings: TTabSheet
-        Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103
-        DesignSize = (
-          599
-          229)
-        object GBConnectSettings: TGroupBox
-          Left = 3
-          Top = 0
-          Width = 593
-          Height = 226
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103' '
-          TabOrder = 0
-          object LProxyAddress: TLabel
-            Left = 16
-            Top = 47
-            Width = 118
-            Height = 13
-            Caption = #1040#1076#1088#1077#1089' '#1087#1088#1086#1082#1089#1080'-'#1089#1077#1088#1074#1077#1088#1072':'
-          end
-          object LProxyPort: TLabel
-            Left = 267
-            Top = 48
-            Width = 29
-            Height = 13
-            Caption = #1055#1086#1088#1090':'
-          end
-          object LProxyUser: TLabel
-            Left = 16
-            Top = 98
-            Width = 76
-            Height = 13
-            Caption = #1055#1086#1083#1100#1079#1086#1074#1072#1090#1077#1083#1100':'
-          end
-          object LProxyUserPasswd: TLabel
-            Left = 16
-            Top = 125
-            Width = 41
-            Height = 13
-            Caption = #1055#1072#1088#1086#1083#1100':'
-          end
-          object CBUseProxy: TCheckBox
-            Left = 16
-            Top = 24
-            Width = 209
-            Height = 17
-            Caption = #1057#1086#1077#1076#1080#1085#1103#1090#1100#1089#1103' '#1095#1077#1088#1077#1079' '#1087#1088#1086#1082#1089#1080'-'#1089#1077#1088#1074#1077#1088
-            TabOrder = 0
-            OnClick = CBUseProxyClick
-          end
-          object EProxyAddress: TEdit
-            Left = 140
-            Top = 44
-            Width = 121
-            Height = 21
-            TabOrder = 1
-            Text = '127.0.0.1'
-          end
-          object EProxyPort: TEdit
-            Left = 302
-            Top = 44
-            Width = 73
-            Height = 21
-            MaxLength = 5
-            NumbersOnly = True
-            TabOrder = 2
-            Text = '3128'
-          end
-          object EProxyUser: TEdit
-            Left = 98
-            Top = 95
-            Width = 163
-            Height = 21
-            TabOrder = 4
-          end
-          object CBProxyAuth: TCheckBox
-            Left = 16
-            Top = 71
-            Width = 233
-            Height = 17
-            Caption = #1055#1088#1086#1082#1089#1080'-'#1089#1077#1088#1074#1077#1088' '#1090#1088#1077#1073#1091#1077#1090' '#1072#1074#1090#1086#1088#1080#1079#1072#1094#1080#1102
-            TabOrder = 3
-            OnClick = CBProxyAuthClick
-          end
-          object EProxyUserPasswd: TEdit
-            Left = 98
-            Top = 122
-            Width = 163
-            Height = 21
-            PasswordChar = '*'
-            TabOrder = 5
-          end
-        end
-      end
-      object TabSheetCommand: TTabSheet
-        Caption = #1050#1086#1084#1072#1085#1076#1099
-        ImageIndex = 7
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        object GBCommand: TGroupBox
-          Left = 3
-          Top = 3
-          Width = 593
-          Height = 223
-          Caption = ' '#1057#1087#1080#1089#1086#1082' '#1082#1086#1084#1072#1085#1076' '
-          TabOrder = 0
-          DesignSize = (
-            593
-            223)
-          object LCommandKey: TLabel
-            Left = 8
-            Top = 22
-            Width = 88
-            Height = 13
-            Caption = #1050#1083#1102#1095#1077#1074#1086#1077' '#1089#1083#1086#1074#1086':'
-          end
-          object LCommandExec: TLabel
-            Left = 183
-            Top = 22
-            Width = 48
-            Height = 13
-            Caption = #1050#1086#1084#1072#1085#1076#1072':'
-          end
-          object LCommandType: TLabel
-            Left = 436
-            Top = 22
-            Width = 70
-            Height = 13
-            Caption = #1058#1080#1087' '#1082#1086#1084#1072#1085#1076#1099':'
-          end
-          object SBCommandSelect: TSpeedButton
-            Left = 407
-            Top = 40
-            Width = 23
-            Height = 22
-            Glyph.Data = {
-              36040000424D3604000000000000360000002800000010000000100000000100
-              20000000000000040000C40E0000C40E00000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000000000000364
-              94B6036494B6036494B6036494B6036494B6036494B6036494B6036494B60364
-              94B6036494B6036494B6036494B6034C70930000000000000000036EA4A866B8
-              DEFF87D1EFFF87D0EFFF87D0EFFF87D0EFFF87D0EFFF87D0EFFF87D0EFFF87D0
-              EFFF87D0EFFF87D0EFFF87D1EFFF3896C3EC0357814A000000000378B49B49AB
-              D8FF92D9F3FF8DD5F0FF8DD5F0FF8DD5F0FF8DD5F0FF8DD5F0FF8DD5F0FF8DD5
-              F0FF8DD5F0FF8DD5F0FF8DD5F0FF77C8E9F6027EBD7D00000000027CB9964EB1
-              DFFF8AD8F2FF9CE2F8FF9CE2F8FF9CE2F8FF9CE2F8FF9CE2F8FF9CE2F8FF9CE2
-              F8FF9CE2F8FF9CE2F8FF9CE2F8FFA0E6FAFF289DD49D0287CA23027FBE9272C8
-              ECFF6AC7EBFFADF1FEFFADF1FEFFADF1FEFFADF1FEFFADF1FEFFADF1FEFFADF1
-              FEFFADF1FEFFADF1FEFFADF1FEFFADF1FEFF6FCEEEC8028DD2540282C28E8FD9
-              F4FF4BB5E6FF4BB5E6FF4BB5E6FF4BB5E6FF4BB5E6FF4BB5E6FF4BB5E6FF4BB5
-              E6FF4BB5E6FF4BB5E6FF4FB8E8FF028BD1C40291DA7A0291D95C0285C78A99E0
-              F6FF92DAF3FF92DAF3FF92DAF3FF92DAF3FF92DAF3FF92DAF3FF92DAF3FF92DA
-              F3FF92DAF3FF92DAF3FF99E0F6FF0285C78A00000000000000000288CB869FE5
-              F9FF98DFF6FF98DFF6FF98DFF6FF98DFF6FF98DFF6FF98DFF6FF98DFF6FF98DF
-              F6FF98DFF6FF98DFF6FF9FE5F9FF0288CB860000000000000000028ACF83A3E9
-              FBFF9DE3F9FF9DE3F9FF9DE3F9FF9DE3F9FF9DE3F9FF9DE3F9FF9DE3F9FF9DE3
-              F9FF9DE3F9FF9DE3F9FFA3E9FBFF028ACF830000000000000000028DD280A8ED
-              FDFFA2E7FBFFA2E7FBFFA2E7FBFFA2E7FBFFA2E7FBFFA2E7FBFFA2E7FBFFA2E7
-              FBFFA2E7FBFFA2E7FBFFA8EDFDFF028DD2800000000000000000028FD67DAEF3
-              FFFFABF0FEFFABF0FEFFABF0FEFFABF0FEFFABF0FEFFABF0FEFFABF0FEFFABF0
-              FEFFABF0FEFFABF0FEFFAEF3FFFF028FD67D00000000000000000291D95C0291
-              D97B0291D97B0291D97B0291D97B0291D97B0291D97BFEFEFDFFF5F5EEFFEBEB
-              DDFFFEC941FFF4B62EFF0291D97B0291D95C0000000000000000000000000000
-              0000000000000000000000000000000000000292DB2B0292DB790292DB790292
-              DB790292DB790292DB790292DB2B000000000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000000000000000
-              0000000000000000000000000000000000000000000000000000}
-            OnClick = SBCommandSelectClick
-          end
-          object ECommandKey: TEdit
-            Left = 8
-            Top = 41
-            Width = 172
-            Height = 21
-            TabOrder = 0
-            OnKeyUp = ECommandKeyKeyUp
-          end
-          object ECommandExec: TEdit
-            Left = 181
-            Top = 41
-            Width = 220
-            Height = 21
-            TabOrder = 1
-            OnKeyUp = ECommandExecKeyUp
-          end
-          object CommandStringGrid: TStringGrid
-            Left = 8
-            Top = 66
-            Width = 572
-            Height = 121
-            Anchors = [akLeft, akTop, akRight]
-            ColCount = 3
-            DefaultColWidth = 150
-            DefaultRowHeight = 18
-            DrawingStyle = gdsClassic
-            FixedCols = 0
-            RowCount = 1
-            FixedRows = 0
-            Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect, goColSizing, goRowSelect]
-            TabOrder = 2
-            OnSelectCell = CommandStringGridSelectCell
-          end
-          object AddCommandButton: TButton
-            Left = 8
-            Top = 193
-            Width = 75
-            Height = 25
-            Caption = #1044#1086#1073#1072#1074#1080#1090#1100
-            Enabled = False
-            TabOrder = 3
-            OnClick = AddCommandButtonClick
-          end
-          object DeleteCommandButton: TButton
-            Left = 89
-            Top = 193
-            Width = 75
-            Height = 25
-            Caption = #1059#1076#1072#1083#1080#1090#1100
-            Enabled = False
-            TabOrder = 4
-            OnClick = DeleteCommandButtonClick
-          end
-          object CBCommandType: TComboBox
-            Left = 436
-            Top = 41
-            Width = 144
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 5
-            OnChange = CBCommandTypeChange
-            Items.Strings = (
-              #1047#1072#1087#1091#1089#1090#1080#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091)
-          end
-        end
-      end
-      object TabSheetHotKey: TTabSheet
-        Caption = #1043#1086#1088#1103#1095#1080#1077' '#1082#1083#1072#1074#1080#1096#1080
-        ImageIndex = 3
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        DesignSize = (
-          599
-          229)
-        object CBHotKey: TCheckBox
-          Left = 3
-          Top = 10
-          Width = 231
-          Height = 17
-          Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1087#1086#1076#1076#1077#1088#1078#1082#1091' '#1075#1086#1088#1103#1095#1080#1093' '#1082#1083#1072#1074#1080#1096
-          TabOrder = 0
-          OnClick = CBHotKeyClick
-        end
-        object GBHotKey: TGroupBox
-          Left = 3
-          Top = 33
-          Width = 593
-          Height = 193
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Caption = ' '#1043#1086#1088#1103#1095#1080#1077' '#1082#1083#1072#1074#1080#1096#1080' '
-          TabOrder = 1
-          Visible = False
-          DesignSize = (
-            593
-            193)
-          object HotKetStringGrid: TStringGrid
-            Left = 16
-            Top = 24
-            Width = 562
-            Height = 81
-            Anchors = [akLeft, akTop, akRight]
-            ColCount = 2
-            DefaultColWidth = 150
-            DefaultRowHeight = 18
-            DrawingStyle = gdsClassic
-            FixedCols = 0
-            RowCount = 2
-            FixedRows = 0
-            Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect, goColSizing, goRowSelect]
-            TabOrder = 0
-            OnSelectCell = HotKetStringGridSelectCell
-            ColWidths = (
-              296
-              133)
-          end
-          object IMHotKey: THotKey
-            Left = 16
-            Top = 114
-            Width = 153
-            Height = 19
-            HotKey = 32833
-            TabOrder = 1
-          end
-          object SetHotKeyButton: TButton
-            Left = 182
-            Top = 111
-            Width = 91
-            Height = 25
-            Caption = #1053#1072#1079#1085#1072#1095#1080#1090#1100
-            ImageIndex = 4
-            Images = ImageList_Main
-            TabOrder = 2
-            OnClick = SetHotKeyButtonClick
-          end
-          object DeleteHotKeyButton: TButton
-            Left = 279
-            Top = 111
-            Width = 93
-            Height = 25
-            Caption = #1059#1076#1072#1083#1080#1090#1100
-            ImageIndex = 5
-            Images = ImageList_Main
-            TabOrder = 3
-            OnClick = DeleteHotKeyButtonClick
-          end
-        end
-      end
-      object TabSheetSendText: TTabSheet
-        Caption = #1055#1077#1088#1077#1076#1072#1095#1072' '#1090#1077#1082#1089#1090#1072
-        ImageIndex = 4
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
-        DesignSize = (
-          599
-          229)
-        object GBSendText: TGroupBox
-          Left = 3
-          Top = 33
-          Width = 593
-          Height = 193
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Caption = ' '#1053#1072#1089#1090#1088#1086#1081#1082#1072' '#1087#1077#1088#1077#1076#1072#1095#1080' '#1090#1077#1082#1089#1090#1072' '#1074' '#1087#1086#1083#1103' '#1074#1074#1086#1076#1072' '#1076#1088#1091#1075#1080#1093' '#1087#1088#1086#1075#1088#1072#1084#1084' '
-          TabOrder = 1
-          Visible = False
-          object LClassName: TLabel
-            Left = 12
-            Top = 51
-            Width = 216
-            Height = 13
-            Caption = #1050#1083#1072#1089#1089' '#1087#1086#1083#1103' '#1074#1074#1086#1076#1072' '#1087#1088#1086#1075#1088#1072#1084#1084#1099'-'#1087#1086#1083#1091#1095#1072#1090#1077#1083#1103':'
-          end
-          object LNote: TLabel
-            Left = 12
-            Top = 148
-            Width = 537
-            Height = 38
-            AutoSize = False
-            Caption = 
-              #1042#1053#1048#1052#1040#1053#1048#1045'! '#1056#1072#1089#1087#1086#1079#1085#1072#1085#1085#1099#1081' '#1090#1077#1082#1089#1090' '#1073#1091#1076#1077#1090' '#1087#1077#1088#1077#1076#1072#1074#1072#1090#1100#1089#1103' '#1074' '#1072#1082#1090#1080#1074#1085#1086#1077' '#1086#1082#1085#1086' ' +
-              #1087#1088#1086#1075#1088#1072#1084#1084#1099'. '#1050#1083#1072#1089#1089' '#1087#1086#1083#1103' '#1074#1074#1086#1076#1072' '#1084#1086#1078#1085#1086' '#1086#1089#1090#1072#1074#1080#1090#1100' '#1087#1091#1089#1090#1099#1084' '#1080#1083#1080' '#1086#1087#1088#1077#1076#1077#1083#1080#1090#1100 +
-              ' '#1089' '#1087#1086#1084#1086#1097#1100#1102' '#1076#1086#1087#1086#1083#1085#1080#1090#1077#1083#1100#1085#1086#1081' '#1087#1088#1086#1075#1088#1072#1084#1084#1099' SearchApplicationClassName.e' +
-              'xe'
-            WordWrap = True
-          end
-          object LMethodSendingText: TLabel
-            Left = 12
-            Top = 24
-            Width = 126
-            Height = 13
-            Caption = #1052#1077#1090#1086#1076' '#1086#1090#1087#1088#1072#1074#1082#1080' '#1090#1077#1082#1089#1090#1072':'
-          end
-          object LInactiveWindowCaption: TLabel
-            Left = 12
-            Top = 78
-            Width = 205
-            Height = 13
-            Caption = #1047#1072#1075#1086#1083#1086#1074#1086#1082' '#1086#1082#1085#1072' '#1087#1088#1086#1075#1088#1072#1084#1084#1099' '#1087#1086#1083#1091#1095#1072#1090#1077#1083#1103':'
-            Enabled = False
-          end
-          object EClassNameReciver: TEdit
-            Left = 234
-            Top = 48
-            Width = 315
-            Height = 21
-            TabOrder = 1
-          end
-          object CBMethodSendingText: TComboBox
-            Left = 234
-            Top = 21
-            Width = 315
-            Height = 21
-            Style = csDropDownList
-            TabOrder = 0
-            OnChange = CBMethodSendingTextChange
-            Items.Strings = (
-              'WM_SETTEXT + EM_REPLACESEL'
-              'WM_PASTE'
-              'WM_CHAR'
-              'WM_PASTE (MOD)')
-          end
-          object CBEnableTextСorrection: TCheckBox
-            Left = 12
-            Top = 125
-            Width = 413
-            Height = 17
-            Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1082#1086#1088#1088#1077#1082#1094#1080#1102' '#1090#1077#1082#1089#1090#1072' '#1087#1088#1080' '#1087#1077#1088#1077#1076#1072#1095#1077
-            TabOrder = 2
-            OnClick = CBEnableTextСorrectionClick
-          end
-          object CBEnableSendTextInactiveWindow: TCheckBox
-            Left = 12
-            Top = 102
-            Width = 413
-            Height = 17
-            Caption = #1054#1090#1087#1088#1072#1074#1083#1103#1090#1100' '#1090#1077#1082#1089#1090' '#1074' '#1085#1077#1072#1082#1090#1080#1074#1085#1086#1077' '#1086#1082#1085#1086' '#1087#1088#1086#1075#1088#1072#1084#1084#1099' (WM_COPYDATA)'
-            TabOrder = 3
-            OnClick = CBEnableSendTextInactiveWindowClick
-          end
-          object EInactiveWindowCaption: TEdit
-            Left = 234
-            Top = 75
-            Width = 315
-            Height = 21
-            Enabled = False
-            TabOrder = 4
-          end
-        end
-        object CBEnableSendText: TCheckBox
-          Left = 3
-          Top = 10
-          Width = 465
-          Height = 17
-          Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1087#1077#1088#1077#1076#1072#1095#1091' '#1090#1077#1082#1089#1090#1072' '#1074' '#1087#1086#1083#1103' '#1074#1074#1086#1076#1072' '#1076#1088#1091#1075#1080#1093' '#1087#1088#1086#1075#1088#1072#1084#1084
-          TabOrder = 0
-          OnClick = CBEnableSendTextClick
-        end
-      end
-      object TabSheetTextCorrection: TTabSheet
-        Caption = #1050#1086#1088#1088#1077#1082#1094#1080#1103' '#1090#1077#1082#1089#1090#1072
-        ImageIndex = 6
-        object GBReplaceList: TGroupBox
-          Left = 3
-          Top = 55
-          Width = 593
-          Height = 171
-          Caption = ' '#1057#1087#1080#1089#1086#1082' '#1079#1072#1084#1077#1085#1099' '#1089#1083#1086#1074' '
-          TabOrder = 0
-          Visible = False
-          DesignSize = (
-            593
-            171)
-          object LReplaceIN: TLabel
-            Left = 8
-            Top = 22
-            Width = 52
-            Height = 13
-            Caption = #1047#1072#1084#1077#1085#1080#1090#1100':'
-          end
-          object LReplaceOUT: TLabel
-            Left = 183
-            Top = 22
-            Width = 16
-            Height = 13
-            Caption = #1085#1072':'
-          end
-          object EReplaceIN: TEdit
-            Left = 8
-            Top = 41
-            Width = 172
-            Height = 21
-            TabOrder = 0
-            OnKeyUp = EReplaceINKeyUp
-          end
-          object EReplaceOUT: TEdit
-            Left = 181
-            Top = 41
-            Width = 134
-            Height = 21
-            TabOrder = 1
-            OnKeyUp = EReplaceOUTKeyUp
-          end
-          object ReplaceStringGrid: TStringGrid
-            Left = 8
-            Top = 68
-            Width = 412
-            Height = 93
-            Anchors = [akLeft, akTop, akRight]
-            ColCount = 2
-            DefaultColWidth = 150
-            DefaultRowHeight = 18
-            DrawingStyle = gdsClassic
-            FixedCols = 0
-            RowCount = 2
-            FixedRows = 0
-            Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect, goColSizing, goRowSelect]
-            TabOrder = 2
-            OnSelectCell = ReplaceStringGridSelectCell
-            ColWidths = (
-              170
-              133)
-          end
-          object AddReplaceButton: TButton
-            Left = 426
-            Top = 66
-            Width = 75
-            Height = 25
-            Caption = #1044#1086#1073#1072#1074#1080#1090#1100
-            Enabled = False
-            TabOrder = 3
-            OnClick = AddReplaceButtonClick
-          end
-          object DeleteReplaceButton: TButton
-            Left = 426
-            Top = 97
-            Width = 75
-            Height = 25
-            Caption = #1059#1076#1072#1083#1080#1090#1100
-            Enabled = False
-            TabOrder = 4
-            OnClick = DeleteReplaceButtonClick
-          end
-        end
-        object CBFirstLetterUpper: TCheckBox
-          Left = 3
-          Top = 32
-          Width = 334
-          Height = 17
-          Caption = #1044#1077#1083#1072#1090#1100' '#1087#1077#1088#1074#1099#1077' '#1073#1091#1082#1074#1099' '#1087#1088#1077#1076#1083#1086#1078#1077#1085#1080#1081' '#1087#1088#1086#1087#1080#1089#1085#1099#1084#1080
-          TabOrder = 1
-        end
-        object CBEnableReplace: TCheckBox
-          Left = 3
-          Top = 9
-          Width = 318
-          Height = 17
-          Caption = #1047#1072#1084#1077#1085#1103#1090#1100' '#1089#1083#1086#1074#1072' '#1087#1086' '#1089#1087#1080#1089#1082#1091
-          TabOrder = 2
-          OnClick = CBEnableReplaceClick
-        end
-      end
-    end
-    object SaveSettingsButton: TButton
-      Left = 8
-      Top = 267
-      Width = 141
-      Height = 25
-      Caption = #1057#1086#1093#1088#1072#1085#1080#1090#1100' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
-      ImageIndex = 0
-      Images = ImageList_Main
-      TabOrder = 1
-      OnClick = SaveSettingsButtonClick
-    end
-  end
   object DXAudioIn: TDXAudioIn
     Latency = 100
     SamplesToRead = -1
@@ -1093,8 +108,8 @@
     EchoRecording = False
     FramesInBuffer = 24576
     PollingInterval = 10
-    Left = 280
-    Top = 16
+    Left = 128
+    Top = 8
   end
   object FLACOut: TFLACOut
     Input = FastGainIndicator
@@ -1112,31 +127,21 @@
     QLPCoeffPrecision = 0
     QLPCoeffPrecisionSearch = False
     Verify = False
-    Left = 184
-    Top = 16
+    Left = 64
+    Top = 8
   end
   object FastGainIndicator: TFastGainIndicator
     Input = DXAudioIn
     Interval = 100
     OnGainData = FastGainIndicatorGainData
-    Left = 216
-    Top = 16
+    Left = 96
+    Top = 8
   end
   object NULLOut: TNULLOut
     OnDone = NULLOutDone
     OnThreadException = NULLOutThreadException
-    Left = 152
-    Top = 16
-  end
-  object SincFilter: TSincFilter
-    Input = DXAudioIn
-    FilterType = ftBandPass
-    HighFreq = 4000
-    KernelWidth = 32
-    LowFreq = 300
-    WindowType = fwBlackman
-    Left = 248
-    Top = 16
+    Left = 32
+    Top = 8
   end
   object MSpeechTray: TCoolTrayIcon
     IconList = TrayImageList
@@ -1184,14 +189,14 @@
     MinimizeToTray = True
     OnDblClick = MSpeechTrayDblClick
     OnStartup = MSpeechTrayStartup
-    Left = 472
-    Top = 16
+    Left = 320
+    Top = 8
   end
   object TrayImageList: TImageList
-    Left = 408
-    Top = 16
+    Left = 256
+    Top = 8
     Bitmap = {
-      494C010106000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C0101060009000C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       00000000000000000000A8A8A8577777778AA8A8A85700000000000000009D79
@@ -1464,8 +469,8 @@
   end
   object MSpeechPopupMenu: TPopupMenu
     Images = ImageList_Main
-    Left = 504
-    Top = 16
+    Left = 352
+    Top = 8
     object MSpeechShowHide: TMenuItem
       Caption = #1055#1086#1082#1072#1079#1072#1090#1100
       Hint = 'MSpeechPopupMenuShow'
@@ -1477,6 +482,13 @@
       Hint = 'MSpeechPopupMenuSettings'
       ImageIndex = 1
       OnClick = MSpeechSettingsClick
+    end
+    object MSpeechShowLog: TMenuItem
+      Caption = #1055#1086#1089#1084#1086#1090#1088#1077#1090#1100' '#1083#1086#1075'-'#1092#1072#1081#1083
+      SubMenuImages = ImageList_Main
+      Hint = 'MSpeechPopupMenuShowLog'
+      ImageIndex = 12
+      OnClick = MSpeechShowLogClick
     end
     object MSpeechAbout: TMenuItem
       Caption = #1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
@@ -1497,17 +509,18 @@
     AppStorage = JvAppIniFileStorage
     AppStoragePath = '%FORM_NAME%\'
     StoredValues = <>
-    Left = 310
-    Top = 16
+    Left = 158
+    Top = 8
   end
   object JvAppIniFileStorage: TJvAppIniFileStorage
     StorageOptions.BooleanStringTrueValues = 'TRUE, YES, Y'
     StorageOptions.BooleanStringFalseValues = 'FALSE, NO, N'
     FileName = 'MSpeechForms.ini'
+    Location = flCustom
     DefaultSection = 'Forms'
     SubStorages = <>
-    Left = 343
-    Top = 16
+    Left = 191
+    Top = 8
   end
   object JvThreadRecognize: TJvThread
     Exclusive = True
@@ -1516,16 +529,16 @@
     FreeOnTerminate = True
     OnExecute = JvThreadRecognizeExecute
     OnFinish = JvThreadRecognizeFinish
-    Left = 440
-    Top = 16
+    Left = 288
+    Top = 8
   end
   object ImageList_Main: TImageList
     ColorDepth = cd32Bit
     DrawingStyle = dsTransparent
-    Left = 376
-    Top = 16
+    Left = 224
+    Top = 8
     Bitmap = {
-      494C01010C001100040010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010D00B000380210001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1543,6 +556,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000003D3D3DFF3636
+      36FF303030FF2A2A2AFF252525FF0000000000000000151515FF101010FF0C0C
+      0CFF080808FF040404FF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1556,6 +572,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000004B4B4BFF4545
+      45FF3F3F3FFF393939FF333333FF0000000000000000212121FF1C1C1CFF1717
+      17FF121212FF0D0D0DFF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1569,6 +588,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000595959FF5353
+      53FF4D4D4DFF474747FF414141FF00000000000000002F2F2FFF292929FF2424
+      24FF1E1E1EFF191919FF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1582,6 +604,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000656565FF6060
+      60FF5B5B5BFF555555FF505050FF00000000000000003E3E3EFF383838FF3232
+      32FF2C2C2CFF262626FF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1595,6 +620,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000707070FF6C6C
+      6CFF676767FF626262FF5D5D5DFF00000000000000004C4C4CFF464646FF4040
+      40FF3A3A3AFF343434FF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1608,24 +636,9 @@
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000777777FF7575
+      75FF717171FF6D6D6DFF696969FF00000000000000005A5A5AFF545454FF4F4F
+      4FFF494949FF434343FF00000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2041,11 +1054,11 @@
       0000000000000000000000000000000000000000000000000000000000000000
       000003030A0A000000000000000000000000424D3E000000000000003E000000
       2800000040000000400000000100010000000000000200000000000000000000
-      000000000000000000000000FFFFFF0000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000000000000000000000000000
-      0000000000000000000000000000000000000000F00FF00F00000000C003C003
+      000000000000000000000000FFFFFF00FFFF000000000000FFFF000000000000
+      C183000000000000FFFF000000000000C183000000000000FFFF000000000000
+      C183000000000000FFFF000000000000C183000000000000FFFF000000000000
+      C183000000000000FFFF000000000000C183000000000000FFFF000000000000
+      FFFF000000000000FFFF00000000000000000000F00FF00F00000000C003C003
       0000000080018001000000008001800100000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000800180010000000080018001
@@ -2060,8 +1073,24 @@
       0000000000000000000000000000000000000000000000000000000000000000
       000000000000}
   end
-  object CommandOpenDialog: TOpenDialog
-    Left = 536
-    Top = 16
+  object MP3In: TMP3In
+    Loop = False
+    EndSample = -1
+    StartSample = 0
+    HighPrecision = False
+    OutputChannels = cnMonoOrStereo
+    Left = 32
+    Top = 40
+  end
+  object DXAudioOut: TDXAudioOut
+    Input = MP3In
+    DeviceNumber = 0
+    Latency = 100
+    PrefetchData = True
+    PollingInterval = 100
+    FramesInBuffer = 24576
+    SpeedFactor = 1.000000000000000000
+    Left = 64
+    Top = 40
   end
 end

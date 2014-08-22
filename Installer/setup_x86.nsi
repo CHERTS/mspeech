@@ -5,7 +5,7 @@
 
 !define PRODUCT_NAME "MSpeech"
 !define NAME "MSpeech"
-!define VERSION 1.4.1
+!define VERSION 1.5.0
 !define COMPANY "Mikhael Grigorev"
 !define URL http://www.im-history.ru
 
@@ -208,8 +208,14 @@ Section "MSpeech" SecMainProgramUserSpace
   File "${HOME}\changelog.txt"
   File "${HOME}\getlicense_en.txt"
   File "${HOME}\getlicense_ru.txt"
-  File "${HOME}\MSpeech.cf"
-  File "${HOME}\MSpeech.ini"
+
+  IfFileExists "$INSTDIR\MSpeechForms.ini" 0 +2
+   Delete "$INSTDIR\MSpeechForms.ini"
+
+  IfFileExists "$INSTDIR\MSpeech.ini" trynoini 0
+    File "${HOME}\MSpeech.ini"
+
+  trynoini:
   File "${HOME}\uninstall.ico"
 
   SetOutPath "$INSTDIR\langs"
@@ -311,6 +317,8 @@ Section "Uninstall"
   Delete "$INSTDIR\*.ini"
   Delete "$INSTDIR\*.cf"
   Delete "$INSTDIR\*.rpl"
+  Delete "$INSTDIR\*.log"
+  Delete "$INSTDIR\*.tts"
   Delete "$INSTDIR\uninstall.ico"
   Delete "$INSTDIR\langs\*.*"
   Delete "$INSTDIR\script\*.*"

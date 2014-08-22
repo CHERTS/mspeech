@@ -1,10 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <strings>
-  <MSpeechCaption>MSpeech - Voice recognition with GoogleSpeech</MSpeechCaption>
+  <MSpeechCaption>MSpeech</MSpeechCaption>
+  <SettingsFormCaption>Settings</SettingsFormCaption>
+  <LogFormCaption>Logs</LogFormCaption>
 
   <MSpeechPopupMenuShow>Show</MSpeechPopupMenuShow>
   <MSpeechPopupMenuHide>Hide</MSpeechPopupMenuHide>
   <MSpeechPopupMenuSettings>Settings</MSpeechPopupMenuSettings>
+  <MSpeechPopupMenuShowLog>Show log-file</MSpeechPopupMenuShowLog>
   <MSpeechPopupMenuAbout>About</MSpeechPopupMenuAbout>
   <MSpeechPopupMenuExit>Exit</MSpeechPopupMenuExit>
   <GBMain>Management</GBMain>
@@ -13,7 +16,7 @@
   <StopButton>Stop recording</StopButton>
   <SettingsButton>Settings</SettingsButton>
   <TabSheetSettings>General settings</TabSheetSettings>
-  <TabSheetRecord>Recording settings</TabSheetRecord>
+  <TabSheetRecord>Record settings</TabSheetRecord>
   <TabSheetConnectSettings>Connection settings</TabSheetConnectSettings>
   <TabSheetCommand>Commands</TabSheetCommand>
   <TabSheetHotKey>Hotkeys</TabSheetHotKey>
@@ -24,7 +27,7 @@
   <CBAlphaBlend>Enable transparency windows</CBAlphaBlend>
   <CBShowTrayEvents>Show pop-up messages</CBShowTrayEvents>
   <LLang>Language:</LLang>
-  <GBRecordSettings>Recording settings</GBRecordSettings>
+  <GBRecordSettings>Recording settings and voice recognition (Google Voice API)</GBRecordSettings>
   <LDevice>Source:</LDevice>
   <MicSettingsButton>Microphone settings</MicSettingsButton>
   <LMaxLevel>The maximum signal level to start recording:</LMaxLevel>
@@ -60,27 +63,79 @@
   <ExecProgramsCommandDesc>Run program</ExecProgramsCommandDesc>
   <CloseProgramsCommandDesc>Close program</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Kill program</KillProgramsCommandDesc>
+  <TextToSpeechCommandDesc>TextToSpeech</TextToSpeechCommandDesc>
   <GBCommand>List of commands</GBCommand>
   <LCommandKey>Keyword:</LCommandKey>
   <LCommandExec>Command:</LCommandExec>
   <LCommandType>Type:</LCommandType>
   <AddCommandButton>Add</AddCommandButton>
+  <ChangeCommandButton>Change</ChangeCommandButton>
   <DeleteCommandButton>Delete</DeleteCommandButton>
   <CBEnableSendTextInactiveWindow>Send text to inactive window (WM_COPYDATA)</CBEnableSendTextInactiveWindow>
-  <CBEnableTextСorrection>Enable text correction during transmission</CBEnableTextСorrection>
   <LInactiveWindowCaption>Program title of recipient:</LInactiveWindowCaption>
+  <CBEnableTextСorrection>Enable text correction during transmission</CBEnableTextСorrection>
+  <GBTextCorrection>Settings</GBTextCorrection>
   <CBEnableReplace>Replace the words in the list</CBEnableReplace>
   <CBFirstLetterUpper>Take the first letter of sentence</CBFirstLetterUpper>
   <GBReplaceList>Replace list of words</GBReplaceList>
   <LReplaceIN>Replace</LReplaceIN>
   <LReplaceOUT>at:</LReplaceOUT>
   <AddReplaceButton>Add</AddReplaceButton>
+  <ChangeReplaceButton>Change</ChangeReplaceButton>
   <DeleteReplaceButton>Delete</DeleteReplaceButton>
   <LCommandClose>EXE-file and exit the program:</LCommandClose>
   <LCommandKill>EXE-file kills the program:</LCommandKill>
+  <LCommandTextToSpeech>What to say:</LCommandTextToSpeech>
+  <TabSheetTextToSpeech>Text-to-voice</TabSheetTextToSpeech>
+  <PleaseWait>Loading, please wait...</PleaseWait>
+  <Copy>Copy</Copy>
+  <SelectAll>Select all</SelectAll>
+  <LFileNameDesc>Log file name:</LFileNameDesc>
+  <DeleteLogButton>Delete logs</DeleteLogButton>
+  <ReloadLogButton>Refresh</ReloadLogButton>
+  <TotalString>Total lines: %d</TotalString>
+  <LoadingTime>Time to all lines: %.2f ms</LoadingTime>
+  <GBLogs>Logging</GBLogs>
+  <CBEnableLogs>Enable logging</CBEnableLogs>
+  <LErrLogSize>The maximum size of the log file (Kb)</LErrLogSize>
+  <CBEnableTextToSpeech>Enable text-to-voice</CBEnableTextToSpeech>
+  <GBTextToSpeech>Settings</GBTextToSpeech>
+  <LTextToSpeechEngine>Synthesis system:</LTextToSpeechEngine>
+  <LVoice>Voice:</LVoice>
+  <LVoiceVolumeDesc>Volume:</LVoiceVolumeDesc>
+  <LVoiceSpeedDesc>Speed:</LVoiceSpeedDesc>
+  <GBTextToSpeechList>List of synthesized words</GBTextToSpeechList>
+  <LTextToSpeechText>Text:</LTextToSpeechText>
+  <LTextToSpeechEventsType>Event type:</LTextToSpeechEventsType>
+  <LTextToSpeechEventsTypeStatus>Status:</LTextToSpeechEventsTypeStatus>
+  <AddTextToSpeechButton>Add</AddTextToSpeechButton>
+  <СhangeTextToSpeechButton>Change</СhangeTextToSpeechButton>
+  <DeleteTextToSpeechButton>Delete</DeleteTextToSpeechButton>
+  <EventWarningRecognize>Error recognize</EventWarningRecognize>
+  <EventRecordingNotRecognized>Command not recognized</EventRecordingNotRecognized>
+  <EventCommandNotFound>Command not found</EventCommandNotFound>
+  <EventErrorGoogleCommunication>Communication error</EventErrorGoogleCommunication>
+  <EventEnable>Enable</EventEnable>
+  <EventDisable>Disable</EventDisable>
+  <CBEnableFilters>Enable filters</CBEnableFilters>
+  <GBFilters>Filter settings</GBFilters>
+  <RGFiltersType>Filter type</RGFiltersType>
+  <GBWindowedSincFilter>Sinc Filter settings</GBWindowedSincFilter>
+  <GBVoiceFilter>Voice Filter settings</GBVoiceFilter>
+  <LSincFilterType>Filter type:</LSincFilterType>
+  <LLowFreq>LowFreq:</LLowFreq>
+  <LHighFreq>HighFreq:</LHighFreq>
+  <LKernelWidth>KernelWidth:</LKernelWidth>
+  <LWindowType>WindowType:</LWindowType>
+  <CBVoiceFilterEnableAGC>Enable AGC (Automatic gain control)</CBVoiceFilterEnableAGC>
+  <CBVoiceFilterEnableNoiseReduction>Enable noise reduction</CBVoiceFilterEnableNoiseReduction>
+  <CBVoiceFilterEnableVAD>Enable VAD (Voice Activity Detection)</CBVoiceFilterEnableVAD>
+  <LDefaultCommandExec>Default command:</LDefaultCommandExec>
+  <LDefaultCommandExecDesc>Run if the command is not found in the list.</LDefaultCommandExecDesc>
 
   <StartStopRecord>Start\stop recording</StartStopRecord>
   <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>
+  <StartRecordWithoutExecCommand>Start\stop recording without exec command</StartRecordWithoutExecCommand>
   <HotKeyAlredyUses>This hot key is already in use!</HotKeyAlredyUses>
   
   <LangButton>Language</LangButton>
@@ -97,6 +152,14 @@
   <MsgErr2>Command file %s not found. The program will be closed.</MsgErr2>
   <MsgErr3>Unknown error in the thread JvThreadRecognize</MsgErr3>
   <MsgErr4>Error! The configuration file %s not found.</MsgErr4>
+  <MsgErr5>Error opening file</MsgErr5>
+  <MsgErr6>Error opening file %s</MsgErr6>
+  <MsgErr7>File take the program.</MsgErr7>
+  <MsgErr8>Failed to delete file</MsgErr8>
+  <MsgErr9>Failed to delete file %s</MsgErr9>
+  <MsgErr10>File take the program. Try again?</MsgErr10>
+  <MsgErr11>Install the Microsoft SAPI 4.0 and above.</MsgErr11>
+  <MsgErr12>Ошибка передачи данных в Google (%s)</MsgErr12>
 
   <MsgInf1>To configure the microphone go to Control Panel.%sYour version of OS: %s</MsgInf1>
   <MsgInf2>Recording is not recognized</MsgInf2>
@@ -105,5 +168,8 @@
   <MsgInf5>This line can not be removed!%sMust remain at least one command.</MsgInf5>
   <MsgInf6>This line can not be removed!%sThere should be one rule replace text.</MsgInf6>
   <MsgInf7>The settings are saved.</MsgInf7>
+  <MsgInf8>This line can not be removed!%sMust remain at least one proposal for speech synthesis.</MsgInf8>
+  <MsgInf9>Voice Filter requires Windows Vista or later version.%sVoice Filter is turned off.</MsgInf9>
+  <MsgInf10>In the beginning, in turn on the transmit text to input field.</MsgInf10>
 
 </strings>

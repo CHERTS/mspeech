@@ -78,10 +78,6 @@ begin
   LoadLanguageStrings;
   // Указываем версию в окне "О плагине"
   LVersionNum.Caption := GetMyExeVersion() + ' ' + PlatformType;
-  {$ifdef LICENSE}
-  if CheckLicense(ExtractFilePath(Application.ExeName), True) then
-    LLicenseType.Caption := '#' + ReadLicenseInfo(ExtractFilePath(Application.ExeName), mLicNumber) + ', ' + ReadLicenseInfo(ExtractFilePath(Application.ExeName), mLicName) + ', ' + ReadLicenseInfo(ExtractFilePath(Application.ExeName), mLicDate);
-  {$endif LICENSE}
 end;
 
 procedure TAboutForm.FormShow(Sender: TObject);
@@ -89,6 +85,10 @@ begin
   // Прозрачность окна
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
+  {$ifdef LICENSE}
+  if CheckLicense(WorkPath, True) then
+    LLicenseType.Caption := '#' + ReadLicenseInfo(WorkPath, mLicNumber) + ', ' + ReadLicenseInfo(WorkPath, mLicName) + ', ' + ReadLicenseInfo(WorkPath, mLicDate);
+  {$endif LICENSE}
 end;
 
 procedure TAboutForm.LabelAuthorClick(Sender: TObject);
@@ -98,7 +98,7 @@ end;
 
 procedure TAboutForm.LabelWebSiteClick(Sender: TObject);
 begin
-  ShellExecute(0, 'open', 'http://www.im-history.ru', nil, nil, SW_RESTORE);
+  ShellExecute(0, 'open', 'http://www.programs74.ru', nil, nil, SW_RESTORE);
 end;
 
 { Смена языка интерфейса по событию WM_LANGUAGECHANGED }

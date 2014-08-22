@@ -16,16 +16,18 @@ interface
 
 uses
   Windows, SysUtils, IniFiles, Messages, XMLIntf, XMLDoc, Classes, Vcl.Grids,
-  Types, TLHELP32;
+  Types, TLHELP32, SHFolder;
 
 type
   TWinVersion = (wvUnknown,wv95,wv98,wvME,wvNT3,wvNT4,wvW2K,wvXP,wv2003,wvVista,wv7,wv2008,wv8);
   TMethodSendingText = (mWM_SETTEXT, mWM_PASTE, mWM_CHAR, mWM_PASTE_MOD);
-  TCommandType = (mExecPrograms, mClosePrograms, mKillPrograms);
+  TCommandType = (mExecPrograms, mClosePrograms, mKillPrograms, mTextToSpeech);
   TCopyDataType = (cdtString = 0, cdtImage = 1, cdtRecord = 2);
+  TEventsType = (mWarningRecognize, mRecordingNotRecognized, mCommandNotFound, mErrorGoogleCommunication);
+  TEventsTypeStatus = (mDisable, mEnable);
 
 const
-  ProgramsVer : WideString = '1.4.1.0';
+  ProgramsVer : WideString = '1.5.0.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -33,18 +35,35 @@ const
   PlatformType = 'x64';
   {$ENDIF}
   ININame = 'MSpeech.ini';
+  INIFormsName = 'MSpeechForms.ini';
+  // Отладка
+  DebugLogName = 'mspeech.log';
+  // Сообщения окнам
+  WM_MSGBOX = WM_USER + 2;
+  WM_UPDATELOG = WM_USER + 3;
+  WM_STARTSAVESETTINGS = WM_USER + 4;
+  WM_SAVESETTINGSDONE = WM_USER + 5;
   // Для мультиязыковой поддержки
   WM_LANGUAGECHANGED = WM_USER + 1;
-  WM_MSGBOX = WM_USER + 2;
   dirLangs = 'langs\';
   defaultLangFile = 'English.xml';
   MaxCaptionSize: Integer = 255;
   // Описание типов команд
-  CommandStr : Array[TCommandType] of String = (
+  CommandStr: Array[TCommandType] of String = (
     'ExecProgramsCommandDesc',
     'CloseProgramsCommandDesc',
-    'KillProgramsCommandDesc');
-  // Список регионов для распознавания голоса
+    'KillProgramsCommandDesc',
+    'TextToSpeechCommandDesc');
+  // Описание типов событий в программе
+  EventsTypeStr: Array[TEventsType] of String = (
+    'EventWarningRecognize',
+    'EventRecordingNotRecognized',
+    'EventCommandNotFound',
+    'EventErrorGoogleCommunication');
+  EventsTypeStatusStr: Array[TEventsTypeStatus] of String = (
+    'EventDisable',
+    'EventEnable');
+  // Список регионов для распознавания голоса через Google
   RegionArray: Array[0..61] of String = (
     'af-ZA', 'id-ID', 'ms-MY', 'ca-ES', 'cs-CZ', 'de-DE', 'en-AU', 'en-CA', 'en-IN',
     'en-NZ', 'en-ZA', 'en-GB', 'en-US', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR',
@@ -54,20 +73,32 @@ const
     'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG', 'ru-RU',
     'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
     'ja-JP', 'la');
+  // Список регионов для синтеза голоса через Google
+  TextToSpeechRegionArray: Array[0..1] of String = ('ru', 'en');
 
 var
-  ProgramsPath: String;
+  ProgramsPath: WideString;
   OutFileName: String;
+  WorkPath: WideString;
   OLDCommandFileName: String = 'MSpeechCommand.ini';
+  ReplaceGridFile: String = 'MSpeech.rpl';
   CommandGridFile: String = 'MSpeech.cf';
+  TextToSpeechGridFile: String = 'MSpeech.tts';
+  // Отладка
+  EnableLogs: Boolean = False;
+  MaxDebugLogSize: Integer = 1000;
+  TFDebugLog: TextFile;
+  DebugLogOpened: Boolean = False;
   DefaultAudioDeviceNumber: Integer = 0;
   MaxLevelOnAutoRecord: Integer = 57;
   MaxLevelOnAutoRecordInterrupt: Integer = 4;
   MinLevelOnAutoRecognize: Integer = 71;
   MinLevelOnAutoRecognizeInterrupt: Integer = 15;
   MaxLevelOnAutoControl: Boolean = False;
-  SyncFilterEnable: Boolean = False;
   INIFileLoaded: Boolean = False;
+  StartSaveSettings: Boolean = False;
+  EnableExecCommand: Boolean = True;
+  DefaultCommandExec: String = '';
   // Прокси
   UseProxy: Boolean = False;
   ProxyAuth: Boolean = False;
@@ -79,6 +110,7 @@ var
   GlobalHotKeyEnable: Boolean = False;
   StartRecordHotKey: String = 'Ctrl+Alt+F10';
   StartRecordWithoutSendTextHotKey: String = 'Ctrl+Alt+F11';
+  StartRecordWithoutExecCommandHotKey: String = 'Ctrl+Alt+F12';
   // Действие кнопки "Остановить запись"
   StopRecordAction: Integer = 0;
   // Всплывающие сообщения
@@ -96,17 +128,42 @@ var
   CoreLanguage: String;
   MainFormHandle: HWND;
   AboutFormHandle: HWND;
+  SettingsFormHandle: HWND;
+  LogFormHandle: HWND;
   LangDoc: IXMLDocument;
   DefaultLanguage: String;
   // Коррекция текста при передаче
   EnableTextСorrection: Boolean = False;
   EnableTextReplace: Boolean = False;
   FirstLetterUpper: Boolean = False;
-  ReplaceGridFile: String = 'MSpeech.rpl';
   // Язык распознавания по умолчанию
   DefaultSpeechRecognizeLang: String = 'ru-RU';
+  // PID процесса
   GlobalProcessPID: DWORD = 0;
+  // Синтез голоса
+  EnableTextToSpeech: Boolean = False;
+  TextToSpeechEngine: Integer = 0;
+  SAPIVoiceNum: Integer = 0;
+  SAPIVoiceVolume: Integer = 100;
+  SAPIVoiceSpeed: Integer = 0;
+  GoogleTL: String = 'ru';
+  // Фильтрация и VAD
+  EnableFilters: Boolean = False;
+  FilterType: Integer = 0; // 0 - WindowedSincFilter или 1 - VoiceFilter
+  // 1 тип фильтра
+  SincFilterType: Integer = 1;
+  SincFilterLowFreq: Integer = 300;
+  SincFilterHighFreq: Integer = 4000;
+  SincFilterKernelWidth: Integer = 32;
+  SincFilterWindowType: Integer = 0;
+  // 2 Тип фильтра
+  VoiceFilterEnableAGC: Boolean = False;
+  VoiceFilterEnableNoiseReduction: Boolean = False;
+  VoiceFilterEnableVAD: Boolean = True;
 
+function BoolToStr(Bool: Boolean): String;
+function BoolToInt(Bool: Boolean): Integer;
+function IntToBool(Int: Integer): Boolean;
 procedure LoadINI(INIPath: String);
 procedure SaveINI(INIPath: String);
 function DetectWinVersion : TWinVersion;
@@ -120,6 +177,7 @@ procedure MsgInf(Caption, Msg: WideString);
 function GetLangStr(StrID: String): WideString;
 function GetSystemDefaultUILanguage: UINT; stdcall; external kernel32 name 'GetSystemDefaultUILanguage';
 function GetSysLang: AnsiString;
+procedure CoreLanguageChanged;
 function Tok(Sep: String; var s: String): String;
 function ReadCustomINI(INIPath, CustomSection, CustomParams, DefaultParamsStr: String): String; overload;
 function ReadCustomINI(INIPath, CustomSection, CustomParams: String; DefaultParamsStr: Boolean): Boolean; overload;
@@ -151,8 +209,49 @@ procedure EndProcess(ProcessPID: DWord; EndType: Integer);
 function GetProcessID(ExeFileName: String): Cardinal;
 function KillTask(ExeFileName: String): Integer; overload;
 function KillTask(ExeFileName, WinCaption: String): Integer; overload;
+function GetMyFileSize(const Path: WideString): Integer;
+function OpenLogFile(LogPath: WideString): Boolean;
+procedure CloseLogFile;
+procedure WriteInLog(LogPath: WideString; TextString: String);
+function DetectTextToSpeechRegionStr(RegionID: Integer): String;
+function DetectTextToSpeechRegionID(RegionStr: String): Integer;
+function DetectEventsType(CType: Integer): String; overload;
+function DetectEventsType(CType: TEventsType): Integer; overload;
+function DetectEventsTypeName(CType: TEventsType): String; overload;
+function DetectEventsTypeName(CType: String): TEventsType; overload;
+function DetectEventsTypeStatus(CType: Integer): String; overload;
+function DetectEventsTypeStatus(CType: TEventsTypeStatus): Integer; overload;
+function DetectEventsTypeStatusName(CType: TEventsTypeStatus): String; overload;
+function DetectEventsTypeStatusName(CType: String): TEventsTypeStatus; overload;
+procedure LoadTextToSpeechDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
+procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
+function GetSpecialFolderPath(FolderType: Integer) : WideString;
 
 implementation
+
+function BoolToStr(Bool: Boolean): String;
+begin
+  if Bool then
+    Result := '1'
+  else
+    Result := '0';
+end;
+
+function BoolToInt(Bool: Boolean): Integer;
+begin
+  if Bool then
+    Result := 1
+  else
+    Result := 0;
+end;
+
+function IntToBool(Int: Integer): Boolean;
+begin
+  if Int = 0 then
+    Result := False
+  else
+    Result := True;
+end;
 
 // Загружаем настройки
 procedure LoadINI(INIPath: String);
@@ -165,6 +264,8 @@ begin
   try
     if FileExists(Path) then
     begin
+      EnableLogs := INI.ReadBool('Main', 'EnableLogs', False);
+      MaxDebugLogSize := INI.ReadInteger('Main', 'MaxDebugLogSize', 1000);
       DefaultLanguage := INI.ReadString('Main', 'DefaultLanguage', 'Russian');
       DefaultSpeechRecognizeLang := INI.ReadString('Main', 'DefaultSpeechRecognizeLang', 'ru-RU');
       AlphaBlendEnable := INI.ReadBool('Main', 'AlphaBlendEnable', False);
@@ -175,9 +276,20 @@ begin
       MaxLevelOnAutoRecordInterrupt := INI.ReadInteger('Main', 'MaxLevelOnAutoRecordInterrupt', 10);
       MinLevelOnAutoRecognize := INI.ReadInteger('Main', 'MinLevelOnAutoRecognize', 70);
       MinLevelOnAutoRecognizeInterrupt := INI.ReadInteger('Main', 'MinLevelOnAutoRecognizeInterrupt', 30);
-      SyncFilterEnable := INI.ReadBool('Main', 'SyncFilterEnable', False);
+      EnableFilters := INI.ReadBool('Main', 'EnableFilters', False);
+      FilterType := INI.ReadInteger('Main', 'FilterType', 0);
+      SincFilterType := INI.ReadInteger('Main', 'SincFilterType', 1);
+      SincFilterLowFreq := INI.ReadInteger('Main', 'SincFilterLowFreq', 300);
+      SincFilterHighFreq := INI.ReadInteger('Main', 'SincFilterHighFreq', 4000);
+      SincFilterKernelWidth := INI.ReadInteger('Main', 'SincFilterKernelWidth', 32);
+      SincFilterWindowType := INI.ReadInteger('Main', 'SincFilterWindowType', 0);
+      VoiceFilterEnableAGC := INI.ReadBool('Main', 'VoiceFilterEnableAGC', False);
+      VoiceFilterEnableNoiseReduction := INI.ReadBool('Main', 'VoiceFilterEnableNoiseReduction', False);
+      VoiceFilterEnableVAD := INI.ReadBool('Main', 'VoiceFilterEnableVAD', False);
       StopRecordAction := INI.ReadInteger('Main', 'StopRecordAction', 0);
       ShowTrayEvents := INI.ReadBool('Main', 'ShowTrayEvents', False);
+      EnableExecCommand := INI.ReadBool('Main', 'EnableExecCommand', True);
+      DefaultCommandExec := INI.ReadString('Main', 'DefaultCommandExec', '');
       EnableSendText := INI.ReadBool('SendText', 'EnableSendText', False);
       EnableSendTextInactiveWindow := INI.ReadBool('SendText', 'EnableSendTextInactiveWindow', False);
       ClassNameReciver := INI.ReadString('SendText', 'ClassNameReciver', 'Edit');
@@ -195,10 +307,19 @@ begin
       GlobalHotKeyEnable := INI.ReadBool('HotKey', 'HotKeyEnable', False);
       StartRecordHotKey := INI.ReadString('HotKey', 'StartRecordHotKey', 'Ctrl+Alt+F10');
       StartRecordWithoutSendTextHotKey := INI.ReadString('HotKey', 'StartRecordWithoutSendText', 'Ctrl+Alt+F11');
+      StartRecordWithoutExecCommandHotKey := INI.ReadString('HotKey', 'StartRecordWithoutExecCommand', 'Ctrl+Alt+F12');
+      EnableTextToSpeech := INI.ReadBool('TextToSpeech', 'EnableTextToSpeech', False);
+      TextToSpeechEngine := INI.ReadInteger('TextToSpeech', 'TextToSpeechEngine', 0);
+      SAPIVoiceNum := INI.ReadInteger('TextToSpeech', 'SAPIVoiceNum', 0);
+      SAPIVoiceVolume := INI.ReadInteger('TextToSpeech', 'SAPIVoiceVolume', 100);
+      SAPIVoiceSpeed := INI.ReadInteger('TextToSpeech', 'SAPIVoiceSpeed', 0);
+      GoogleTL := INI.ReadString('TextToSpeech', 'GoogleTL', 'ru');
       INIFileLoaded := True;
     end
     else
     begin
+      INI.WriteBool('Main', 'EnableLogs', EnableLogs);
+      INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
       INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
       INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
       INI.WriteInteger('Main', 'AlphaBlendEnableValue', AlphaBlendEnableValue);
@@ -208,9 +329,20 @@ begin
       INI.WriteInteger('Main', 'MaxLevelOnAutoRecordInterrupt', MaxLevelOnAutoRecordInterrupt);
       INI.WriteInteger('Main', 'MinLevelOnAutoRecognize', MinLevelOnAutoRecognize);
       INI.WriteInteger('Main', 'MinLevelOnAutoRecognizeInterrupt', MinLevelOnAutoRecognizeInterrupt);
-      INI.WriteBool('Main', 'SyncFilterEnable', SyncFilterEnable);
       INI.WriteInteger('Main', 'StopRecordAction', 0);
       INI.WriteBool('Main', 'ShowTrayEvents', False);
+      INI.WriteBool('Main', 'EnableExecCommand', EnableExecCommand);
+      INI.WriteString('Main', 'DefaultCommandExec', DefaultCommandExec);
+      INI.WriteBool('Main', 'EnableFilters', EnableFilters);
+      INI.WriteInteger('Main', 'FilterType', FilterType);
+      INI.WriteInteger('Main', 'SincFilterType', SincFilterType);
+      INI.WriteInteger('Main', 'SincFilterLowFreq', SincFilterLowFreq);
+      INI.WriteInteger('Main', 'SincFilterHighFreq', SincFilterHighFreq);
+      INI.WriteInteger('Main', 'SincFilterKernelWidth', SincFilterKernelWidth);
+      INI.WriteInteger('Main', 'SincFilterWindowType', SincFilterWindowType);
+      INI.WriteBool('Main', 'VoiceFilterEnableAGC', VoiceFilterEnableAGC);
+      INI.WriteBool('Main', 'VoiceFilterEnableNoiseReduction', VoiceFilterEnableNoiseReduction);
+      INI.WriteBool('Main', 'VoiceFilterEnableVAD', VoiceFilterEnableVAD);
       INI.WriteBool('SendText', 'EnableSendText', EnableSendText);
       INI.WriteBool('SendText', 'EnableSendTextInactiveWindow', EnableSendTextInactiveWindow);
       INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
@@ -228,10 +360,22 @@ begin
       INI.WriteBool('HotKey', 'HotKeyEnable', False);
       INI.WriteString('HotKey', 'StartRecordHotKey', StartRecordHotKey);
       INI.WriteString('HotKey', 'StartRecordWithoutSendText', StartRecordWithoutSendTextHotKey);
+      INI.WriteString('HotKey', 'StartRecordWithoutExecCommand', StartRecordWithoutExecCommandHotKey);
+      INI.WriteBool('TextToSpeech', 'EnableTextToSpeech', EnableTextToSpeech);
+      INI.WriteInteger('TextToSpeech', 'TextToSpeechEngine', TextToSpeechEngine);
+      INI.WriteInteger('TextToSpeech', 'SAPIVoiceNum', SAPIVoiceNum);
+      INI.WriteInteger('TextToSpeech', 'SAPIVoiceVolume', SAPIVoiceVolume);
+      INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
+      INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
       INIFileLoaded := False;
     end;
-  finally
     INI.Free;
+  except
+    on e: Exception do
+    begin
+      INI.Free;
+      Exit;
+    end;
   end;
 end;
 
@@ -243,6 +387,8 @@ begin
   Path := INIPath + ININame;
   INI := TIniFile.Create(Path);
   try
+    INI.WriteBool('Main', 'EnableLogs', EnableLogs);
+    INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
     INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
     INI.WriteString('Main', 'DefaultLanguage', DefaultLanguage);
     INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
@@ -255,6 +401,18 @@ begin
     INI.WriteInteger('Main', 'MinLevelOnAutoRecognizeInterrupt', MinLevelOnAutoRecognizeInterrupt);
     INI.WriteInteger('Main', 'StopRecordAction', StopRecordAction);
     INI.WriteBool('Main', 'ShowTrayEvents', ShowTrayEvents);
+    INI.WriteBool('Main', 'EnableExecCommand', EnableExecCommand);
+    INI.WriteString('Main', 'DefaultCommandExec', DefaultCommandExec);
+    INI.WriteBool('Main', 'EnableFilters', EnableFilters);
+    INI.WriteInteger('Main', 'FilterType', FilterType);
+    INI.WriteInteger('Main', 'SincFilterType', SincFilterType);
+    INI.WriteInteger('Main', 'SincFilterLowFreq', SincFilterLowFreq);
+    INI.WriteInteger('Main', 'SincFilterHighFreq', SincFilterHighFreq);
+    INI.WriteInteger('Main', 'SincFilterKernelWidth', SincFilterKernelWidth);
+    INI.WriteInteger('Main', 'SincFilterWindowType', SincFilterWindowType);
+    INI.WriteBool('Main', 'VoiceFilterEnableAGC', VoiceFilterEnableAGC);
+    INI.WriteBool('Main', 'VoiceFilterEnableNoiseReduction', VoiceFilterEnableNoiseReduction);
+    INI.WriteBool('Main', 'VoiceFilterEnableVAD', VoiceFilterEnableVAD);
     INI.WriteBool('SendText', 'EnableSendText', EnableSendText);
     INI.WriteBool('SendText', 'EnableSendTextInactiveWindow', EnableSendTextInactiveWindow);
     INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
@@ -272,6 +430,13 @@ begin
     INI.WriteBool('HotKey', 'HotKeyEnable', GlobalHotKeyEnable);
     INI.WriteString('HotKey', 'StartRecordHotKey', StartRecordHotKey);
     INI.WriteString('HotKey', 'StartRecordWithoutSendText', StartRecordWithoutSendTextHotKey);
+    INI.WriteString('HotKey', 'StartRecordWithoutExecCommand', StartRecordWithoutExecCommandHotKey);
+    INI.WriteBool('TextToSpeech', 'EnableTextToSpeech', EnableTextToSpeech);
+    INI.WriteInteger('TextToSpeech', 'TextToSpeechEngine', TextToSpeechEngine);
+    INI.WriteInteger('TextToSpeech', 'SAPIVoiceNum', SAPIVoiceNum);
+    INI.WriteInteger('TextToSpeech', 'SAPIVoiceVolume', SAPIVoiceVolume);
+    INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
+    INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
     MsgInf(ProgramsName, GetLangStr('MsgInf7'));
   finally
     INI.Free;
@@ -421,6 +586,39 @@ begin
   if AlphaBlendEnable then
     PostMessage(GetForegroundWindow, WM_MSGBOX, 0, 0);
   MessageBoxW(GetForegroundWindow, PWideChar(Msg), PWideChar(Caption), MB_ICONINFORMATION);
+end;
+
+{ Функция для мультиязыковой поддержки }
+procedure CoreLanguageChanged;
+var
+  LangFile: String;
+begin
+  if CoreLanguage = '' then
+    Exit;
+  try
+    LangFile := ProgramsPath + dirLangs + CoreLanguage + '.xml';
+    if FileExists(LangFile) then
+      LangDoc.LoadFromFile(LangFile)
+    else
+    begin
+      if FileExists(ProgramsPath + dirLangs + defaultLangFile) then
+        LangDoc.LoadFromFile(ProgramsPath + dirLangs + defaultLangFile)
+      else
+      begin
+        MsgDie(ProgramsName, 'Not found any language file!');
+        Exit;
+      end;
+    end;
+    //Global.CoreLanguage := CoreLanguage;
+    SendMessage(MainFormHandle, WM_LANGUAGECHANGED, 0, 0);
+    SendMessage(SettingsFormHandle, WM_LANGUAGECHANGED, 0, 0);
+    SendMessage(AboutFormHandle, WM_LANGUAGECHANGED, 0, 0);
+    SendMessage(LogFormHandle, WM_LANGUAGECHANGED, 0, 0);
+  except
+    on E: Exception do
+      MsgDie(ProgramsName, 'Error on CoreLanguageChanged: ' + E.Message + sLineBreak +
+        'CoreLanguage: ' + CoreLanguage);
+  end;
 end;
 
 // Для мультиязыковой поддержки
@@ -629,6 +827,7 @@ begin
   end;
 end;
 
+{ Определения типа команды (строка) по номеру }
 function DetectCommandType(CType: Integer): String;
 begin
   Result := DetectCommandTypeName(mExecPrograms);
@@ -639,11 +838,14 @@ begin
       Result := DetectCommandTypeName(mClosePrograms);
     2:
       Result := DetectCommandTypeName(mKillPrograms);
+    3:
+      Result := DetectCommandTypeName(mTextToSpeech);
     else
       Result := DetectCommandTypeName(mExecPrograms);
   end;
 end;
 
+{ Определения номера типа команды по TCommandType }
 function DetectCommandType(CType: TCommandType): Integer;
 begin
   Result := Integer(mExecPrograms);
@@ -654,16 +856,20 @@ begin
       Result := Integer(mClosePrograms);
     mKillPrograms:
       Result := Integer(mKillPrograms);
+    mTextToSpeech:
+      Result := Integer(mTextToSpeech);
     else
       Result := Integer(mExecPrograms);
   end;
 end;
 
+{ Определения имени команды по TCommandType }
 function DetectCommandTypeName(CType: TCommandType): String;
 begin
   Result := GetLangStr(CommandStr[CType]);
 end;
 
+{ Определения типа команды (TCommandType) по имени }
 function DetectCommandTypeName(CType: String): TCommandType;
 begin
   Result := mExecPrograms;
@@ -672,7 +878,9 @@ begin
   else if CType = DetectCommandTypeName(mClosePrograms) then
     Result := mClosePrograms
   else if CType = DetectCommandTypeName(mKillPrograms) then
-    Result := mKillPrograms;
+    Result := mKillPrograms
+  else if CType = DetectCommandTypeName(mTextToSpeech) then
+    Result := mTextToSpeech;
 end;
 
 { Перевод внутренного ID региона из CBRegion в его код }
@@ -689,6 +897,23 @@ begin
   Result := 0;
   for Cnt := 0 to High(RegionArray) do
     if RegionArray[Cnt] = RegionStr then
+      Result := Cnt;
+end;
+
+{ Перевод внутренного ID региона из CBRegion в его код }
+function DetectTextToSpeechRegionStr(RegionID: Integer): String;
+begin
+  Result := TextToSpeechRegionArray[RegionID];
+end;
+
+{ Перевод кода региона в его внутренний ID из CBRegion }
+function DetectTextToSpeechRegionID(RegionStr: String): Integer;
+var
+  Cnt: Integer;
+begin
+  Result := 0;
+  for Cnt := 0 to High(TextToSpeechRegionArray) do
+    if TextToSpeechRegionArray[Cnt] = RegionStr then
       Result := Cnt;
 end;
 
@@ -814,12 +1039,32 @@ begin
           if k = 2 then // 3-й столбец
           begin
             if IsNumber(INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
-              FileGrid.Cells[k,l] := DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))
+            begin
+              {if DetectCommandTypeName(DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))) = mTextToSpeech then
+              begin
+                if EnableTextToSpeech then
+                  FileGrid.Cells[k,l] := DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0));
+              end
+              else}
+                FileGrid.Cells[k,l] := DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0));
+            end
             else
               FileGrid.Cells[k,l] := DetectCommandType(0);
           end
           else
-            FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
+          begin
+            {if DetectCommandTypeName(DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+'2', 0))) = mTextToSpeech then
+            begin
+              if EnableTextToSpeech then
+              begin
+                FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
+              end
+              else
+                FileGrid.RowCount := FileGrid.RowCount - 1;
+            end
+            else}
+              FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
+          end;
           Inc(k);
         end;
         k := 0;
@@ -835,7 +1080,7 @@ begin
   begin
     if CoreLanguage = 'Russian' then
     begin
-      FileGrid.RowCount := 8;
+      FileGrid.RowCount := 9;
       FileGrid.Cells[0,0] := 'блокнот';
       FileGrid.Cells[1,0] := 'notepad.exe';
       FileGrid.Cells[2,0] := DetectCommandType(0);
@@ -860,9 +1105,13 @@ begin
       FileGrid.Cells[0,7] := 'интернет';
       FileGrid.Cells[1,7] := 'firefox.exe';
       FileGrid.Cells[2,7] := DetectCommandType(0);
+      FileGrid.Cells[0,8] := 'привет';
+      FileGrid.Cells[1,8] := 'добрый день';
+      FileGrid.Cells[2,8] := DetectCommandType(3);
     end
     else
     begin
+      FileGrid.RowCount := 9;
       FileGrid.Cells[0,0] := 'notepad';
       FileGrid.Cells[1,0] := 'notepad.exe';
       FileGrid.Cells[2,0] := DetectCommandType(0);
@@ -887,6 +1136,9 @@ begin
       FileGrid.Cells[0,7] := 'internet';
       FileGrid.Cells[1,7] := 'firefox.exe';
       FileGrid.Cells[2,7] := DetectCommandType(0);
+      FileGrid.Cells[0,8] := 'hi';
+      FileGrid.Cells[1,8] := 'hello';
+      FileGrid.Cells[2,8] := DetectCommandType(3);
     end;
   end;
 end;
@@ -1072,6 +1324,18 @@ begin
   GetLongPathName(PChar(UserPath), PChar(UserPath), MAX_PATH);
   SetLength(UserPath, StrLen(PChar(UserPath)));
   Result := IncludeTrailingPathDelimiter(UserPath);
+end;
+
+function GetSpecialFolderPath(FolderType: Integer) : WideString;
+const
+  SHGFP_TYPE_CURRENT = 0;
+var
+  Path: Array [0..MAX_PATH] of Char;
+begin
+  if SUCCEEDED(SHGetFolderPath(0, FolderType, 0, SHGFP_TYPE_CURRENT, @Path[0])) then
+    Result := Path
+  else
+    Result := ProgramsPath;
 end;
 
 function EnumThreadWndProc(hwnd: HWND; lParam: LPARAM): BOOL; stdcall;
@@ -1283,6 +1547,293 @@ begin
     ContinueLoop := Process32Next(FSnapshotHandle, FProcessEntry32);
   end;
   CloseHandle(FSnapshotHandle);
+end;
+
+// LogType = 0 - сообщения добавляются в файл DebugLogName
+procedure WriteInLog(LogPath: WideString; TextString: String);
+var
+  Path: WideString;
+  TF: TextFile;
+begin
+  if not DebugLogOpened then
+    DebugLogOpened := OpenLogFile(LogPath);
+  Path := LogPath + DebugLogName;
+  {$I-}
+  try
+    WriteLn(TFDebugLog, TextString);
+  except
+    on e :
+      Exception do
+      begin
+        CloseLogFile;
+        Exit;
+      end;
+  end;
+  {$I+}
+end;
+
+// Открытие лог-файла
+// LogType = 0 - сообщения добавляются в файл DebugLogName
+function OpenLogFile(LogPath: WideString): Boolean;
+var
+  Path: WideString;
+begin
+  Path := LogPath + DebugLogName;
+  if GetMyFileSize(Path) > MaxDebugLogSize*1024 then
+    try
+      DeleteFile(Path);
+    except
+      Result := False;
+      Exit;
+    end;
+  {$I-}
+  try
+    Assign(TFDebugLog, Path);
+    if FileExists(Path) then
+      Append(TFDebugLog)
+    else
+      Rewrite(TFDebugLog);
+    Result := True;
+  except
+    on e :
+      Exception do
+      begin
+        CloseLogFile;
+        Result := False;
+        Exit;
+      end;
+  end;
+  {$I+}
+end;
+
+// Закрытие лог-файла
+procedure CloseLogFile;
+begin
+  {$I-}
+  CloseFile(TFDebugLog);
+  DebugLogOpened := False;
+  {$I+}
+end;
+
+// Если файл не существует, то вместо размера файла функция вернёт -1
+function GetMyFileSize(const Path: WideString): Integer;
+var
+  FD: TWin32FindData;
+  FH: THandle;
+begin
+  Result := 0;
+  FH := FindFirstFile(PChar(Path), FD);
+  if FH = INVALID_HANDLE_VALUE then
+    Exit;
+  Result := FD.nFileSizeLow;
+  if ((FD.nFileSizeLow and $80000000) <> 0) or
+     (FD.nFileSizeHigh <> 0) then
+    Result := -1;
+  //FindClose(FH);
+end;
+
+{ Определения типа события (строка) по номеру }
+function DetectEventsType(CType: Integer): String;
+begin
+  Result := DetectEventsTypeName(mWarningRecognize);
+  case CType of
+    0:
+      Result := DetectEventsTypeName(mWarningRecognize);
+    1:
+      Result := DetectEventsTypeName(mRecordingNotRecognized);
+    2:
+      Result := DetectEventsTypeName(mCommandNotFound);
+    else
+      Result := DetectEventsTypeName(mErrorGoogleCommunication);
+  end;
+end;
+
+{ Определения номера типа события по TEventsType }
+function DetectEventsType(CType: TEventsType): Integer;
+begin
+  Result := Integer(CType);
+  {case CType of
+    mWarningRecognize:
+      Result := Integer(mWarningRecognize);
+    mRecordingNotRecognized:
+      Result := Integer(mRecordingNotRecognized);
+    mCommandNotFound:
+      Result := Integer(mCommandNotFound);
+    mErrorGoogleCommunication:
+      Result := Integer(mErrorGoogleCommunication);
+    else
+      Result := Integer(mWarningRecognize);
+  end;}
+end;
+
+{ Определения имени события по TEventsType }
+function DetectEventsTypeName(CType: TEventsType): String;
+begin
+  Result := GetLangStr(EventsTypeStr[CType]);
+end;
+
+{ Определения типа события (TEventsType) по имени }
+function DetectEventsTypeName(CType: String): TEventsType;
+begin
+  Result := mWarningRecognize;
+  if CType = DetectEventsTypeName(mWarningRecognize) then
+    Result := mWarningRecognize
+  else if CType = DetectEventsTypeName(mRecordingNotRecognized) then
+    Result := mRecordingNotRecognized
+  else if CType = DetectEventsTypeName(mCommandNotFound) then
+    Result := mCommandNotFound
+  else if CType = DetectEventsTypeName(mErrorGoogleCommunication) then
+    Result := mErrorGoogleCommunication;
+end;
+
+{ Определения типа статуса события (строка) по номеру }
+function DetectEventsTypeStatus(CType: Integer): String;
+begin
+  Result := DetectEventsTypeStatusName(mEnable);
+  case CType of
+    0:
+      Result := DetectEventsTypeStatusName(mDisable);
+    1:
+      Result := DetectEventsTypeStatusName(mEnable);
+    else
+      Result := DetectEventsTypeStatusName(mEnable);
+  end;
+end;
+
+{ Определения номера типа статуса события по TEventsTypeStatus}
+function DetectEventsTypeStatus(CType: TEventsTypeStatus): Integer;
+begin
+  Result := Integer(CType);
+end;
+
+{ Определения имени статуса события по TEventsTypeStatus }
+function DetectEventsTypeStatusName(CType: TEventsTypeStatus): String;
+begin
+  Result := GetLangStr(EventsTypeStatusStr[CType]);
+end;
+
+{ Определения типа статуса события (TEventsTypeStatus) по имени }
+function DetectEventsTypeStatusName(CType: String): TEventsTypeStatus;
+begin
+  Result := mEnable;
+  if CType = DetectEventsTypeStatusName(mEnable) then
+    Result := mEnable
+  else
+    Result := mDisable;
+end;
+
+{ Загружка данных для преобразования текста в речь в TStringGrid из файла }
+procedure LoadTextToSpeechDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
+var
+  k,l: Integer;
+  ColN, RowN: Integer;
+  RowC, ColC: Integer;
+  INI: TIniFile;
+begin
+  k := 0;
+  l := 0;
+  if FileExists(MyFile) then
+  begin
+    INI := TIniFile.Create(MyFile);
+    try
+      RowC := INI.ReadInteger('MSpeechTextToSpeechGrid', 'RowCount', 1);
+      ColC := INI.ReadInteger('MSpeechTextToSpeechGrid', 'ColCount', 2);
+      FileGrid.FixedCols := 0;
+      FileGrid.FixedRows := 0;
+      FileGrid.RowCount := RowC;
+      FileGrid.ColCount := ColC;
+      for RowN := 0 to RowC-1 do
+      begin
+        for ColN := 0 to ColC-1 do
+        begin
+          if k = 1 then // 2-й столбец
+          begin
+            if IsNumber(INI.ReadString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
+              FileGrid.Cells[k,l] := DetectEventsType(INI.ReadInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))
+            else
+              FileGrid.Cells[k,l] := DetectEventsType(0);
+          end
+          else if k = 2 then // 3-й столбец
+          begin
+            if IsNumber(INI.ReadString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
+              FileGrid.Cells[k,l] := DetectEventsTypeStatus(INI.ReadInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))
+            else
+              FileGrid.Cells[k,l] := DetectEventsTypeStatus(0);
+          end
+          else
+            FileGrid.Cells[k,l] := INI.ReadString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
+          Inc(k);
+        end;
+        k := 0;
+        Inc(l);
+      end;
+    except
+      on e : Exception do
+        MsgDie(ProgramsName, 'Exception in procedure LoadTextToSpeechDataStringGrid: Unable to read data in file ' + MyFile);
+    end;
+    INI.Free;
+  end
+  else
+  begin
+    if CoreLanguage = 'Russian' then
+    begin
+      FileGrid.RowCount := 2;
+      FileGrid.Cells[0,0] := 'Произошла ошибка при распознавании голоса';
+      FileGrid.Cells[1,0] := DetectEventsType(0);
+      FileGrid.Cells[2,0] := DetectEventsTypeStatus(1);
+      FileGrid.Cells[0,1] := 'Ваш голос не распознан';
+      FileGrid.Cells[1,1] := DetectEventsType(1);
+      FileGrid.Cells[2,1] := DetectEventsTypeStatus(1);
+    end
+    else
+    begin
+      FileGrid.RowCount := 2;
+      FileGrid.Cells[0,0] := 'An error occurred while the voice recognition';
+      FileGrid.Cells[1,0] := DetectEventsType(0);
+      FileGrid.Cells[2,0] := DetectEventsTypeStatus(1);
+      FileGrid.Cells[0,1] := 'Your voice is not recognized';
+      FileGrid.Cells[1,1] := DetectEventsType(1);
+      FileGrid.Cells[2,1] := DetectEventsTypeStatus(1);
+    end;
+  end;
+end;
+
+{ Сохранение данных для преобразования текста в речь из TStringGrid в файл }
+procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
+var
+  ColN, RowN: Integer;
+  INI: TIniFile;
+  CTypeName: String;
+begin
+  if FileExists(MyFile) then
+    DeleteFile(PChar(MyFile));
+  INI := TIniFile.Create(MyFile);
+  try
+    INI.WriteInteger('MSpeechTextToSpeechGrid', 'RowCount', FileGrid.RowCount);
+    INI.WriteInteger('MSpeechTextToSpeechGrid', 'ColCount', FileGrid.ColCount);
+    for RowN := 0 to FileGrid.RowCount-1 do
+    begin
+      for ColN := 0 to FileGrid.ColCount-1 do
+      begin
+        if ColN = 1 then // 2-й столбец
+        begin
+          CTypeName := FileGrid.Cells[ColN,RowN];
+          INI.WriteInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectEventsTypeName(CTypeName)));
+        end
+        else if ColN = 2 then // 3-й столбец
+        begin
+          CTypeName := FileGrid.Cells[ColN,RowN];
+          INI.WriteInteger('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectEventsTypeStatusName(CTypeName)));
+        end
+        else
+          INI.WriteString('MSpeechTextToSpeechGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), FileGrid.Cells[ColN,RowN]);
+      end;
+    end;
+  except
+    on e : Exception do
+      MsgDie(ProgramsName, 'Exception in procedure SaveTextToSpeechDataStringGrid: Unable to write data in file ' + MyFile);
+  end;
+  INI.Free;
 end;
 
 begin

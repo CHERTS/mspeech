@@ -11,11 +11,18 @@
 program MSpeech;
 
 uses
-  Forms,
+  {madExcept,
+  madLinkDisAsm,
+  madListHardware,
+  madListProcesses,
+  madListModules,}
+  Vcl.Forms,
   OnlyOneRun in 'OnlyOneRun.pas',
   Main in 'Main.pas' {MainForm},
   About in 'About.pas' {AboutForm},
-  Global in 'Global.pas';
+  Global in 'Global.pas',
+  Settings in 'Settings.pas' {SettingsForm},
+  Log in 'Log.pas' {LogForm};
 
 {$R *.res}
 
@@ -30,5 +37,7 @@ begin
   Application.Title := 'MSpeech - Распознавание голоса с помощью GoogleSpeech';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TAboutForm, AboutForm);
+  Application.CreateForm(TSettingsForm, SettingsForm);
+  Application.CreateForm(TLogForm, LogForm);
   Application.Run;
 end.

@@ -127,10 +127,10 @@ object AboutForm: TAboutForm
   object LabelWebSite: TLabel
     Left = 54
     Top = 120
-    Width = 82
+    Width = 94
     Height = 13
     Cursor = crHandPoint
-    Caption = 'www.im-history.ru'
+    Caption = 'www.programs74.ru'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11

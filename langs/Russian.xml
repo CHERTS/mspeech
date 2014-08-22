@@ -1,10 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <strings>
-  <MSpeechCaption>MSpeech - Распознавание голоса с помощью GoogleSpeech</MSpeechCaption>
+  <MSpeechCaption>MSpeech</MSpeechCaption>
+  <SettingsFormCaption>Настройки</SettingsFormCaption>
+  <LogFormCaption>Логи</LogFormCaption>
 
   <MSpeechPopupMenuShow>Показать</MSpeechPopupMenuShow>
   <MSpeechPopupMenuHide>Скрыть</MSpeechPopupMenuHide>
   <MSpeechPopupMenuSettings>Настройки</MSpeechPopupMenuSettings>
+  <MSpeechPopupMenuShowLog>Показать лог-файл</MSpeechPopupMenuShowLog>
   <MSpeechPopupMenuAbout>О программе</MSpeechPopupMenuAbout>
   <MSpeechPopupMenuExit>Выход</MSpeechPopupMenuExit>
   <GBMain>Управление</GBMain>
@@ -24,7 +27,7 @@
   <CBAlphaBlend>Включить прозрачность окон</CBAlphaBlend>
   <CBShowTrayEvents>Показывать всплывающие сообщения</CBShowTrayEvents>
   <LLang>Язык программы:</LLang>
-  <GBRecordSettings>Настройки записи</GBRecordSettings>
+  <GBRecordSettings>Настройки записи и распознавания голоса (Google Voice API)</GBRecordSettings>
   <LDevice>Источник:</LDevice>
   <MicSettingsButton>Настройки микрофона</MicSettingsButton>
   <LMaxLevel>Максимальный уровень сигнала для  начала записи:</LMaxLevel>
@@ -60,27 +63,80 @@
   <ExecProgramsCommandDesc>Запустить программу</ExecProgramsCommandDesc>
   <CloseProgramsCommandDesc>Закрыть программу</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Прибить программу</KillProgramsCommandDesc>
+  <TextToSpeechCommandDesc>TextToSpeech</TextToSpeechCommandDesc>
   <GBCommand>Список команд</GBCommand>
   <LCommandKey>Ключевое слово:</LCommandKey>
   <LCommandExec>Команда:</LCommandExec>
   <LCommandType>Тип команды:</LCommandType>
   <AddCommandButton>Добавить</AddCommandButton>
+  <ChangeCommandButton>Изменить</ChangeCommandButton>
   <DeleteCommandButton>Удалить</DeleteCommandButton>
   <CBEnableSendTextInactiveWindow>Отправлять текст в неактивное окно программы (WM_COPYDATA)</CBEnableSendTextInactiveWindow>
-  <CBEnableTextСorrection>Включить коррекцию текста при передаче</CBEnableTextСorrection>
   <LInactiveWindowCaption>Заголовок окна программы-получателя:</LInactiveWindowCaption>
+  <CBEnableTextСorrection>Включить коррекцию текста при передаче</CBEnableTextСorrection>
+  <GBTextCorrection>Настройки коррекции текста</GBTextCorrection>
   <CBEnableReplace>Заменять слова по списку</CBEnableReplace>
   <CBFirstLetterUpper>Делать первые буквы предложений прописными</CBFirstLetterUpper>
   <GBReplaceList>Список замены слов</GBReplaceList>
   <LReplaceIN>Заменить:</LReplaceIN>
   <LReplaceOUT>на:</LReplaceOUT>
   <AddReplaceButton>Добавить</AddReplaceButton>
+  <ChangeReplaceButton>Изменить</ChangeReplaceButton>
   <DeleteReplaceButton>Удалить</DeleteReplaceButton>
   <LCommandClose>EXE-файл закрываемой программы:</LCommandClose>
   <LCommandKill>EXE-файл убиваемой программы:</LCommandKill>
+  <LCommandTextToSpeech>Что произнести:</LCommandTextToSpeech>
+  <TabSheetTextToSpeech>Синтез голоса</TabSheetTextToSpeech>
+  <PleaseWait>Подождите, идет загрузка...</PleaseWait>
+  <Copy>Копировать</Copy>
+  <SelectAll>Выбрать все</SelectAll>
+  <LFileNameDesc>Имя лог-файла:</LFileNameDesc>
+  <DeleteLogButton>Удалить лог-файл</DeleteLogButton>
+  <ReloadLogButton>Обновить</ReloadLogButton>
+  <TotalString>Всего строк: %d</TotalString>
+  <LoadingTime>Время загрузки: %.2f мс</LoadingTime>
+  <GBLogs>Ведение логов</GBLogs>
+  <CBEnableLogs>Включить ведение логов</CBEnableLogs>
+  <LErrLogSize>Максимальный размер лог-файла (Кбайт)</LErrLogSize>
+  <CBEnableTextToSpeech>Включить преобразование текста в голос</CBEnableTextToSpeech>
+  <GBTextToSpeech>Настройки</GBTextToSpeech>
+  <LTextToSpeechEngine>Система синтеза:</LTextToSpeechEngine>
+  <LVoice>Голос:</LVoice>
+  <LVoiceVolumeDesc>Громкость голоса:</LVoiceVolumeDesc>
+  <LVoiceSpeedDesc>Скорость голоса:</LVoiceSpeedDesc>
+  <GBTextToSpeechList>Список синтезируемых слов</GBTextToSpeechList>
+  <LTextToSpeechText>Текст:</LTextToSpeechText>
+  <LTextToSpeechEventsType>Тип события:</LTextToSpeechEventsType>
+  <LTextToSpeechEventsTypeStatus>Статус:</LTextToSpeechEventsTypeStatus>
+  <AddTextToSpeechButton>Добавить</AddTextToSpeechButton>
+  <СhangeTextToSpeechButton>Изменить</СhangeTextToSpeechButton>
+  <DeleteTextToSpeechButton>Удалить</DeleteTextToSpeechButton>
+  <CBEnableFilters>Включить фильтрацию звука</CBEnableFilters>
+  <GBFilters>Настройки фильтров</GBFilters>
+  <RGFiltersType>Тип фильтра</RGFiltersType>
+  <GBWindowedSincFilter>Настройки Sinc Filter</GBWindowedSincFilter>
+  <GBVoiceFilter>Настройки Voice Filter</GBVoiceFilter>
+  <LSincFilterType>Тип фильтра:</LSincFilterType>
+  <LLowFreq>LowFreq:</LLowFreq>
+  <LHighFreq>HighFreq:</LHighFreq>
+  <LKernelWidth>KernelWidth:</LKernelWidth>
+  <LWindowType>WindowType:</LWindowType>
+  <CBVoiceFilterEnableAGC>Включить AGC (Automatic gain control)</CBVoiceFilterEnableAGC>
+  <CBVoiceFilterEnableNoiseReduction>Включить подавление шума (Noise reduction)</CBVoiceFilterEnableNoiseReduction>
+  <CBVoiceFilterEnableVAD>Включить VAD (Voice Activity Detection)</CBVoiceFilterEnableVAD>
+  <LDefaultCommandExec>Команда по-умолчанию:</LDefaultCommandExec>
+  <LDefaultCommandExecDesc>Выполняется если не найдена команда из списка.</LDefaultCommandExecDesc>
+
+  <EventWarningRecognize>Ошибка распознавания</EventWarningRecognize>
+  <EventRecordingNotRecognized>Команда не распознана</EventRecordingNotRecognized>
+  <EventCommandNotFound>Команда не найдена</EventCommandNotFound>
+  <EventErrorGoogleCommunication>Ошибка связи</EventErrorGoogleCommunication>
+  <EventEnable>Активно</EventEnable>
+  <EventDisable>Неактивно</EventDisable>
   
   <StartStopRecord>Начать\остановить запись</StartStopRecord>
   <StartStopRecordWithoutSendText>Начать\остановить запись без передачи текста</StartStopRecordWithoutSendText>
+  <StartRecordWithoutExecCommand>Начать\остановить запись без выполнения команд</StartRecordWithoutExecCommand>
   <HotKeyAlredyUses>Такая горячая клавиша уже используется!</HotKeyAlredyUses>
 
   <LangButton>Язык программы</LangButton>
@@ -97,6 +153,14 @@
   <MsgErr2>Файл команд %s не найден. Программа будет закрыта.</MsgErr2>
   <MsgErr3>Неизвестная ошибка в потоке JvThreadRecognize</MsgErr3>
   <MsgErr4>Ошибка! Файл настроек %s не найден.</MsgErr4>
+  <MsgErr5>Ошибка открытия файла</MsgErr5>
+  <MsgErr6>Ошибка открытия файла %s</MsgErr6>
+  <MsgErr7>Возможно файл занять программой.</MsgErr7>
+  <MsgErr8>Ошибка удаления файла</MsgErr8>
+  <MsgErr9>Ошибка удаления файла %s</MsgErr9>
+  <MsgErr10>Возможно файл занят другой программой. Повторить попытку?</MsgErr10>
+  <MsgErr11>Установите Microsoft SAPI 4.0 или выше.</MsgErr11>
+  <MsgErr12>Ошибка передачи данных в Google (%s)</MsgErr12>
 
   <MsgInf1>Для настройки параметров микрофона зайдите в Панель управления.%sВаша версия OS: %s</MsgInf1>
   <MsgInf2>Запись не распознана</MsgInf2>
@@ -105,5 +169,8 @@
   <MsgInf5>Эту строку нельзя удалить!%sДолжна оставаться хотя бы одна команда.</MsgInf5>
   <MsgInf6>Эту строку нельзя удалить!%sДолжно оставаться хотя бы одно правило замены.</MsgInf6>
   <MsgInf7>Настройки сохранены.</MsgInf7>
+  <MsgInf8>Эту строку нельзя удалить!%sДолжна оставаться хотя бы одно предложения для синтеза.</MsgInf8>
+  <MsgInf9>Для работы Voice Filter требуется Windows Vista или более новая версия.%sVoice Filter будет отключен.</MsgInf9>
+  <MsgInf10>Вначале, включите передачу текста в поля ввода.</MsgInf10>
 
 </strings>
