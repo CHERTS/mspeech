@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<strings>
+  <MSpeechCaption>MSpeech - Распознавание голоса с помощью GoogleSpeech</MSpeechCaption>
+
+  <MSpeechPopupMenuShow>Показать</MSpeechPopupMenuShow>
+  <MSpeechPopupMenuHide>Скрыть</MSpeechPopupMenuHide>
+  <MSpeechPopupMenuSettings>Настройки</MSpeechPopupMenuSettings>
+  <MSpeechPopupMenuAbout>О программе</MSpeechPopupMenuAbout>
+  <MSpeechPopupMenuExit>Выход</MSpeechPopupMenuExit>
+  <GBMain>Управление</GBMain>
+  <LSignalLevel>Уровень сигнала</LSignalLevel>
+  <StartButton>Начать запись</StartButton>
+  <StopButton>Остановить запись</StopButton>
+  <SettingsButton>Настройки</SettingsButton>
+  <TabSheetSettings>Общие настройки</TabSheetSettings>
+  <TabSheetRecord>Настройки записи</TabSheetRecord>
+  <TabSheetConnectSettings>Настройки соединения</TabSheetConnectSettings>
+  <TabSheetCommand>Команды</TabSheetCommand>
+  <TabSheetHotKey>Горячие клавиши</TabSheetHotKey>
+  <TabSheetLog>Лог работы</TabSheetLog>
+  <TabSheetSendText>Передача текста</TabSheetSendText>
+  <TabSheetTextCorrection>Коррекция текста</TabSheetTextCorrection>
+  <GBInterfaceSettings>Интерфейс</GBInterfaceSettings>
+  <CBAlphaBlend>Включить прозрачность окон</CBAlphaBlend>
+  <CBShowTrayEvents>Показывать всплывающие сообщения</CBShowTrayEvents>
+  <LLang>Язык программы:</LLang>
+  <GBRecordSettings>Настройки записи</GBRecordSettings>
+  <LDevice>Источник:</LDevice>
+  <MicSettingsButton>Настройки микрофона</MicSettingsButton>
+  <LMaxLevel>Максимальный уровень сигнала для  начала записи:</LMaxLevel>
+  <LMaxLevelInterrupt>Кол. срабатываний на макс-ый уровень для начала записи:</LMaxLevelInterrupt>
+  <LMinLevel>Минимальный уровень сигнала для  начала авто-распознания:</LMinLevel>
+  <LEMinLevelInterrupt>Кол. срабатываний на мин-ый уровень для начала авто-распознания:</LEMinLevelInterrupt>
+  <CBMaxLevelControl>Авто-запись</CBMaxLevelControl>
+  <LStopRecordAction>Действие кнопки "Остановить запись":</LStopRecordAction>
+  <CBStopRecordActionItems1>Остановить запись с учетом мин. уровня</CBStopRecordActionItems1>
+  <CBStopRecordActionItems2>Остановить, распознать и выполнить с учетом мин. уровня</CBStopRecordActionItems2>
+  <CBStopRecordActionItems3>Остановить запись без учета мин. уровня</CBStopRecordActionItems3>
+  <CBStopRecordActionItems4>Остановить, распознать и выполнить без учета мин. уровня</CBStopRecordActionItems4>
+  <GBConnectSettings>Настройки соединения</GBConnectSettings>
+  <CBUseProxy>Соединяться через прокси-сервер</CBUseProxy>
+  <LProxyAddress>Адрес прокси-сервера:</LProxyAddress>
+  <LProxyPort>Порт:</LProxyPort>
+  <CBProxyAuth>Прокси-сервер требует авторизацию</CBProxyAuth>
+  <LProxyUser>Пользователь:</LProxyUser>
+  <LProxyUserPasswd>Пароль:</LProxyUserPasswd>
+  <CBHotKey>Включить поддержку горячих клавиш</CBHotKey>
+  <GBHotKey>Горячие клавиши</GBHotKey>
+  <SetHotKeyButton>Назначить</SetHotKeyButton>
+  <DeleteHotKeyButton>Удалить</DeleteHotKeyButton>
+  <ClearLogButton>Очистить лог</ClearLogButton>
+  <CBEnableSendText>Включить передачу текста в поля ввода других программ</CBEnableSendText>
+  <GBSendText>Настройка передачи текста в поля ввода других программ</GBSendText>
+  <LMethodSendingText>Метод отправки текста:</LMethodSendingText>
+  <LClassName>Класс поля ввода программы-получателя:</LClassName>
+  <LNote>ВНИМАНИЕ! Распознанный текст будет передаваться в АКТИВНОЕ окно программы. Класс поля ввода можно оставить пустым или определить с помощью дополнительной программы SearchApplicationClassName.exe</LNote>
+  <LNoteInactive>ВНИМАНИЕ! Распознанный текст будет передаваться в НЕАКТИВНОЕ окно программы методом WM_COPYDATA. Поле 'Заголовок окна' должен содержать точное и полное имя заголовка окна программы-получателя данных.</LNoteInactive>
+  <SaveSettingsButton>Сохранить настройки</SaveSettingsButton>
+  <LRegion>Язык распознавания речи:</LRegion>
+  <ExecProgramsCommandDesc>Запустить программу</ExecProgramsCommandDesc>
+  <CloseProgramsCommandDesc>Закрыть программу</CloseProgramsCommandDesc>
+  <KillProgramsCommandDesc>Прибить программу</KillProgramsCommandDesc>
+  <GBCommand>Список команд</GBCommand>
+  <LCommandKey>Ключевое слово:</LCommandKey>
+  <LCommandExec>Команда:</LCommandExec>
+  <LCommandType>Тип команды:</LCommandType>
+  <AddCommandButton>Добавить</AddCommandButton>
+  <DeleteCommandButton>Удалить</DeleteCommandButton>
+  <CBEnableSendTextInactiveWindow>Отправлять текст в неактивное окно программы (WM_COPYDATA)</CBEnableSendTextInactiveWindow>
+  <CBEnableTextСorrection>Включить коррекцию текста при передаче</CBEnableTextСorrection>
+  <LInactiveWindowCaption>Заголовок окна программы-получателя:</LInactiveWindowCaption>
+  <CBEnableReplace>Заменять слова по списку</CBEnableReplace>
+  <CBFirstLetterUpper>Делать первые буквы предложений прописными</CBFirstLetterUpper>
+  <GBReplaceList>Список замены слов</GBReplaceList>
+  <LReplaceIN>Заменить:</LReplaceIN>
+  <LReplaceOUT>на:</LReplaceOUT>
+  <AddReplaceButton>Добавить</AddReplaceButton>
+  <DeleteReplaceButton>Удалить</DeleteReplaceButton>
+  <LCommandClose>EXE-файл закрываемой программы:</LCommandClose>
+  <LCommandKill>EXE-файл убиваемой программы:</LCommandKill>
+  
+  <StartStopRecord>Начать\остановить запись</StartStopRecord>
+  <StartStopRecordWithoutSendText>Начать\остановить запись без передачи текста</StartStopRecordWithoutSendText>
+  <HotKeyAlredyUses>Такая горячая клавиша уже используется!</HotKeyAlredyUses>
+
+  <LangButton>Язык программы</LangButton>
+  <LangRussian>Русский</LangRussian>
+  <LangEnglish>Английский</LangEnglish>
+  <AboutButton>О программе</AboutButton>
+
+  <AboutFormCaption>О программе</AboutFormCaption>
+  <Version>Версия: </Version>
+  <License>Лицензия: </License>
+  <CloseButton>Закрыть</CloseButton>
+
+  <MsgErr1>Не найдено ни одного устройства записи. Программа будет закрыта.</MsgErr1>
+  <MsgErr2>Файл команд %s не найден. Программа будет закрыта.</MsgErr2>
+  <MsgErr3>Неизвестная ошибка в потоке JvThreadRecognize</MsgErr3>
+  <MsgErr4>Ошибка! Файл настроек %s не найден.</MsgErr4>
+
+  <MsgInf1>Для настройки параметров микрофона зайдите в Панель управления.%sВаша версия OS: %s</MsgInf1>
+  <MsgInf2>Запись не распознана</MsgInf2>
+  <MsgInf3>Команда не распознана или её нет в базе MSpeech.</MsgInf3>
+  <MsgInf4>Ошибка связи с сервером Google</MsgInf4>
+  <MsgInf5>Эту строку нельзя удалить!%sДолжна оставаться хотя бы одна команда.</MsgInf5>
+  <MsgInf6>Эту строку нельзя удалить!%sДолжно оставаться хотя бы одно правило замены.</MsgInf6>
+  <MsgInf7>Настройки сохранены.</MsgInf7>
+
+</strings>

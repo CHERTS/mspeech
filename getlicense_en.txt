@@ -1,0 +1,62 @@
+The procedure for obtaining a license:
+======================================
+
+A license is required for:
+1) The correction function in the transmission of the text in the input field of other programs.
+   a) Replace of the words in the list.
+   b) Change the first letter of a sentence at the upper (only works for Russian and English text).
+2) Sending a text in inactive windows programs.
+
+To get a license you need to make a donation to the project MSpeech.
+Donation need to pay a programmer working time and thus the introduction of a
+program of the new functionality. On the value of your donation in determining the life of the license.
+All who have donated money the project are eligible for priority technical support and advice on how to use.
+
+Donate money to develop the project, you can page http://www.im-history.ru/donate-en.html
+After listing the donations must write a letter to the developers address sleuthhound@gmail.com
+In a letter be sure to include the amount of donation, a system through which you sent him (Paypal, WebMoney
+or shops), as well as your name or nickname to create a license.
+
+If you donate $10, you can get a license for 1 month.
+If you donated from $11 to $20, you can get a license for 3 months.
+If you donate $21 to $30, you can get a license for 5 months.
+If you donated from $31 to $40, you can get a license for 7 months.
+If you donated from $41 to $50, you can get a license for 9 months.
+If you donated from $51 to $100, you can get a license for 20 months.
+If you donate $100 or more, you can get a unlimit license.
+
+If you do not like this approach, you can download the source code from the site
+https://code.google.com/p/mspeech/ and compile it yourself. By doing so you will receive
+full-featured version of the software without license restrictions. Licensing restrictions imposed
+only finished compiled version for Windows, downloaded from my site.
+
+Thank you for your support!
+
+-------------------------------------------------------------------------------------------------------------
+
+Functional description for the correction of text transferred into the fields of other programs.
+================================================================================================
+
+Functional correction is to use several methods for processing the detected final
+line of text.
+
+Step 1: AutoCorrect
+When you send the text in the program is a replacement of certain words from the list on the punctuation:
+For example, a text: hi comma how are you question mark
+Replace list of words on the signs:
+point -> <.>
+comma -> <,>
+dash -> <->
+exclamation mark -> <!>
+question mark -> <?>
+Bottom line: hi, how are you?
+
+Step 2: Make the first letter of sentence
+When you send the text in the program is replaced by the rules of the register:
+Which follows after the character <.> <!> <?> Letter is translated to uppercase.
+For example, the text of the Step 1: hi, how are you?
+Transforms into: Hi, how are you?
+
+After Step 2 is submitted in the entry field of the program.
+
+(C) 2013 by Mikhail Grigorev

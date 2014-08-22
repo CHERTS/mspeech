@@ -1,0 +1,109 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<strings>
+  <MSpeechCaption>MSpeech - Voice recognition with GoogleSpeech</MSpeechCaption>
+
+  <MSpeechPopupMenuShow>Show</MSpeechPopupMenuShow>
+  <MSpeechPopupMenuHide>Hide</MSpeechPopupMenuHide>
+  <MSpeechPopupMenuSettings>Settings</MSpeechPopupMenuSettings>
+  <MSpeechPopupMenuAbout>About</MSpeechPopupMenuAbout>
+  <MSpeechPopupMenuExit>Exit</MSpeechPopupMenuExit>
+  <GBMain>Management</GBMain>
+  <LSignalLevel>Signal level</LSignalLevel>
+  <StartButton>Start recording</StartButton>
+  <StopButton>Stop recording</StopButton>
+  <SettingsButton>Settings</SettingsButton>
+  <TabSheetSettings>General settings</TabSheetSettings>
+  <TabSheetRecord>Recording settings</TabSheetRecord>
+  <TabSheetConnectSettings>Connection settings</TabSheetConnectSettings>
+  <TabSheetCommand>Commands</TabSheetCommand>
+  <TabSheetHotKey>Hotkeys</TabSheetHotKey>
+  <TabSheetLog>Log</TabSheetLog>
+  <TabSheetSendText>Transmission of text</TabSheetSendText>
+  <TabSheetTextCorrection>Text  correction</TabSheetTextCorrection>
+  <GBInterfaceSettings>Interface</GBInterfaceSettings>
+  <CBAlphaBlend>Enable transparency windows</CBAlphaBlend>
+  <CBShowTrayEvents>Show pop-up messages</CBShowTrayEvents>
+  <LLang>Language:</LLang>
+  <GBRecordSettings>Recording settings</GBRecordSettings>
+  <LDevice>Source:</LDevice>
+  <MicSettingsButton>Microphone settings</MicSettingsButton>
+  <LMaxLevel>The maximum signal level to start recording:</LMaxLevel>
+  <LMaxLevelInterrupt>The number of operations to the maximum level to start recording:</LMaxLevelInterrupt>
+  <LMinLevel>Minimum signal for the start of auto-recognition:</LMinLevel>
+  <LEMinLevelInterrupt>The number of positives to a minimum standard for the start of auto-recognition:</LEMinLevelInterrupt>
+  <CBMaxLevelControl>Auto-recording</CBMaxLevelControl>
+  <LStopRecordAction>Action of button "Stop Recording":</LStopRecordAction>
+  <CBStopRecordActionItems1>Stop recording on the minimum signal level</CBStopRecordActionItems1>
+  <CBStopRecordActionItems2>Stop, recognize and run with the minimum signal level</CBStopRecordActionItems2>
+  <CBStopRecordActionItems3>Stop recording without the minimum signal level</CBStopRecordActionItems3>
+  <CBStopRecordActionItems4>Stop, recognize and run without the minimum signal level</CBStopRecordActionItems4>
+  <GBConnectSettings>Connection settings</GBConnectSettings>
+  <CBUseProxy>Connect via a proxy server</CBUseProxy>
+  <LProxyAddress>Proxy-server address:</LProxyAddress>
+  <LProxyPort>Port:</LProxyPort>
+  <CBProxyAuth>Proxy server requires authentication</CBProxyAuth>
+  <LProxyUser>User:</LProxyUser>
+  <LProxyUserPasswd>Password:</LProxyUserPasswd>
+  <CBHotKey>Enable hotkeys</CBHotKey>
+  <GBHotKey>Hotkeys</GBHotKey>
+  <SetHotKeyButton>Assign</SetHotKeyButton>
+  <DeleteHotKeyButton>Delete</DeleteHotKeyButton>
+  <ClearLogButton>Clear log</ClearLogButton>
+  <CBEnableSendText>Enable transmission of the text in the input field of other programs</CBEnableSendText>
+  <GBSendText>Setting the transmission of the text in the input fields other programs</GBSendText>
+  <LMethodSendingText>The method of sending text:</LMethodSendingText>
+  <LClassName>Class input fields of the recipient:</LClassName>
+  <LNote>WARNING! The recognized text will be sent to the active window. Class input field can be left blank or specify using the optional SearchApplicationClassName.exe</LNote>
+  <LNoteInactive>WARNING! The recognized text will be sent to the inactive window. The 'Window title' must contain an accurate and complete name of the title bar of the program receiving the data.</LNoteInactive>
+  <SaveSettingsButton>Save settings</SaveSettingsButton>
+  <LRegion>Language speech recognition:</LRegion>
+  <ExecProgramsCommandDesc>Run program</ExecProgramsCommandDesc>
+  <CloseProgramsCommandDesc>Close program</CloseProgramsCommandDesc>
+  <KillProgramsCommandDesc>Kill program</KillProgramsCommandDesc>
+  <GBCommand>List of commands</GBCommand>
+  <LCommandKey>Keyword:</LCommandKey>
+  <LCommandExec>Command:</LCommandExec>
+  <LCommandType>Type:</LCommandType>
+  <AddCommandButton>Add</AddCommandButton>
+  <DeleteCommandButton>Delete</DeleteCommandButton>
+  <CBEnableSendTextInactiveWindow>Send text to inactive window (WM_COPYDATA)</CBEnableSendTextInactiveWindow>
+  <CBEnableTextСorrection>Enable text correction during transmission</CBEnableTextСorrection>
+  <LInactiveWindowCaption>Program title of recipient:</LInactiveWindowCaption>
+  <CBEnableReplace>Replace the words in the list</CBEnableReplace>
+  <CBFirstLetterUpper>Take the first letter of sentence</CBFirstLetterUpper>
+  <GBReplaceList>Replace list of words</GBReplaceList>
+  <LReplaceIN>Replace</LReplaceIN>
+  <LReplaceOUT>at:</LReplaceOUT>
+  <AddReplaceButton>Add</AddReplaceButton>
+  <DeleteReplaceButton>Delete</DeleteReplaceButton>
+  <LCommandClose>EXE-file and exit the program:</LCommandClose>
+  <LCommandKill>EXE-file kills the program:</LCommandKill>
+
+  <StartStopRecord>Start\stop recording</StartStopRecord>
+  <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>
+  <HotKeyAlredyUses>This hot key is already in use!</HotKeyAlredyUses>
+  
+  <LangButton>Language</LangButton>
+  <LangRussian>Russian</LangRussian>
+  <LangEnglish>English</LangEnglish>
+  <AboutButton>About</AboutButton>
+
+  <AboutFormCaption>About</AboutFormCaption>
+  <Version>Version: </Version>
+  <License>License: </License>
+  <CloseButton>Close</CloseButton>
+
+  <MsgErr1>Not found the recording device. The program will be closed.</MsgErr1>
+  <MsgErr2>Command file %s not found. The program will be closed.</MsgErr2>
+  <MsgErr3>Unknown error in the thread JvThreadRecognize</MsgErr3>
+  <MsgErr4>Error! The configuration file %s not found.</MsgErr4>
+
+  <MsgInf1>To configure the microphone go to Control Panel.%sYour version of OS: %s</MsgInf1>
+  <MsgInf2>Recording is not recognized</MsgInf2>
+  <MsgInf3>Command is not recognized or is not in the MSpeech database.</MsgInf3>
+  <MsgInf4>Error! No connection to the Google server</MsgInf4>
+  <MsgInf5>This line can not be removed!%sMust remain at least one command.</MsgInf5>
+  <MsgInf6>This line can not be removed!%sThere should be one rule replace text.</MsgInf6>
+  <MsgInf7>The settings are saved.</MsgInf7>
+
+</strings>

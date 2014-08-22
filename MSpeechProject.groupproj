@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{9741CB69-D128-4023-A441-7F9156D50E00}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="MSpeech.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Search-App-Class-Name\SearchAppClassName.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="MSpeech">
+        <MSBuild Projects="MSpeech.dproj"/>
+    </Target>
+    <Target Name="MSpeech:Clean">
+        <MSBuild Projects="MSpeech.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MSpeech:Make">
+        <MSBuild Projects="MSpeech.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="MSpeech_Reciver_Demo">
+        <MSBuild Projects="MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.dproj"/>
+    </Target>
+    <Target Name="MSpeech_Reciver_Demo:Clean">
+        <MSBuild Projects="MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="MSpeech_Reciver_Demo:Make">
+        <MSBuild Projects="MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SearchAppClassName">
+        <MSBuild Projects="Search-App-Class-Name\SearchAppClassName.dproj"/>
+    </Target>
+    <Target Name="SearchAppClassName:Clean">
+        <MSBuild Projects="Search-App-Class-Name\SearchAppClassName.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SearchAppClassName:Make">
+        <MSBuild Projects="Search-App-Class-Name\SearchAppClassName.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="MSpeech;MSpeech_Reciver_Demo;SearchAppClassName"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="MSpeech:Clean;MSpeech_Reciver_Demo:Clean;SearchAppClassName:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="MSpeech:Make;MSpeech_Reciver_Demo:Make;SearchAppClassName:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
