@@ -15,7 +15,7 @@ MSpeech - это программа для распознавание речи �
 * Синтез голоса через RHVoice, Microsoft SAPI, Google Text-To-Speech или Yandex Text-To-Speech.<br>
 
 www: http://programs74.ru/mspeech.html<br>
-email: sleuthound@gmail.com<br>
+email: sleuthhound@gmail.com
 
 =========
 
@@ -33,7 +33,7 @@ Main features:<br>
 * Work through a proxy server.<br>
 * Ability to select the sound source.<br>
 * Changing the interface language (English, Russian).<br>
-* Voice synthesis through RHVoice, Microsoft SAPI, Google Text-To-Speech or Yandex Text-To-Speech.<br><br>
+* Voice synthesis through RHVoice, Microsoft SAPI, Google Text-To-Speech or Yandex Text-To-Speech.<br>
 
 www: http://programs74.ru/mspeech-en.html<br>
-email: sleuthound@gmail.com<br>
+email: sleuthhound@gmail.com
