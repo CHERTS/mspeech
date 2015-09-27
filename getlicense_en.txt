@@ -59,4 +59,4 @@ Transforms into: Hi, how are you?
 
 After Step 2 is submitted in the entry field of the program.
 
-(C) 2013 by Mikhail Grigorev
+(C) 2013-2015 by Mikhail Grigorev

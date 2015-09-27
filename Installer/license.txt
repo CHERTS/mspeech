@@ -1,4 +1,5 @@
-Copyright (c) 2013, Mikhail Grigorev (http://www.im-history.ru)
+MSpeech, Copyright (c) 2012-2015, Mikhail Grigorev (http://www.programs74.ru)
+RHVoice, Copyright (c) 2010-2015, Olga Yakovleva (http://tiflo.info/rhvoice/)
 
 GNU GCC/G++ License:
 ==================================================

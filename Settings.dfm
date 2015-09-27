@@ -14,7 +14,7 @@
   Font.Style = []
   KeyPreview = True
   OldCreateOrder = False
-  Position = poMainFormCenter
+  Position = poScreenCenter
   OnCreate = FormCreate
   OnKeyDown = FormKeyDown
   OnShow = FormShow
@@ -41,7 +41,7 @@
     TabOrder = 2
     OnClick = CloseButtonClick
   end
-  object SettingtButtonGroup: TIMButtonGroup
+  object SettingtButtonGroup: TMGButtonGroup
     Left = 8
     Top = 8
     Width = 153
@@ -333,9 +333,10 @@
         end
         object UpDownMaxLevelInterrupt: TUpDown
           Left = 466
-          Top = 77
-          Width = 15
+          Top = 78
+          Width = 16
           Height = 21
+          Associate = EMaxLevelInterrupt
           TabOrder = 6
           OnClick = UpDownMaxLevelInterruptClick
         end
@@ -956,7 +957,7 @@
           Caption = #1050#1083#1102#1095#1077#1074#1086#1077' '#1089#1083#1086#1074#1086':'
         end
         object LCommandExec: TLabel
-          Left = 177
+          Left = 182
           Top = 22
           Width = 48
           Height = 13
@@ -1614,6 +1615,20 @@
             StyleElements = [seFont]
             OnClick = SBVoiceTestClick
           end
+          object LTTSAPIKey: TLabel
+            Left = 18
+            Top = 56
+            Width = 82
+            Height = 13
+            Caption = 'iSpeech API Key:'
+          end
+          object LTTSAPPID: TLabel
+            Left = 16
+            Top = 80
+            Width = 37
+            Height = 13
+            Caption = 'APP ID:'
+          end
           object TBVoiceVolume: TTrackBar
             Left = 116
             Top = 50
@@ -1650,7 +1665,6 @@
             Height = 21
             Style = csDropDownList
             TabOrder = 0
-            OnChange = CBVoiceChange
           end
           object LBSAPIInfo: TListBox
             Left = 333
@@ -1659,6 +1673,29 @@
             Height = 84
             ItemHeight = 13
             TabOrder = 3
+          end
+          object ETTSAPIKey: TEdit
+            Left = 122
+            Top = 52
+            Width = 175
+            Height = 21
+            TabOrder = 4
+          end
+          object GetAPIKeyButton: TButton
+            Left = 315
+            Top = 50
+            Width = 122
+            Height = 25
+            Caption = #1055#1086#1083#1091#1095#1080#1090#1100' API '#1082#1083#1102#1095
+            TabOrder = 5
+            OnClick = GetAPIKeyButtonClick
+          end
+          object ETTSAPPID: TEdit
+            Left = 122
+            Top = 77
+            Width = 175
+            Height = 21
+            TabOrder = 6
           end
         end
         object GBTextToSpeechList: TGroupBox
@@ -1912,7 +1949,7 @@
     Left = 48
     Top = 232
     Bitmap = {
-      494C01010D0011004C0010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010D001100040010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -2450,46 +2487,5 @@
   object CommandOpenDialog: TOpenDialog
     Left = 48
     Top = 280
-  end
-  object DXAudioIn: TDXAudioIn
-    Latency = 100
-    SamplesToRead = -1
-    DeviceNumber = 0
-    InBitsPerSample = 16
-    InChannels = 1
-    InSampleRate = 8000
-    RecTime = -1
-    EchoRecording = False
-    FramesInBuffer = 24576
-    PollingInterval = 10
-    Left = 48
-    Top = 336
-  end
-  object SettingsFormStorage: TJvFormStorage
-    AppStoragePath = '%FORM_NAME%\'
-    StoredValues = <>
-    Left = 110
-    Top = 232
-  end
-  object TTSMP3In: TMP3In
-    Loop = False
-    EndSample = -1
-    StartSample = 0
-    HighPrecision = True
-    OutputChannels = cnMonoOrStereo
-    Left = 48
-    Top = 384
-  end
-  object TTSDXAudioOut: TDXAudioOut
-    Input = TTSMP3In
-    OnDone = TTSDXAudioOutDone
-    DeviceNumber = 0
-    Latency = 78
-    PrefetchData = False
-    PollingInterval = 100
-    FramesInBuffer = 49152
-    SpeedFactor = 1.000000000000000000
-    Left = 80
-    Top = 384
   end
 end

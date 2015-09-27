@@ -1,10 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -18,10 +20,10 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, ACS_Classes, NewACIndicators, ACS_FLAC, ACS_DXAudio,
   ShellApi, Global, Settings, Log, ACS_Misc, ACS_Filters, ACS_Wave,
-  CoolTrayIcon, ImgList, Menus, JvAppStorage, JvAppIniStorage, JvComponentBase,
-  JvFormPlacement, Grids, JvAppHotKey, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
-  XMLIntf, XMLDoc, JvExControls, ActiveX, SpeechLib_TLB,
-  AudioDMO, ACS_Procs, ACS_WinMedia, ACS_smpeg, SHFolder, StrUtils, ASR;
+  ImgList, Menus, Grids, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
+  XMLIntf, XMLDoc, AudioDMO, ACS_Procs, ACS_WinMedia, ACS_smpeg,
+  SHFolder, StrUtils, ASR, MGTrayIcon, MGHotKeyManager, MGPlacement, MGSAPI,
+  MGYandexTTS, MGGoogleTTS, MGOSInfo, MGiSpeechTTS, MGNuanceTTS;
 
 type
   TMainForm = class(TForm)
@@ -29,13 +31,10 @@ type
     FLACOut: TFLACOut;
     FastGainIndicator: TFastGainIndicator;
     NULLOut: TNULLOut;
-    MSpeechTray: TCoolTrayIcon;
     TrayImageList: TImageList;
     MSpeechPopupMenu: TPopupMenu;
     MSpeechShowHide: TMenuItem;
     MSpeechExit: TMenuItem;
-    JvFormStorage: TJvFormStorage;
-    JvAppIniFileStorage: TJvAppIniFileStorage;
     GBMain: TGroupBox;
     LSignalLevel: TLabel;
     ProgressBar: TProgressBar;
@@ -47,6 +46,16 @@ type
     MSpeechShowLog: TMenuItem;
     MP3In: TMP3In;
     DXAudioOut: TDXAudioOut;
+    MSpeechHotKeyManager: TMGHotKeyManager;
+    MGFormPlacement: TMGFormPlacement;
+    MSpeechTray: TMGTrayIcon;
+    MGSAPI: TMGSAPI;
+    MGGoogleTTS: TMGGoogleTTS;
+    MGYandexTTS: TMGYandexTTS;
+    MGOSInfo: TMGOSInfo;
+    MGISpeechTTS: TMGISpeechTTS;
+    MGNuanceTTS: TMGNuanceTTS;
+    WaveIn: TWaveIn;
     procedure FormCreate(Sender: TObject);
     procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormShow(Sender: TObject);
@@ -75,16 +84,19 @@ type
     procedure VoiceFilterOn;
     procedure VoiceFilterOff;
     procedure DXAudioOutDone(Sender: TComponent);
+    procedure MSpeechHotKeyManagerHotKeyPressed(HotKey: Cardinal; Index: Word);
+    procedure MGGoogleTTSEvent(Sender: TObject; pInfo: TGTTSResultInfo);
+    procedure MGYandexTTSEvent(Sender: TObject; pInfo: TYTTSResultInfo);
+    procedure MGISpeechTTSEvent(Sender: TObject; pInfo: TISpeechTTSResultInfo);
+    procedure MGNuanceTTSEvent(Sender: TObject; pInfo: TNuanceTTSResultInfo);
   private
     { Private declarations }
     SessionEnding: Boolean;
     FCount: Integer;
-    procedure WMQueryEndSession(var Message: TMessage); message WM_QUERYENDSESSION;
-    procedure OnLanguageChanged(var Msg: TMessage); message WM_LANGUAGECHANGED;
-    procedure msgBoxShow(var Msg: TMessage); message WM_MSGBOX;
-    procedure InitSaveSettings(var Msg: TMessage); message WM_STARTSAVESETTINGS;
-    procedure SaveSettingsDone(var Msg: TMessage); message WM_SAVESETTINGSDONE;
-    procedure DoHotKey(Sender:TObject);
+    StartRecordHotKeyIndex: Word;
+    StartRecordWithoutSendTextHotKeyIndex: Word;
+    StartRecordWithoutExecCommandHotKeyIndex: Word;
+    SwitchesLanguageRecognizeHotKeyIndex: Word;
     procedure LoadLanguageStrings;
   public
     { Public declarations }
@@ -93,16 +105,12 @@ type
     CommandSGrid: TStringGrid;
     // Список замены
     ReplaceSGrid: TStringGrid;
-    // Синтез голоса через SAPI
-    gpIVTxt: TSpVoice;
-    Voices: ISpeechObjectTokens;
+    // Список синтеза речи
     TextToSpeechSGrid: TStringGrid;
     FLockedCount: Integer;
     // Фильтры
     VoiceFilter: TVoiceFilter;
     SincFilter: TSincFilter;
-    procedure RegisterHotKeys;
-    procedure UnRegisterHotKeys;
     procedure ShowBalloonHint(BalloonTitle, BalloonMsg : WideString); overload;
     procedure ShowBalloonHint(BalloonTitle, BalloonMsg: WideString; BalloonIconType: TBalloonHintIcon); overload;
     function GetTextWnd(MyClassName: String): String;
@@ -113,14 +121,11 @@ type
     procedure CopyPasteTextWnd(MyClassName, MyText: String); overload;
     procedure CopyPasteTextWnd(MyText: String); overload;
     procedure SetCharTextWnd(MyText: String);
-    function SAPIActivate: Boolean;
-    procedure SAPIDeactivate;
     procedure TextToSpeech(EType: TEventsType); overload;
     procedure TextToSpeech(SayText: String); overload;
-    function OtherTTS(const Text, MP3FileName: String): Boolean;
+    procedure OtherTTS(const Text: String);
     procedure Filters;
-    procedure RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
-    procedure RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
+    procedure RecognizeResultCallBack(Sender: TObject; pInfo: TRecognizeInfo);
     procedure WndProc(var Message: TMessage); override;
   end;
 
@@ -152,23 +157,13 @@ var
   FLACDoneCnt: Integer = 0;
   NULLOutStart: Boolean = False;
   NULLOutDoneCnt: Integer = 0;
-  JvStartRecordHotKey: TJvApplicationHotKey;
-  JvStartRecordWithoutSendTextHotKey: TJvApplicationHotKey;
-  JvStartRecordWithoutExecCommandHotKey: TJvApplicationHotKey;
-  JvSwitchesLanguageRecognizeHotKey: TJvApplicationHotKey;
-
-procedure TMainForm.WMQueryEndSession(var Message: TMessage);
-begin
-  SessionEnding := True;
-  Message.Result := 1;
-end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
   DebugLogOpened := False;
-  ProgramsPath := IncludeTrailingPathDelimiter(ExtractFilePath(Application.ExeName));
+  ProgramsPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
   OutFileName := GetUserTempPath() + 'out.flac';
-  WorkPath := IncludeTrailingPathDelimiter(IncludeTrailingPathDelimiter(GetSpecialFolderPath(CSIDL_LOCAL_APPDATA))+ProgramsName);
+  WorkPath := IncludeTrailingPathDelimiter(GetAppDataFolderPath()+ProgramsName);
   // Проверяем файл конфигурации
   if not DirectoryExists(WorkPath) then
     CreateDir(WorkPath);
@@ -198,12 +193,6 @@ begin
       if FileExists(ProgramsPath + TextToSpeechGridFile) then
         CopyFileEx(PChar(ProgramsPath + TextToSpeechGridFile), PChar(WorkPath + TextToSpeechGridFile), nil, nil, nil, COPY_FILE_FAIL_IF_EXISTS);
     end;
-    // Копируем дефолтный файл настроек форм
-    if not FileExists(WorkPath + JvAppIniFileStorage.FileName) then
-    begin
-      if FileExists(ProgramsPath + JvAppIniFileStorage.FileName) then
-        CopyFileEx(PChar(ProgramsPath + JvAppIniFileStorage.FileName), PChar(WorkPath + JvAppIniFileStorage.FileName), nil, nil, nil, COPY_FILE_FAIL_IF_EXISTS);
-    end;
   end
   else
     WorkPath := ProgramsPath;
@@ -213,9 +202,18 @@ begin
   SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
   // Читаем настройки
   LoadINI(WorkPath);
+  // Проверка на автозапуск MSpeech
+  if AutoRunMSpeech then
+  begin
+    if not CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
+      CheckAutorun(mAutorunCurrentUser, mAutorunEnable, ProgramsName, ParamStr(0));
+  end
+  else
+  begin
+    if CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
+      CheckAutorun(mAutorunCurrentUser, mAutorunDisable, ProgramsName, ParamStr(0));
+  end;
   MSpeechTray.Hint := ProgramsName;
-  // Параметры формы
-  JvAppIniFileStorage.FileName := WorkPath + INIFormsName;
   // Загружаем настройки локализации
   if INIFileLoaded then
     CoreLanguage := DefaultLanguage
@@ -229,7 +227,12 @@ begin
   LangDoc := NewXMLDocument();
   if not DirectoryExists(ProgramsPath + dirLangs) then
     CreateDir(ProgramsPath + dirLangs);
-  CoreLanguageChanged;
+  if not CoreLanguageChanged() then
+  begin
+    MSpeechMainFormHidden := True;
+    Application.Terminate;
+    Exit;
+  end;
   // Заполняем список устройст записи
   if DXAudioIn.DeviceCount > 0 then
     StartButton.Enabled := True
@@ -244,47 +247,23 @@ begin
   // Фильтрация звука
   Filters();
   // Создаем горячие клавиши
-  JvStartRecordHotKey := TJvApplicationHotKey.Create(self);
-  with JvStartRecordHotKey do
-  begin
-    HotKey := TextToShortCut(StartRecordHotKey);
-    Active := False;
-    OnHotKey := DoHotKey;
-  end;
-  JvStartRecordWithoutSendTextHotKey := TJvApplicationHotKey.Create(self);
-  with JvStartRecordWithoutSendTextHotKey do
-  begin
-    HotKey := TextToShortCut(StartRecordWithoutSendTextHotKey);
-    Active := False;
-    OnHotKey := DoHotKey;
-  end;
-  JvStartRecordWithoutExecCommandHotKey := TJvApplicationHotKey.Create(self);
-  with JvStartRecordWithoutExecCommandHotKey do
-  begin
-    HotKey := TextToShortCut(StartRecordWithoutExecCommandHotKey);
-    Active := False;
-    OnHotKey := DoHotKey;
-  end;
-  JvSwitchesLanguageRecognizeHotKey := TJvApplicationHotKey.Create(self);
-  with JvSwitchesLanguageRecognizeHotKey do
-  begin
-    HotKey := TextToShortCut(SwitchesLanguageRecognizeHotKey);
-    Active := False;
-    OnHotKey := DoHotKey;
-  end;
-  // Активируем горячие клавиши
-  RegisterHotKeys;
-  StopRecord := True;
-  FCount := 0;
+  StartRecordHotKeyIndex := 0;
+  StartRecordWithoutSendTextHotKeyIndex := 0;
+  StartRecordWithoutExecCommandHotKeyIndex := 0;
+  SwitchesLanguageRecognizeHotKeyIndex := 0;
+  if StartRecordHotKey <> '' then
+    StartRecordHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordHotKey, True));
+  if StartRecordWithoutSendTextHotKey <> '' then
+    StartRecordWithoutSendTextHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutSendTextHotKey, True));
+  if StartRecordWithoutExecCommandHotKey <> '' then
+    StartRecordWithoutExecCommandHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True));
+  if SwitchesLanguageRecognizeHotKey <> '' then
+    SwitchesLanguageRecognizeHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(SwitchesLanguageRecognizeHotKey, True));
   // Грузим список команд
   CommandSGrid := TStringGrid.Create(nil);
   // Если найден старый файл команд, то грузим список из него
   if FileExists(ProgramsPath + OLDCommandFileName) then
-  begin
-    LoadOLDCommandFileToGrid(ProgramsPath + OLDCommandFileName, CommandSGrid);
-    DeleteFile(ProgramsPath + OLDCommandFileName);
-    SaveCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
-  end
+    DeleteFile(ProgramsPath + OLDCommandFileName)
   else
     LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
   // Грузим список замены
@@ -297,29 +276,39 @@ begin
   begin
     LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechSGrid);
     if TextToSpeechEngine = 0 then // Если Microsoft SAPI
-      SAPIActivate;
+    begin
+      MGSAPI.TTSLang := SAPIVoiceNum;
+      MGSAPI.TTSVoiceVolume := SAPIVoiceVolume;
+      MGSAPI.TTSVoiceSpeed := SAPIVoiceSpeed;
+    end;
   end;
   // Авто-активация записи
-  if MaxLevelOnAutoControl then
-    StartNULLRecord;
+  StartNULLRecord;
   // Язык распознавания
   CurrentSpeechRecognizeLang := DefaultSpeechRecognizeLang;
   // Кол. блокировок ПК
   FLockedCount := 0;
   WTSRegisterSessionNotification(Handle, NOTIFY_FOR_ALL_SESSIONS);
+  // Удаляем старый файл состояния форм MSpeechForms.ini
+  if FileExists(WorkPath + 'MSpeechForms.ini') then
+    DeleteFile(WorkPath + 'MSpeechForms.ini');
+  // Сохранение позиций окна
+  MGFormPlacement.IniFileName := WorkPath + INIFormStorage;
+  StopRecord := True;
+  FCount := 0;
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   if FileExists(OutFileName) then
     DeleteFile(OutFileName);
-  // Разрегистрация гор. клавиш
-  UnRegisterHotKeys;
-  // ОчисткаИнтернетИнтернет
-  CommandSGrid.Free;
-  ReplaceSGrid.Free;
-  SAPIDeactivate;
-  TextToSpeechSGrid.Free;
+  // Очистка
+  if Assigned(CommandSGrid) then
+    CommandSGrid.Free;
+  if Assigned(ReplaceSGrid) then
+    ReplaceSGrid.Free;
+  if Assigned(TextToSpeechSGrid) then
+    TextToSpeechSGrid.Free;
   // Закрываем логи
   CloseLogFile;
   WTSUnRegisterSessionNotification(Handle);
@@ -354,37 +343,156 @@ begin
 end;
 
 procedure TMainForm.WndProc(var Message: TMessage);
+var
+  msgbHandle: HWND;
 begin
   case Message.Msg of
-    WM_WTSSESSION_CHANGE:
+    WM_SAVESETTINGSDONE: // Настройки сохранены
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Вызов SaveSettingsDone.');
+      // Список команд
+      LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
+      // Список замены
+      if EnableTextReplace then
+        LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceSGrid);
+      // Список синтеза событий
+      if EnableTextToSpeech then
+        LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechSGrid);
+      // Меняем глобальные горячие клавиши
+      if GlobalHotKeyEnable then
       begin
-        if Message.wParam = WTS_SESSION_LOCK then // ПК заблокирован
+        // Гор.клавиша "Начать-остановить запись"
+        if StartRecordHotKey <> '' then
         begin
-          Inc(FLockedCount);
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-          if StopRecognitionAfterLockingComputer then
-          begin
-            if MaxLevelOnAutoControl then
-              MaxLevelOnAutoControl := False;
-            if EnableLogs then WriteInLog(WorkPath, Format('%s: Останавливаем запись и распознавание.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-            StopButton.Click;
-            StopNULLRecord;
-          end;
+          if StartRecordHotKeyIndex = 0 then
+            StartRecordHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordHotKey, True))
+          else
+            StartRecordHotKeyIndex := MSpeechHotKeyManager.ChangeHotKey(StartRecordHotKeyIndex, TextToHotKey(StartRecordHotKey, True));
+        end
+        else
+        begin
+          if StartRecordHotKeyIndex = 0 then
+            StartRecordHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordHotKey, True))
+          else
+            MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordHotKey, True));
         end;
-        if Message.wParam = WTS_SESSION_UNLOCK then // ПК разблокирован
+        // Гор.клавиша "Начать-остановить запись без передачи текста"
+        if StartRecordWithoutSendTextHotKey <> '' then
         begin
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован %d раз.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
-          if StartRecognitionAfterUnlockingComputer then
-          begin
-            if EnableLogs then WriteInLog(WorkPath, Format('%s: Запускаем запись.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-            MaxLevelOnAutoControl := ReadCustomINI(WorkPath, 'Main', 'MaxLevelOnAutoControl', False);
-            if MaxLevelOnAutoControl then
-              StartNULLRecord
-            else
-              StartButton.Click;
-          end;
+          if StartRecordWithoutSendTextHotKeyIndex = 0 then
+            StartRecordWithoutSendTextHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutSendTextHotKey, True))
+          else
+            StartRecordWithoutSendTextHotKeyIndex := MSpeechHotKeyManager.ChangeHotKey(StartRecordWithoutSendTextHotKeyIndex, TextToHotKey(StartRecordWithoutSendTextHotKey, True));
+        end
+        else
+        begin
+          if StartRecordWithoutSendTextHotKeyIndex = 0 then
+            StartRecordWithoutSendTextHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutSendTextHotKey, True))
+          else
+            MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordWithoutSendTextHotKey, True));
+        end;
+        // Гор.клавиша "Начать-остановить запись без выполнения команды"
+        if StartRecordWithoutExecCommandHotKey <> '' then
+        begin
+          if StartRecordWithoutExecCommandHotKeyIndex = 0 then
+            StartRecordWithoutExecCommandHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True))
+          else
+            StartRecordWithoutExecCommandHotKeyIndex := MSpeechHotKeyManager.ChangeHotKey(StartRecordWithoutExecCommandHotKeyIndex, TextToHotKey(StartRecordWithoutExecCommandHotKey, True));
+        end
+        else
+        begin
+          if StartRecordWithoutExecCommandHotKeyIndex = 0 then
+            StartRecordWithoutExecCommandHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True))
+          else
+            MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True));
+        end;
+        // Гор.клавиша "Переключение между основным и доп.языком распознавания"
+        if SwitchesLanguageRecognizeHotKey <> '' then
+        begin
+          if SwitchesLanguageRecognizeHotKeyIndex = 0 then
+            SwitchesLanguageRecognizeHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(SwitchesLanguageRecognizeHotKey, True))
+          else
+            SwitchesLanguageRecognizeHotKeyIndex := MSpeechHotKeyManager.ChangeHotKey(SwitchesLanguageRecognizeHotKeyIndex, TextToHotKey(SwitchesLanguageRecognizeHotKey, True));
+        end
+        else
+        begin
+          if SwitchesLanguageRecognizeHotKeyIndex = 0 then
+            SwitchesLanguageRecognizeHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(SwitchesLanguageRecognizeHotKey, True))
+          else
+            MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(SwitchesLanguageRecognizeHotKey, True));
+        end;
+      end
+      else
+        MSpeechHotKeyManager.ClearHotKeys;
+      // Прозрачность окон
+      AlphaBlendValue := AlphaBlendEnableValue;
+      AlphaBlend := AlphaBlendEnable;
+      LogForm.AlphaBlend := AlphaBlendEnable;
+      LogForm.AlphaBlendValue := AlphaBlendEnableValue;
+      // Настройки синтеза голоса
+      if EnableTextToSpeech and (TextToSpeechEngine = 0) then
+      begin
+        MGSAPI.TTSLang := SAPIVoiceNum;
+        MGSAPI.TTSVoiceVolume := SAPIVoiceVolume;
+        MGSAPI.TTSVoiceSpeed := SAPIVoiceSpeed;
+      end;
+      // Фильтры
+      Filters();
+      // Авто-активация записи
+      StartNULLRecord;
+    end;
+    WM_STARTSAVESETTINGS: // Открытие окна настроек
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Вызов InitSaveSettings.');
+      StopButton.Click;
+      StopNULLRecord;
+    end;
+    WM_MSGBOX: // Отлавливаем событие WM_MSGBOX для изменения прозрачности окна
+    begin
+      msgbHandle := GetActiveWindow;
+      if msgbHandle <> 0 then
+        MakeTransp(msgbHandle);
+    end;
+    WM_LANGUAGECHANGED: // Смена языка программы
+    begin
+      LoadLanguageStrings;
+    end;
+    WM_QUERYENDSESSION: // Завершение работы Windows
+    begin
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': WMQueryEndSession');
+        SessionEnding := True;
+        Message.Result := 1;
+        Close;
+    end;
+    WM_WTSSESSION_CHANGE: // Смена статуса сеанса пользователя
+    begin
+      if Message.wParam = WTS_SESSION_LOCK then // ПК заблокирован
+      begin
+        Inc(FLockedCount);
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+        if StopRecognitionAfterLockingComputer then
+        begin
+          if MaxLevelOnAutoControl then
+            MaxLevelOnAutoControl := False;
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Останавливаем запись и распознавание.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          StopButton.Click;
+          StopNULLRecord;
         end;
       end;
+      if Message.wParam = WTS_SESSION_UNLOCK then // ПК разблокирован
+      begin
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован %d раз.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
+        if StartRecognitionAfterUnlockingComputer then
+        begin
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Запускаем запись.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          MaxLevelOnAutoControl := ReadCustomINI(WorkPath, 'Main', 'MaxLevelOnAutoControl', False);
+          if MaxLevelOnAutoControl then
+            StartNULLRecord
+          else
+            StartButton.Click;
+        end;
+      end;
+    end;
   end;
   inherited;
 end;
@@ -394,7 +502,107 @@ begin
   if not SettingsForm.Visible then
     SettingsForm.Show
   else
-    SettingsForm.Position := poMainFormCenter;
+    SettingsForm.BringToFront;
+end;
+
+procedure TMainForm.MGGoogleTTSEvent(Sender: TObject; pInfo: TGTTSResultInfo);
+begin
+  if pInfo.FStatus = TGTTSStatus.ttsDone then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if FileExists(pInfo.FResult) then
+    begin
+      MP3In.FileName := pInfo.FResult;
+      if MP3In.Valid then
+        DXAudioOut.Run
+      else
+      begin
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if FileExists(MP3In.FileName) then
+          DeleteFile(MP3In.FileName);
+      end;
+    end;
+  end
+  else if pInfo.FStatus = TGTTSStatus.ttsError then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TGTTSStatus.ttsInfo then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+end;
+
+procedure TMainForm.MGYandexTTSEvent(Sender: TObject; pInfo: TYTTSResultInfo);
+begin
+  if pInfo.FStatus = TYTTSStatus.ttsDone then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if FileExists(pInfo.FResult) then
+    begin
+      MP3In.FileName := pInfo.FResult;
+      if MP3In.Valid then
+        DXAudioOut.Run
+      else
+      begin
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if FileExists(MP3In.FileName) then
+          DeleteFile(MP3In.FileName);
+      end;
+    end;
+  end
+  else if pInfo.FStatus = TYTTSStatus.ttsError then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TYTTSStatus.ttsInfo then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+end;
+
+procedure TMainForm.MGISpeechTTSEvent(Sender: TObject; pInfo: TISpeechTTSResultInfo);
+begin
+  if pInfo.FStatus = TISpeechTTSStatus.ttsDone then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if FileExists(pInfo.FResult) then
+    begin
+      MP3In.FileName := pInfo.FResult;
+      if MP3In.Valid then
+        DXAudioOut.Run
+      else
+      begin
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if FileExists(MP3In.FileName) then
+          DeleteFile(MP3In.FileName);
+      end;
+    end;
+  end
+  else if pInfo.FStatus = TISpeechTTSStatus.ttsError then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TISpeechTTSStatus.ttsWarning then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Сервис iSpeech сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TISpeechTTSStatus.ttsInfo then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+end;
+
+procedure TMainForm.MGNuanceTTSEvent(Sender: TObject; pInfo: TNuanceTTSResultInfo);
+begin
+  if pInfo.FStatus = TNuanceTTSStatus.ttsDone then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if FileExists(pInfo.FResult) then
+    begin
+      WaveIn.FileName := pInfo.FResult;
+      if WaveIn.Valid then
+        DXAudioOut.Run
+      else
+      begin
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if FileExists(WaveIn.FileName) then
+          DeleteFile(WaveIn.FileName);
+      end;
+    end;
+  end
+  else if pInfo.FStatus = TNuanceTTSStatus.ttsError then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TNuanceTTSStatus.ttsWarning then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Сервис Nuance сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+  else if pInfo.FStatus = TNuanceTTSStatus.ttsInfo then
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MSpeechExitClick(Sender: TObject);
@@ -490,6 +698,11 @@ begin
       if StopRecord then
         StartRecognizer;
     end;
+  end
+  else
+  begin
+    ShowBalloonHint(ProgramsName, GetLangStr('MsgInf11'),  bitWarning);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Открыто окно Настройки. Распознавание речи отключено.');
   end;
 end;
 
@@ -679,7 +892,7 @@ begin
   if FileExists(OutFileName) then
   begin
     MSpeechTray.IconIndex := 4;
-    StartRecognize(GoogleAPIKey, OutFileName, CurrentSpeechRecognizeLang , UseProxy, ProxyAddress, ProxyPort, ProxyAuth, ProxyUser, ProxyUserPasswd, RecognizeResultCallBack, RecognizeErrorCallBack)
+    StartRecognize(GoogleAPIKey, OutFileName, CurrentSpeechRecognizeLang , UseProxy, ProxyAddress, ProxyPort, ProxyAuth, ProxyUser, ProxyUserPasswd, RecognizeResultCallBack)
   end
   else
   begin
@@ -689,88 +902,34 @@ begin
   end;
 end;
 
-{ Обработка ошибок распознавания }
-procedure TMainForm.RecognizeErrorCallBack(Sender: TObject; E: TRecognizeError; EStr: String);
-var
-  ErrStr: String;
-begin
-  case E of
-    reErrorGoogleCommunication: ErrStr := 'Ошибка связи с сервером Google: ' + EStr;
-    reFileSizeNull: ErrStr := 'Ошибка: Нулевой размер файла для распознавания: ' + EStr;
-    reErrorHostNotFound: ErrStr := 'Ошибка: ' + EStr + '. Проверьте настройки Firewall''а.';
-    reErrorConnectionTimedOut: ErrStr := 'Ошибка: ' + EStr + '. Проверьте настройки Firewall''а или прокси-сервера.';
-    reErrorGoogleResponse: ErrStr := 'Ошибка ответа сервера Google: ' + EStr;
-    else ErrStr := 'Ошибка: ' + EStr;
-  end;
-  if EnableLogs then WriteInLog(WorkPath, Format('%s: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), ErrStr]));
-  // Неизвестная ошибка в потоке распознавания
-  if E = reErrorGoogleResponse then
-  begin
-    MSpeechTray.IconIndex := 5;
-    ShowBalloonHint(ProgramsName, GetLangStr('MsgErr3'),  bitError);
-    StopNULLRecord;
-    if MaxLevelOnAutoControl then
-      StartNULLRecord;
-  end;
-  // Ошибка передачи данных в Google
-  if (E = reErrorConnectionTimedOut) or (E = reErrorHostNotFound) then
-  begin
-    MSpeechTray.IconIndex := 5;
-    ShowBalloonHint(ProgramsName, Format(GetLangStr('MsgErr12'), [EStr]),  bitError);
-    StopNULLRecord;
-    if MaxLevelOnAutoControl then
-      StartNULLRecord;
-  end;
-  StartButton.Enabled := True;
-  StopButton.Enabled := False;
-  CloseLogFile;
-  if LogForm.Showing then
-    SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
-  MSpeechTray.IconIndex := 0;
-end;
-
 { Обработка результатов распознавания }
-procedure TMainForm.RecognizeResultCallBack(Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo);
+procedure TMainForm.RecognizeResultCallBack(Sender: TObject; pInfo: TRecognizeInfo);
 var
+  MsgStr: String;
   RecognizeStr: String;
   K: Integer;
   RowN: Integer;
   Grid: TArrayOfInteger;
 begin
-  if EnableLogs then
-  begin
-    if pStatus = rsResolving then
-      WriteInLog(WorkPath, Format('%s: Разрешение имени сервера.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-    if pStatus = rsConnect then
-      WriteInLog(WorkPath, Format('%s: Подключение к серверу.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-    if pStatus = rsSendRequest then
-      WriteInLog(WorkPath, Format('%s: Отправка запроса на сервер.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-    if pStatus = rsResponseReceived then
-      WriteInLog(WorkPath, Format('%s: Получение ответа от сервера.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
-    if pStatus = rsRecognizeAbort then
-      WriteInLog(WorkPath, Format('%s: Отмена отправки данных.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+  case pInfo.FStatus of
+    rsErrorGetAPIKey: MsgStr := 'Ошибка: Новый Google API Key не был получен с сервере MSpeech: ' + pInfo.FMessage;
+    rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
+    rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
+    rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
+    rsErrorNoRouteToHost: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте подключение к Интернет и сетевые настройки.';
+    rsErrorConnectionTimedOut: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а или прокси-сервера.';
+    rsInfo: MsgStr := 'Информация: ' + pInfo.FMessage;
+    rsAbort: MsgStr := 'Отмена: ' + pInfo.FMessage;
   end;
-  if pStatus = rsRecordingNotRecognized then // Запись не распознана
+  if pInfo.FStatus = rsRecordingNotRecognized then // Запись не распознана
   begin
     MSpeechTray.IconIndex := 2;
     TextToSpeech(mRecordingNotRecognized);
     ShowBalloonHint(ProgramsName, GetLangStr('MsgInf2'), bitWarning);
-    CloseLogFile;
-    if LogForm.Showing then
-      SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
-    StopNULLRecord;
-    if MaxLevelOnAutoControl then
-      StartNULLRecord;
-    MSpeechTray.IconIndex := 0;
-  end;
-  if pStatus = rsRecognizeDone then // Запись распознана
+  end
+  else if pInfo.FStatus = rsRecognizeDone then // Запись распознана
   begin
-    if EnableLogs then
-    begin
-      WriteInLog(WorkPath, Format('%s: Статус распознавания = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FStatus]));
-      WriteInLog(WorkPath, Format('%s: Распознанная строка = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript]));
-      WriteInLog(WorkPath, Format('%s: Достоверность распознавания = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FloatToStr(pInfo.FConfidence)]));
-    end;
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Распознанная строка = %s, Достоверность распознавания = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript, FloatToStr(pInfo.FConfidence)]));
     RecognizeStr := pInfo.FTranscript;
     // Замена текста
     if EnableTextСorrection then
@@ -832,150 +991,109 @@ begin
       if Length(Grid) > 0 then // Команда найдена в списке
       begin
         if EnableLogs then WriteInLog(WorkPath, Format('%s: В CommandSGrid найдено %d команд.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
-        for K := Low(Grid) to High(Grid) do // Перебор найденных команд
+        // Перебор найденных команд
+        for K := Low(Grid) to High(Grid) do
         begin
-          if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mExecPrograms then
+          // Запуск программы
+          if IntToStr(CommandList[mExecPrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
             if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
-            //Beep;
             if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_HIDE)
             else
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_SHOWNORMAL);
           end
-          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mClosePrograms then
+          // Запуск программы и передача ей распознанной строки
+          else if IntToStr(CommandList[mExecProgramsParams].CommandCode) =  CommandSGrid.Cells[2,Grid[K]] then
+          begin
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу с передачей ей распознанной строки: ' + CommandSGrid.Cells[1,Grid[K]] + ' "' + RecognizeStr + '"');
+            if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
+              ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), PWideChar('"'+RecognizeStr+'"'), nil, SW_HIDE)
+            else
+              ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), PWideChar('"'+RecognizeStr+'"'), nil, SW_SHOWNORMAL);
+          end
+          // Закрытие программы
+          else if IntToStr(CommandList[mClosePrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])), WM_CLOSE);
               if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
-              //Beep;
+              EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])), WM_CLOSE);
             end;
           end
-          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mKillPrograms then
+          // Прибивание программы
+          else if IntToStr(CommandList[mKillPrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              KillTask(ExtractFileName(CommandSGrid.Cells[1,Grid[K]]));
               if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
-              //Beep;
+              KillTask(ExtractFileName(CommandSGrid.Cells[1,Grid[K]]));
             end;
           end
-          else if DetectCommandTypeName(CommandSGrid.Cells[2,Grid[K]]) = mTextToSpeech then
-            TextToSpeech(CommandSGrid.Cells[1,Grid[K]])
-          else
-          begin
-            if DefaultCommandExec  <> '' then // Выполняем команду по умолчанию
-            begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
-              if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
-                ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
-              else
-                ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
-            end;
-          end;
+          // Синтез голоса
+          else if IntToStr(CommandList[mTextToSpeech].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
+            TextToSpeech(CommandSGrid.Cells[1,Grid[K]]);
         end;
       end
       else // Команда не найдена в списке
       begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetLangStr('MsgInf3'));
+        // Выполнение команды по-умолчанию если она определена
+        if DefaultCommandExec  <> '' then
+        begin
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
+          if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
+            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
+          else
+            ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_SHOWNORMAL);
+        end
+        else
+        begin
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Команда не распознана или её нет в базе MSpeech.');
           TextToSpeech(mCommandNotFound);
           ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
+        end;
       end;
-      StopNULLRecord;
-      if MaxLevelOnAutoControl then
-        StartNULLRecord;
     end;
     StartButton.Enabled := True;
     StopButton.Enabled := False;
     MSpeechTray.IconIndex := 0;
-    CloseLogFile;
-    if LogForm.Showing then
-      SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);
-    StopNULLRecord;
-    if MaxLevelOnAutoControl then
-      StartNULLRecord;
+  end
+  else
+  begin
+    if MsgStr <> '' then
+    begin
+      if pInfo.FStatus <> rsInfo then
+      begin
+        MSpeechTray.IconIndex := 5;
+        ShowBalloonHint(ProgramsName, MsgStr, bitWarning);
+      end;
+      if EnableLogs then
+        WriteInLog(WorkPath, Format('%s: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), MsgStr]))
+    end;
   end;
-end;
-
-{ Регистрируем глобальные горячие клавиши }
-procedure TMainForm.RegisterHotKeys;
-begin
-  // Старт записи с передачей текста
-  if (StartRecordHotKey <> '') and GlobalHotKeyEnable then
-  begin
-    with JvStartRecordHotKey do
-    begin
-      HotKey := TextToShortCut(StartRecordHotKey);
-      Active := True;
-    end;
-  end
-  else
-    JvStartRecordHotKey.Active := False;
-  // Старт записи без передачи текста
-  if (StartRecordWithoutSendTextHotKey <> '') and GlobalHotKeyEnable then
-  begin
-    with JvStartRecordWithoutSendTextHotKey do
-    begin
-      HotKey := TextToShortCut(StartRecordWithoutSendTextHotKey);
-      Active := True;
-    end;
-  end
-  else
-    JvStartRecordWithoutSendTextHotKey.Active := False;
-  // Старт записи без выполнения команд
-  if (StartRecordWithoutExecCommandHotKey <> '') and GlobalHotKeyEnable then
-  begin
-    with JvStartRecordWithoutExecCommandHotKey do
-    begin
-      HotKey := TextToShortCut(StartRecordWithoutExecCommandHotKey);
-      Active := True;
-    end;
-  end
-  else
-    JvStartRecordWithoutExecCommandHotKey.Active := False;
-  // Переключения языков распознавания
-  if (SwitchesLanguageRecognizeHotKey <> '') and GlobalHotKeyEnable then
-  begin
-    with JvSwitchesLanguageRecognizeHotKey do
-    begin
-      HotKey := TextToShortCut(SwitchesLanguageRecognizeHotKey);
-      Active := True;
-    end;
-  end
-  else
-    JvSwitchesLanguageRecognizeHotKey.Active := False;
-end;
-
-{ Разрегистрируем глобальные горячие клавиши }
-procedure TMainForm.UnRegisterHotKeys;
-begin
-  if Assigned(JvStartRecordHotKey) then
-    JvStartRecordHotKey.Free;
-  if Assigned(JvStartRecordWithoutSendTextHotKey) then
-    JvStartRecordWithoutSendTextHotKey.Free;
-  if Assigned(JvStartRecordWithoutExecCommandHotKey) then
-    JvStartRecordWithoutExecCommandHotKey.Free;
-  if Assigned(JvSwitchesLanguageRecognizeHotKey) then
-    JvSwitchesLanguageRecognizeHotKey.Free;
+  CloseLogFile;
+  {if LogForm.Showing then
+    SendMessage(LogFormHandle, WM_UPDATELOG, 0, 0);}
+  StartNULLRecord;
 end;
 
 { Нажата горячая клавиша }
-procedure TMainForm.DoHotKey(Sender:TObject);
+procedure TMainForm.MSpeechHotKeyManagerHotKeyPressed(HotKey: Cardinal; Index: Word);
 begin
+  SetForegroundWindow(Application.Handle);
   // Старт записи с передачей текста
-  if ShortCutToText((Sender as TJvApplicationHotKey).HotKey) = StartRecordHotKey then
+  if Index = StartRecordHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+ShortCutToText((Sender as TJvApplicationHotKey).HotKey));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
     if StopRecord then
       StartButton.Click
     else
       StopButton.Click;
   end;
   // Старт записи без передачи текста
-  if ShortCutToText((Sender as TJvApplicationHotKey).HotKey) = StartRecordWithoutSendTextHotKey then
+  if Index = StartRecordWithoutSendTextHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+ShortCutToText((Sender as TJvApplicationHotKey).HotKey));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
     if StopRecord then // Начинаем запись
     begin
       EnableExecCommand := ReadCustomINI(WorkPath, 'Main', 'EnableExecCommand', True);
@@ -987,9 +1105,9 @@ begin
       StopButton.Click;
   end;
   // Старт записи без выполнения команд
-  if ShortCutToText((Sender as TJvApplicationHotKey).HotKey) = StartRecordWithoutExecCommandHotKey then
+  if Index = StartRecordWithoutExecCommandHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+ShortCutToText((Sender as TJvApplicationHotKey).HotKey));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
     if StopRecord then // Начинаем запись
     begin
       if EnableExecCommand then
@@ -1000,9 +1118,9 @@ begin
       StopButton.Click;
   end;
   // Смена языка распознавания
-  if ShortCutToText((Sender as TJvApplicationHotKey).HotKey) = SwitchesLanguageRecognizeHotKey then
+  if Index = SwitchesLanguageRecognizeHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+ShortCutToText((Sender as TJvApplicationHotKey).HotKey));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
     if CurrentSpeechRecognizeLang = DefaultSpeechRecognizeLang then
       CurrentSpeechRecognizeLang := SecondSpeechRecognizeLang
     else
@@ -1338,56 +1456,6 @@ begin
   end;
 end;
 
-{ Отлавливаем событие WM_MSGBOX для изменения прозрачности окна }
-procedure TMainForm.msgBoxShow(var Msg: TMessage);
-var
-  msgbHandle: HWND;
-begin
-  msgbHandle := GetActiveWindow;
-  if msgbHandle <> 0 then
-    MakeTransp(msgbHandle);
-end;
-
-{ Активация SAPI }
-function TMainForm.SAPIActivate: Boolean;
-begin
-  Result := False;
-  CoInitialize(nil);
-  try
-    gpIVTxt := TSpVoice.Create(nil);
-    Voices := gpIVTxt.GetVoices('','');
-    gpIVTxt.Voice := Voices.Item(SAPIVoiceNum);
-    gpIVTxt.Volume := SAPIVoiceVolume;
-    gpIVTxt.Rate := SAPIVoiceSpeed;
-    CoUninitialize;
-    Result := True;
-  except
-    on e: Exception do
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре SAPIActivate - ' + e.Message);
-      Exit;
-    end;
-  end;
-end;
-
-{ Деактивация SAPI }
-procedure TMainForm.SAPIDeactivate;
-begin
-  if Assigned(gpIVTxt) then
-  begin
-    try
-      gpIVTxt.Free;
-      gpIVTxt := nil;
-    except
-      on e: Exception do
-      begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре SAPIDeactivate - ' + e.Message);
-        Exit;
-      end;
-    end;
-  end;
-end;
-
 { Текст в голос по событиям  }
 procedure TMainForm.TextToSpeech(EType: TEventsType);
 var
@@ -1407,22 +1475,9 @@ begin
         begin
           if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SAPITextToSpeech = ' + TextToSpeechSGrid.Cells[0,Grid[K]]);
           if TextToSpeechEngine = 0 then // Если Microsoft SAPI
-          begin
-            CoInitialize(nil);
-            try
-              gpIVTxt.Speak(TextToSpeechSGrid.Cells[0,Grid[K]], SVSFlagsAsync);
-              CoUninitialize;
-            except
-              on e: Exception do
-              begin
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TextToSpeech - ' + e.Message);
-                CoUninitialize;
-                Exit;
-              end;
-            end;
-          end
+            MGSAPI.Speak(TextToSpeechSGrid.Cells[0,Grid[K]])
           else
-            OtherTTS(TextToSpeechSGrid.Cells[0,Grid[K]], GetUserTempPath() + 'mspeech-tts.mp3');
+            OtherTTS(TextToSpeechSGrid.Cells[0,Grid[K]]);
         end;
       end;
     end;
@@ -1436,115 +1491,78 @@ begin
   begin
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск TextToSpeech. Говорим: ' + SayText);
     if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
-    begin
-      CoInitialize(nil);
-      try
-        gpIVTxt.Speak(SayText, SVSFlagsAsync);
-        CoUninitialize;
-      except
-        on e: Exception do
-        begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TextToSpeech - ' + e.Message);
-          CoUninitialize;
-          Exit;
-        end;
-      end;
-    end
+      MGSAPI.Speak(SayText)
     else
-      OtherTTS(SayText, GetUserTempPath() + 'mspeech-tts.mp3');
+      OtherTTS(SayText);
   end;
 end;
 
 { Отправка текстового запроса в систему TTS, прием звукового файла и его воспроизведение }
-function TMainForm.OtherTTS(const Text, MP3FileName: String): Boolean;
-var
-  TTSResult: Boolean;
+procedure TMainForm.OtherTTS(const Text: String);
 begin
-  TTSResult := False;
+  if Text = EmptyStr then
+  begin
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': OtherTTS: Строка текста для синтеза пустая.');
+    Exit;
+  end;
   if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google TTS
   begin
-    TTSResult := GoogleTextToSpeech(Text, MP3FileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Google TTS (TTSLangCode = ' + GoogleTL + ', Говорим: ' + Text + ')');
+    DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 100;
+    MGGoogleTTS.TTSLangCode := GoogleTL;
+    MGGoogleTTS.TTSString := Text;
+    MGGoogleTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-google.mp3';
+    MGGoogleTTS.SpeakText;
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex TTS
   begin
-    TTSResult := YandexTextToSpeech(Text, MP3FileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Yandex TTS (TTSLangCode = ' + YandexTL + ', Говорим: ' + Text + ')');
+    DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 79;
-  end;
-  if TTSResult then
-  begin
-    if FileExists(MP3FileName) then
-    begin
-      MP3In.FileName := MP3FileName;
-      if MP3In.Valid then
-        DXAudioOut.Run
-      else
-      begin
-        if FileExists(MP3In.FileName) then
-          DeleteFile(MP3In.FileName);
-      end;
-    end;
+    MGYandexTTS.TTSLangCode := YandexTL;
+    MGYandexTTS.TTSString := Text;
+    MGYandexTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-yandex.mp3';
+    MGYandexTTS.SpeakText;
   end
-  else
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Если iSpeech TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'TTS - Ошибка передачи данных для синтеза речи.');
-    ShowBalloonHint(ProgramsName, GetLangStr('MsgErr13'),  bitError);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем iSpeech TTS (TTSLangCode = ' + iSpeechTL + ', Говорим: ' + Text + ')');
+    DXAudioOut.Input := MP3In;
+    DXAudioOut.Latency := 100;
+    MGISpeechTTS.TTSLangCode := iSpeechTL;
+    MGISpeechTTS.TTSString := Text;
+    MGISpeechTTS.APIKey := iSpeechAPIKey;
+    MGISpeechTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-ispeech.mp3';
+    MGISpeechTTS.SpeakText;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Если Nuance TTS
+  begin
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Nuance TTS (TTSVoice = ' + NuanceTL + ', Говорим: ' + Text + ')');
+    DXAudioOut.Input := WaveIn;
+    DXAudioOut.Latency := 100;
+    MGNuanceTTS.ID := '000';
+    MGNuanceTTS.TTSVoice := NuanceTL;
+    MGNuanceTTS.TTSString := Text;
+    MGNuanceTTS.APIKey := NuanceAPIKey;
+    MGNuanceTTS.APPID := NuanceAPPID;
+    MGNuanceTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-nuance.wav';
+    MGNuanceTTS.SpeakText;
   end;
 end;
 
 procedure TMainForm.DXAudioOutDone(Sender: TComponent);
 begin
-  if FileExists(MP3In.FileName) then
-    DeleteFile(MP3In.FileName);
-end;
-
-procedure TMainForm.InitSaveSettings(var Msg: TMessage);
-begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Вызов InitSaveSettings.');
-  StopButton.Click;
-  StopNULLRecord;
-end;
-
-procedure TMainForm.SaveSettingsDone(var Msg: TMessage);
-begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Вызов SaveSettingsDone.');
-  // Список команд
-  LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
-  // Список замены
-  if EnableTextReplace then
-    LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceSGrid);
-  // Список синтеза событий
-  if EnableTextToSpeech then
-    LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechSGrid);
-  // Регистрируем глобальные горячие клавиши
-  RegisterHotKeys;
-  // Прозрачность окон
-  AlphaBlendValue := AlphaBlendEnableValue;
-  AlphaBlend := AlphaBlendEnable;
-  LogForm.AlphaBlend := AlphaBlendEnable;
-  LogForm.AlphaBlendValue := AlphaBlendEnableValue;
-  // Настройки синтеза голоса
-  if EnableTextToSpeech and Assigned(gpIVTxt) and (TextToSpeechEngine = 0) then
+  if (Sender as TDXAudioOut).Input is TMP3In then
   begin
-    gpIVTxt.Voice := Voices.Item(SAPIVoiceNum);
-    gpIVTxt.Volume := SAPIVoiceVolume;
-    gpIVTxt.Rate := SAPIVoiceSpeed;
-  end
-  else if EnableTextToSpeech and (TextToSpeechEngine = 0) and not Assigned(gpIVTxt) then
-    SAPIActivate;
-  if not EnableTextToSpeech then
-    SAPIDeactivate;
-  // Фильтры
-  Filters();
-  // Авто-активация записи
-  if MaxLevelOnAutoControl then
-    StartNULLRecord;
-end;
-
-{ Смена языка интерфейса по событию WM_LANGUAGECHANGED }
-procedure TMainForm.OnLanguageChanged(var Msg: TMessage);
-begin
-  LoadLanguageStrings;
+    if FileExists(MP3In.FileName) then
+      DeleteFile(MP3In.FileName);
+  end;
+  if (Sender as TDXAudioOut).Input is TWaveIn then
+  begin
+    if FileExists(WaveIn.FileName) then
+      DeleteFile(WaveIn.FileName);
+  end;
 end;
 
 { Для мультиязыковой поддержки }

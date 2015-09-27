@@ -73,6 +73,8 @@
   <CloseProgramsCommandDesc>Close program</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Kill program</KillProgramsCommandDesc>
   <TextToSpeechCommandDesc>TextToSpeech</TextToSpeechCommandDesc>
+  <ExecProgramsParamsCommandDesc>Run program with params</ExecProgramsParamsCommandDesc>
+  <CBEnableExecCommand>Enable command execution</CBEnableExecCommand>
   <GBCommand>List of commands</GBCommand>
   <LCommandKey>Keyword:</LCommandKey>
   <LCommandExec>Command:</LCommandExec>
@@ -110,6 +112,9 @@
   <GBTextToSpeech>Settings</GBTextToSpeech>
   <LTextToSpeechEngine>Synthesis system:</LTextToSpeechEngine>
   <LVoice>Voice:</LVoice>
+  <LTTSAPIKey>API Key:</LTTSAPIKey>
+  <GetAPIKeyButton>Get API key</GetAPIKeyButton>
+  <LTTSAPPID>APP ID:</LTTSAPPID>
   <LVoiceVolumeDesc>Volume:</LVoiceVolumeDesc>
   <LVoiceSpeedDesc>Speed:</LVoiceSpeedDesc>
   <GBTextToSpeechList>List of synthesized words</GBTextToSpeechList>
@@ -149,6 +154,7 @@
   <StartRecordWithoutExecCommand>Start\stop recording without exec command</StartRecordWithoutExecCommand>
   <SwitchesLanguageRecognize>Switch language recognize</SwitchesLanguageRecognize>
   <HotKeyAlredyUses>This hot key is already in use!</HotKeyAlredyUses>
+  <HotKeyXAlredyUses>Hotkey %s is already in use in the system!</HotKeyXAlredyUses>
   
   <LangButton>Language</LangButton>
   <LangRussian>Russian</LangRussian>
@@ -187,5 +193,6 @@
   <MsgInf8>This line can not be removed!%sMust remain at least one proposal for speech synthesis.</MsgInf8>
   <MsgInf9>Voice Filter requires Windows Vista or later version.%sVoice Filter is turned off.</MsgInf9>
   <MsgInf10>In the beginning, in turn on the transmit text to input field.</MsgInf10>
+  <MsgInf11>Open the window "Settings".#13#10Speech recognition is disabled.</MsgInf11>
 
 </strings>

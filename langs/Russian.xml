@@ -73,6 +73,8 @@
   <CloseProgramsCommandDesc>Закрыть программу</CloseProgramsCommandDesc>
   <KillProgramsCommandDesc>Прибить программу</KillProgramsCommandDesc>
   <TextToSpeechCommandDesc>TextToSpeech</TextToSpeechCommandDesc>
+  <ExecProgramsParamsCommandDesc>Зап-ть прог-у с параметрами</ExecProgramsParamsCommandDesc>
+  <CBEnableExecCommand>Включить выполнение команд</CBEnableExecCommand>
   <GBCommand>Список команд</GBCommand>
   <LCommandKey>Ключевое слово:</LCommandKey>
   <LCommandExec>Команда:</LCommandExec>
@@ -110,6 +112,9 @@
   <GBTextToSpeech>Настройки</GBTextToSpeech>
   <LTextToSpeechEngine>Система синтеза:</LTextToSpeechEngine>
   <LVoice>Голос:</LVoice>
+  <LTTSAPIKey>Ключ для доступа к API:</LTTSAPIKey>
+  <GetAPIKeyButton>Получить API ключ</GetAPIKeyButton>
+  <LTTSAPPID>APP ID:</LTTSAPPID>
   <LVoiceVolumeDesc>Громкость голоса:</LVoiceVolumeDesc>
   <LVoiceSpeedDesc>Скорость голоса:</LVoiceSpeedDesc>
   <GBTextToSpeechList>Список синтезируемых слов</GBTextToSpeechList>
@@ -150,6 +155,7 @@
   <StartRecordWithoutExecCommand>Начать\остановить запись без выполнения команд</StartRecordWithoutExecCommand>
   <SwitchesLanguageRecognize>Переключение языка распознавания</SwitchesLanguageRecognize>
   <HotKeyAlredyUses>Такая горячая клавиша уже используется!</HotKeyAlredyUses>
+  <HotKeyXAlredyUses>Горячая клавиша %s уже используется в системе!</HotKeyXAlredyUses>
 
   <LangButton>Язык программы</LangButton>
   <LangRussian>Русский</LangRussian>
@@ -188,5 +194,6 @@
   <MsgInf8>Эту строку нельзя удалить!%sДолжна оставаться хотя бы одно предложения для синтеза.</MsgInf8>
   <MsgInf9>Для работы Voice Filter требуется Windows Vista или более новая версия.%sVoice Filter будет отключен.</MsgInf9>
   <MsgInf10>Вначале, включите передачу текста в поля ввода.</MsgInf10>
+  <MsgInf11>Открыто окно "Настройки".#13#10Распознавание речи отключено.</MsgInf11>
 
 </strings>

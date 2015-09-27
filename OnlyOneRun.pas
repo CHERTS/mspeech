@@ -1,10 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (c) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 

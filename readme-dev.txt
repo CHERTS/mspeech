@@ -13,30 +13,26 @@ WWW:		http://www.programs74.ru
 ---------------------
 ОС:		Win2000/XP/2003/Vista/7/8
 
-Необходимые компоненты для сборки:
-----------------------------------
+Для сборки MSpeech необходимы:
+------------------------------
 
-1. Embarcadero RAD Studio XE6
+1. Embarcadero RAD Studio XE6, XE7, XE8
 
-2. JEDI Core 2.4 Build 4571 + JEDI VCL 3.47
-   Сайт: http://www.delphi-jedi.org
-   Сайт: http://sourceforge.net/projects/jcl/files/JCL%20Releases/JCL%202.4%20Build%204571/
-   Сайт: http://sourceforge.net/projects/jvcl/files/JVCL%203/JVCL%203.47/
-   Репозитарий JCL: https://github.com/project-jedi/jcl.git
-   Репозитарий JVCL: https://github.com/project-jedi/jvcl.git
-
-3. CoolTrayIcon
-   Сайт: http://www.songbeamer.com/delphi/
-
-4. New Audio Components for Delphi
+2. New Audio Components for Delphi
    Сайт: http://symmetrica.net/newac/
    Репозитарий: https://code.google.com/p/newac/
 
-5. Synapse
-   Сайт: http://www.ararat.cz/synapse/doku.php/download
-   Репозитарий: http://svn.code.sf.net/p/synalist/code/trunk
+3. Набор компонентов MGSoft
+   Находится в папке MGSoft.
 
-6. IMButtonGroup
-   Находится в папке IMButtonGroupComponent.
+Для сборки инсталлятора MSpeech необходим:
+------------------------------------------
+
+1. NSIS v2.46 (Nullsoft Scriptable Install System)
+   Сайт: http://nsis.sourceforge.net/Main_Page
+2. Плагин UAC plug-in
+   Сайт: http://nsis.sourceforge.net/UAC_plug-in
+3. Плагин Registry plug-in
+   Сайт: http://nsis.sourceforge.net/Registry_plug-in
 
 (c) 2012-2014 by Mikhail Grigorev

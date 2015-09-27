@@ -1,10 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -16,16 +18,14 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, Types, StdCtrls, IniFiles, ComCtrls,  ExtCtrls, ButtonGroup, uIMButtonGroup,
-  Buttons, Menus, ImgList, Vcl.Grids, Global, Vcl.Samples.Spin, ActiveX, SpeechLib_TLB,
-  ACS_Classes, ACS_DXAudio, JvComponentBase, JvFormPlacement, ShellApi,
-  ACS_WinMedia, ACS_smpeg
+  Dialogs, Types, StdCtrls, IniFiles, ComCtrls,  ExtCtrls, ButtonGroup, MGButtonGroup,
+  Buttons, Menus, ImgList, Vcl.Grids, Vcl.Samples.Spin, ShellApi, Global, MGHotKeyManager, MGSAPI
   {$ifdef LICENSE}, License{$endif LICENSE};
 
 type
   THackGrid = class(TStringGrid);
   TSettingsForm = class(TForm)
-    SettingtButtonGroup: TIMButtonGroup;
+    SettingtButtonGroup: TMGButtonGroup;
     SaveSettingsButton: TButton;
     CloseButton: TButton;
     ImageList_Main: TImageList;
@@ -135,7 +135,6 @@ type
     DeleteTextToSpeechButton: TButton;
     CBEventsType: TComboBox;
     CBTextToSpeechStatus: TComboBox;
-    DXAudioIn: TDXAudioIn;
     СhangeTextToSpeechButton: TButton;
     ChangeCommandButton: TButton;
     CBEnableExecCommand: TCheckBox;
@@ -151,7 +150,6 @@ type
     ChangeReplaceButton: TButton;
     DeleteReplaceButton: TButton;
     CBEnableTextСorrection: TCheckBox;
-    SettingsFormStorage: TJvFormStorage;
     CBEnableFilters: TCheckBox;
     GBFilters: TGroupBox;
     RGFiltersType: TRadioGroup;
@@ -206,10 +204,14 @@ type
     GBMainSettings: TGroupBox;
     CBAutoRunMSpeech: TCheckBox;
     SBVoiceTest: TSpeedButton;
-    TTSMP3In: TMP3In;
-    TTSDXAudioOut: TDXAudioOut;
+    ETTSAPIKey: TEdit;
+    LTTSAPIKey: TLabel;
+    GetAPIKeyButton: TButton;
+    ETTSAPPID: TEdit;
+    LTTSAPPID: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure SettingtButtonGroupClick(Sender: TObject);
     procedure SaveSettingsButtonClick(Sender: TObject);
     procedure CloseButtonClick(Sender: TObject);
@@ -274,23 +276,17 @@ type
     procedure BActivateLicenseClick(Sender: TObject);
     procedure BActivateClick(Sender: TObject);
     procedure SBVoiceTestClick(Sender: TObject);
-    procedure TTSDXAudioOutDone(Sender: TComponent);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure GetAPIKeyButtonClick(Sender: TObject);
   private
     { Private declarations }
     HotKeySelectedCell: Integer;
     ReplaceStringSelectedCell: Integer;
     CommandStringSelectedCell: Integer;
     TextToSpeechStringSelectedCell: Integer;
-    SgpIVTxt: TSpVoice;
-    SVoices: ISpeechObjectTokens;
     procedure OnLanguageChanged(var Msg: TMessage); message WM_LANGUAGECHANGED;
     procedure msgBoxShow(var Msg: TMessage); message WM_MSGBOX;
     procedure LoadLanguageStrings;
-    function SAPIActivate: Boolean;
-    procedure SAPIDeactivate;
     procedure SAPITextToSpeech(MyText: String);
-    function OtherTTS(const Text, MP3FileName: String): Boolean;
   public
     { Public declarations }
     ActivateAddReplaceButton: Boolean;
@@ -303,6 +299,9 @@ type
     procedure AddCommmandsToList;
     procedure SetSAPISettings;
     procedure SetOtherTTSSettings;
+    procedure ActivateAPIKeyControl;
+    procedure DeactivateAPIKeyControl;
+    procedure DeactivateSAPIControl;
     procedure AddEventsTypeToList;
     procedure AddEventsTypeStatusToList;
   end;
@@ -311,6 +310,8 @@ var
   SettingsForm: TSettingsForm;
 
 implementation
+
+uses Main;
 
 {$R *.dfm}
 {$R About.res}
@@ -369,9 +370,9 @@ begin
   SettingsPageControl.ActivePage := TabSheetSettings;
   // Заполняем список устройст записи
   CBDevice.Clear;
-  for DevCnt := 0 to DXAudioIn.DeviceCount - 1 do
-    CBDevice.Items.Add(DXAudioIn.DeviceName[DevCnt]);
-  if DXAudioIn.DeviceCount > DefaultAudioDeviceNumber then
+  for DevCnt := 0 to MainForm.DXAudioIn.DeviceCount - 1 do
+    CBDevice.Items.Add(MainForm.DXAudioIn.DeviceName[DevCnt]);
+  if MainForm.DXAudioIn.DeviceCount > DefaultAudioDeviceNumber then
     CBDevice.ItemIndex := DefaultAudioDeviceNumber
   else
     CBDevice.ItemIndex := 0;
@@ -401,7 +402,9 @@ begin
   SendMessage(MainFormHandle, WM_STARTSAVESETTINGS, 0, 0);
   // Устанавливаем новые настройки
   // Команды
+  TranslateCommandNameToCode(CommandStringGrid);
   SaveCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
+  TranslateCommandCodeToName(CommandStringGrid);
   // Прокси
   UseProxy := CBUseProxy.Checked;
   ProxyAddress := EProxyAddress.Text;
@@ -476,19 +479,34 @@ begin
   EnableTextToSpeech := CBEnableTextToSpeech.Checked;
   TextToSpeechEngine := CBTextToSpeechEngine.ItemIndex;
   if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
-    SAPIVoiceNum := CBVoice.ItemIndex
+  begin
+    SAPIVoiceNum := CBVoice.ItemIndex;
+    SAPIVoiceVolume := TBVoiceVolume.Position;
+    SAPIVoiceSpeed := TBVoiceSpeed.Position;
+  end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google
   begin
-    GoogleTL := GoogleTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
-    SAPIVoiceNum := 0;
+    GoogleTL := MainForm.MGGoogleTTS.GTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
+    //SAPIVoiceNum := 0;
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex
   begin
-    YandexTL := YandexTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
-    SAPIVoiceNum := 0;
+    YandexTL := MainForm.MGYandexTTS.YTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
+    //SAPIVoiceNum := 0;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Если iSpeech
+  begin
+    ISpeechTL := MainForm.MGISpeechTTS.ISpeechTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
+    iSpeechAPIKey := ETTSAPIKey.Text;
+    //SAPIVoiceNum := 0;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Если Nuance
+  begin
+    NuanceTL := MainForm.MGNuanceTTS.NuanceTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
+    NuanceAPIKey := ETTSAPIKey.Text;
+    NuanceAPPID := ETTSAPPID.Text;
+    //SAPIVoiceNum := 0;
   end;
-  SAPIVoiceVolume := TBVoiceVolume.Position;
-  SAPIVoiceSpeed := TBVoiceSpeed.Position;
   if EnableTextToSpeech then
     SaveTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechStringGrid);
   // Фильтры
@@ -513,20 +531,16 @@ begin
   AutoRunMSpeech := CBAutoRunMSpeech.Checked;
   if AutoRunMSpeech then
   begin
-    if not CheckCurrentUserAutorun(ProgramsName) then
-    begin
-      if FileExists(ProgramsPath + ExtractFileNameEx(Application.ExeName, True)) then
-        AddCurrentUserAutorun(ProgramsName, '"'+ProgramsPath + ExtractFileNameEx(Application.ExeName, True)+'"')
-    end;
+    if not CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
+      CheckAutorun(mAutorunCurrentUser, mAutorunEnable, ProgramsName, ParamStr(0));
   end
   else
   begin
-    if CheckCurrentUserAutorun(ProgramsName) then
-      DeleteCurrentUserAutorun(ProgramsName);
+    if CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
+      CheckAutorun(mAutorunCurrentUser, mAutorunDisable, ProgramsName, ParamStr(0));
   end;
   // Сохраняем настройки
   SaveINI(WorkPath);
-  SAPIDeactivate;
   // Для основной формы
   SendMessage(MainFormHandle, WM_SAVESETTINGSDONE, 0, 0);
   StartSaveSettings := False;
@@ -632,6 +646,7 @@ begin
   CommandStringGrid.ColWidths[1] := 250;
   CommandStringGrid.ColWidths[2] := 120;
   LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
+  TranslateCommandCodeToName(CommandStringGrid);
   // Коррекция текста
   {$ifdef LICENSE}
   CBEnableSendTextInactiveWindow.OnClick := nil;
@@ -677,12 +692,11 @@ begin
   end
   else
     CBTextToSpeechEngine.ItemIndex := CBTextToSpeechEngine.Items.IndexOf(TTSEngineList[TTTSEngine(TextToSpeechEngine)].TTSDisplayName);
-    //CBTextToSpeechEngine.ItemIndex := TextToSpeechEngine;
   GBTextToSpeechEngine.Caption := Format(' %s ',[CBTextToSpeechEngine.Items[CBTextToSpeechEngine.ItemIndex]]);
   CBTextToSpeechEngine.OnChange := CBTextToSpeechEngineChange;
   if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
     SetSAPISettings
-  else // Google или Yandex
+  else // Google, Yandex, iSpeech или Nuance
     SetOtherTTSSettings;
   // Список типов событий и т.д.
   AddEventsTypeToList;
@@ -722,46 +736,12 @@ end;
 
 procedure TSettingsForm.SetSAPISettings;
 var
-  VoiceCnt: Integer;
+  VInfo: TVoiceInfo;
 begin
-  if not Assigned(SgpIVTxt) then
-  begin
-    CBVoice.Clear;
-    if SAPIActivate then
-    begin
-      for VoiceCnt := 0 to SVoices.Count - 1 do
-        CBVoice.Items.Add(SVoices.Item(VoiceCnt).GetDescription(0));
-    end;
-  end
-  else
-  begin
-    CBVoice.Clear;
-    for VoiceCnt := 0 to SVoices.Count - 1 do
-      CBVoice.Items.Add(SVoices.Item(VoiceCnt).GetDescription(0));
-  end;
-  if CBVoice.Items.Count > 0 then
-  begin
-    if SAPIVoiceNum <= SVoices.Count then
-      CBVoice.ItemIndex := SAPIVoiceNum
-    else
-      CBVoice.ItemIndex := 0;
-    CBVoice.OnChange := CBVoiceChange;
-    with LBSAPIInfo.Items do
-    begin
-      Clear;
-      Add(Format('Имя: %s', [SVoices.Item(CBVoice.ItemIndex).GetAttribute('Name')]));
-      Add(Format('Создатель: %s', [SVoices.Item(CBVoice.ItemIndex).GetAttribute('Vendor')]));
-      Add(Format('Возраст: %s', [SVoices.Item(CBVoice.ItemIndex).GetAttribute('Age')]));
-      Add(Format('Пол: %s', [SVoices.Item(CBVoice.ItemIndex).GetAttribute('Gender')]));
-      Add(Format('Язык: %s', [SVoices.Item(CBVoice.ItemIndex).GetAttribute('Language')]));
-      //Add(Format('Ключь в реестре: %s', [Voices.Item(CBVoice.ItemIndex).Id]));
-    end;
-    SgpIVTxt.Voice := SVoices.Item(SAPIVoiceNum);
-    GBTextToSpeechList.Visible := True;
-  end
-  else
+  if not MainForm.MGSAPI.GetVoices(CBVoice.Items) then
   begin
     CBVoice.ItemIndex := -1;
+    CBVoice.OnChange := nil;
     LVoiceVolumeDesc.Enabled := False;
     TBVoiceVolume.Enabled := False;
     LVoiceVolume.Enabled := False;
@@ -775,6 +755,30 @@ begin
       Add(GetLangStr('MsgErr11'));
     end;
     GBTextToSpeechList.Visible := False;
+  end
+  else
+  begin
+    CBVoice.ItemIndex := SAPIVoiceNum;
+    CBVoice.OnChange := CBVoiceChange;
+    CBVoiceChange(CBVoice);
+    VInfo := MainForm.MGSAPI.GetVoiceInfo(SAPIVoiceNum);
+    with LBSAPIInfo.Items do
+    begin
+      Clear;
+      Add(Format('Имя: %s', [VInfo.VoiceName]));
+      Add(Format('Создатель: %s', [VInfo.VoiceVendor]));
+      Add(Format('Возраст: %s', [VInfo.VoiceAge]));
+      Add(Format('Пол: %s', [VInfo.VoiceGender]));
+      Add(Format('Язык: %s', [VInfo.VoiceLanguage]));
+      //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
+    end;
+    GBTextToSpeechList.Visible := True;
+    TBVoiceVolume.Position := MainForm.MGSAPI.TTSVoiceVolume;
+    TBVoiceSpeed.Position := MainForm.MGSAPI.TTSVoiceSpeed;
+    LVoiceVolume.Caption := IntToStr(TBVoiceVolume.Position);
+    LVoiceSpeed.Caption := IntToStr(TBVoiceSpeed.Position);
+    TBVoiceVolume.Position := SAPIVoiceVolume;
+    TBVoiceSpeed.Position := SAPIVoiceSpeed;
   end;
   LVoiceVolumeDesc.Visible := True;
   TBVoiceVolume.Visible := True;
@@ -783,21 +787,88 @@ begin
   TBVoiceSpeed.Visible := True;
   LVoiceSpeed.Visible := True;
   LBSAPIInfo.Visible := True;
+  DeactivateAPIKeyControl;
   CBVoice.Left := TBVoiceVolume.Left + 5;
   SBVoiceTest.Left := CBVoice.Left + CBVoice.Width + 5;
   GBTextToSpeechEngine.Height := TBVoiceSpeed.Top + TBVoiceSpeed.Height + 10;
-  TBVoiceVolume.Position := SgpIVTxt.Volume;
-  LVoiceVolume.Caption := IntToStr(TBVoiceVolume.Position);
-  TBVoiceSpeed.Position := SgpIVTxt.Rate;
-  LVoiceSpeed.Caption := IntToStr(TBVoiceSpeed.Position);
-  TBVoiceVolume.Position := SAPIVoiceVolume;
-  TBVoiceSpeed.Position := SAPIVoiceSpeed;
   GBTextToSpeechList.Top := GBTextToSpeechEngine.Top + GBTextToSpeechEngine.Height + 5;
 end;
 
 procedure TSettingsForm.SetOtherTTSSettings;
 begin
-  SAPIDeactivate;
+  DeactivateSAPIControl;
+  CBVoice.Items.Clear;
+  if TTTSEngine(TextToSpeechEngine) = TTSGoogle then
+  begin
+    if not MainForm.MGGoogleTTS.GetVoices(CBVoice.Items, True) then
+    begin
+      CBVoice.ItemIndex := -1;
+      CBVoice.Enabled := False;
+    end
+    else
+    begin
+      CBVoice.ItemIndex := MainForm.MGGoogleTTS.GTTSLanguageNum(CBVoice.Items, GoogleTL);;
+      CBVoice.OnChange := CBVoiceChange;
+      CBVoiceChange(CBVoice);
+    end;
+    DeactivateAPIKeyControl;
+  end
+  else if TTTSEngine(TextToSpeechEngine) = TTSYandex then
+  begin
+    if not MainForm.MGYandexTTS.GetVoices(CBVoice.Items, True) then
+    begin
+      CBVoice.ItemIndex := -1;
+      CBVoice.Enabled := False;
+    end
+    else
+    begin
+      CBVoice.ItemIndex := MainForm.MGYandexTTS.YTTSLanguageNum(CBVoice.Items, YandexTL);;
+      CBVoice.OnChange := CBVoiceChange;
+      CBVoiceChange(CBVoice);
+    end;
+    DeactivateAPIKeyControl;
+  end
+  else if TTTSEngine(TextToSpeechEngine) = TTSISpeech then
+  begin
+    if not MainForm.MGISpeechTTS.GetVoices(CBVoice.Items, True) then
+    begin
+      CBVoice.ItemIndex := -1;
+      CBVoice.Enabled := False;
+    end
+    else
+    begin
+      CBVoice.ItemIndex := MainForm.MGISpeechTTS.ISpeechTTSLanguageNum(CBVoice.Items, ISpeechTL);;
+      CBVoice.OnChange := CBVoiceChange;
+      CBVoiceChange(CBVoice);
+    end;
+    ActivateAPIKeyControl;
+    ETTSAPIKey.Text := iSpeechAPIKey;
+    ETTSAPPID.Enabled := False;
+    LTTSAPPID.Enabled := False;
+  end
+  else if TTTSEngine(TextToSpeechEngine) = TTSNuance then
+  begin
+    if not MainForm.MGNuanceTTS.GetVoices(CBVoice.Items, True) then
+    begin
+      CBVoice.ItemIndex := -1;
+      CBVoice.Enabled := False;
+    end
+    else
+    begin
+      CBVoice.ItemIndex := MainForm.MGNuanceTTS.NuanceTTSLanguageNum(CBVoice.Items, NuanceTL);;
+      CBVoice.OnChange := CBVoiceChange;
+      CBVoiceChange(CBVoice);
+    end;
+    ActivateAPIKeyControl;
+    ETTSAPIKey.Text := NuanceAPIKey;
+    ETTSAPPID.Text := NuanceAPPID;
+  end;
+  GBTextToSpeechList.Visible := True;
+  GBTextToSpeechList.Top := GBTextToSpeechEngine.Top + GBTextToSpeechEngine.Height + 5;
+end;
+
+procedure TSettingsForm.ActivateAPIKeyControl;
+begin
   LVoiceVolumeDesc.Visible := False;
   TBVoiceVolume.Visible := False;
   LVoiceVolume.Visible := False;
@@ -805,18 +876,45 @@ begin
   TBVoiceSpeed.Visible := False;
   LVoiceSpeed.Visible := False;
   LBSAPIInfo.Visible := False;
+  LTTSAPIKey.Visible := True;
+  ETTSAPIKey.Visible := True;
+  LTTSAPPID.Visible := True;
+  ETTSAPPID.Visible := True;
+  LTTSAPPID.Enabled := True;
+  ETTSAPPID.Enabled := True;
+  GetAPIKeyButton.Visible := True;
+  // Позиционируем контролы
   CBVoice.Left := LVoice.Left + LVoice.Width + 10;
-  SBVoiceTest.Left := CBVoice.Left + CBVoice.Width + 5;
-  GBTextToSpeechEngine.Height := CBVoice.Top + CBVoice.Height + 10;
-  if not GetTTSLanguages(CBVoice.Items, TTTSEngine(TextToSpeechEngine) ,True) then
-  begin
-    CBVoice.Items.Add(GoogleTTSLanguageList[GTTS_English].LangDisplayName);
-    CBVoice.ItemIndex := 0;
-  end
+  ETTSAPIKey.Left := LTTSAPIKey.Left + LTTSAPIKey.Width + 10;
+  if LTTSAPPID.Left + LTTSAPPID.Width + 10 > ETTSAPIKey.Left then
+    ETTSAPPID.Left := LTTSAPPID.Left + LTTSAPPID.Width + 10
   else
-    CBVoice.ItemIndex := GetTTSLanguageNum(CBVoice.Items, TTTSEngine(TextToSpeechEngine));
-  GBTextToSpeechList.Visible := True;
-  GBTextToSpeechList.Top := GBTextToSpeechEngine.Top + GBTextToSpeechEngine.Height + 5;
+    ETTSAPPID.Left := ETTSAPIKey.Left;
+  GetAPIKeyButton.Left := ETTSAPIKey.Left + ETTSAPIKey.Width + 10;
+  SBVoiceTest.Left := CBVoice.Left + CBVoice.Width + 5;
+  GBTextToSpeechEngine.Height := ETTSAPPID.Top + ETTSAPPID.Height + 10;
+end;
+
+procedure TSettingsForm.DeactivateAPIKeyControl;
+begin
+  LTTSAPIKey.Visible := False;
+  ETTSAPIKey.Visible := False;
+  LTTSAPPID.Visible := False;
+  ETTSAPPID.Visible := False;
+  GetAPIKeyButton.Visible := False;
+  // Позиционируем контролы
+  GBTextToSpeechEngine.Height := CBVoice.Top + CBVoice.Height + 10;
+end;
+
+procedure TSettingsForm.DeactivateSAPIControl;
+begin
+  LVoiceVolumeDesc.Visible := False;
+  TBVoiceVolume.Visible := False;
+  LVoiceVolume.Visible := False;
+  LVoiceSpeedDesc.Visible := False;
+  TBVoiceSpeed.Visible := False;
+  LVoiceSpeed.Visible := False;
+  LBSAPIInfo.Visible := False;
 end;
 
 { Процедура поиска языковых файлов и заполнения списка }
@@ -852,17 +950,18 @@ procedure TSettingsForm.AddCommmandsToList;
 begin
   // Список команд
   CBCommandType.Clear;
-  CBCommandType.Items.Add(DetectCommandTypeName(mExecPrograms));
-  CBCommandType.Items.Add(DetectCommandTypeName(mClosePrograms));
-  CBCommandType.Items.Add(DetectCommandTypeName(mKillPrograms));
-  if EnableTextToSpeech then
-    CBCommandType.Items.Add(DetectCommandTypeName(mTextToSpeech));
-  CBCommandType.ItemIndex := 0;
+  if not GetCommands(CBCommandType.Items, True) then
+  begin
+    CBCommandType.Items.Add(GetLangStr(CommandList[mExecPrograms].CommandDisplayName));
+    CBCommandType.ItemIndex := 0;
+  end
+  else
+    CBCommandType.ItemIndex := 0;
 end;
 
 procedure TSettingsForm.CBDeviceChange(Sender: TObject);
 begin
-  DXAudioIn.DeviceNumber := (Sender as TComboBox).ItemIndex;
+  MainForm.DXAudioIn.DeviceNumber := (Sender as TComboBox).ItemIndex;
 end;
 
 procedure TSettingsForm.CBEnableExecCommandClick(Sender: TObject);
@@ -998,12 +1097,12 @@ end;
 
 procedure TSettingsForm.MicSettingsButtonClick(Sender: TObject);
 begin
-  if (DetectWinVersionStr = 'Windows 7') or (DetectWinVersionStr = 'Windows 8') then
+  if (MainForm.MGOSInfo.WindowsProductName = 'Windows 7') or (MainForm.MGOSInfo.WindowsProductName = 'Windows 8')  or (MainForm.MGOSInfo.WindowsProductName = 'Windows 8.1') then
     ShellExecute(Handle, nil, 'control.exe', 'mmsys.cpl,,1', '', SW_SHOWNORMAL)
-  else if (DetectWinVersionStr = 'Windows XP') or (DetectWinVersionStr = 'Windows 2000') then
+  else if (MainForm.MGOSInfo.WindowsProductName = 'Windows XP') or (MainForm.MGOSInfo.WindowsProductName = 'Windows 2000') then
     WinExec('SndVol32.exe /r', SW_SHOW)
   else
-    MsgInf(ProgramsName, Format(GetLangStr('MsgInf1'), [#13, DetectWinVersionStr]));
+    MsgInf(ProgramsName, Format(GetLangStr('MsgInf1'), [#13, MainForm.MGOSInfo.WindowsProductName]));
 end;
 
 procedure TSettingsForm.SBCommandSelectClick(Sender: TObject);
@@ -1028,7 +1127,14 @@ procedure TSettingsForm.SetHotKeyButtonClick(Sender: TObject);
 var
   S: String;
   I: Integer;
+  HotKeyVar: Cardinal;
 begin
+  HotKeyVar := TextToHotKey(ShortCutToText(IMHotKey.HotKey), True);
+  if HotKeyVar = 0 then
+  begin
+    MsgDie(ProgramsName, Format(GetLangStr('HotKeyXAlredyUses'), [ShortCutToText(IMHotKey.HotKey)]));
+    Exit;
+  end;
   S := ShortCutToText(IMHotKey.HotKey);
   for I := 0 to HotKetStringGrid.RowCount - 1 do
   begin
@@ -1102,6 +1208,7 @@ begin
   EnableTextToSpeech := (Sender as TCheckBox).Checked;
   AddCommmandsToList;
   LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
+  TranslateCommandCodeToName(CommandStringGrid);
 end;
 
 procedure TSettingsForm.CBEnableTextСorrectionClick(Sender: TObject);
@@ -1160,7 +1267,7 @@ begin
   CommandStringSelectedCell := ARow;
   ECommandKey.Text := CommandStringGrid.Cells[0,ARow];
   ECommandExec.Text := CommandStringGrid.Cells[1,ARow];
-  CBCommandType.ItemIndex := DetectCommandType(DetectCommandTypeName(CommandStringGrid.Cells[2,ARow]));
+  CBCommandType.ItemIndex := CommandNum(CBCommandType.Items, CommandStringGrid.Cells[2,ARow]);
   CBCommandTypeChange(CBCommandType);
   ChangeCommandButton.Enabled := True;
   DeleteCommandButton.Enabled := True;
@@ -1202,20 +1309,25 @@ end;
 
 procedure TSettingsForm.CBCommandTypeChange(Sender: TObject);
 begin
-  if DetectCommandTypeName((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]) = mExecPrograms then
+  if GetLangStr(CommandList[mExecPrograms].CommandDisplayName) = (Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex] then
   begin
     LCommandExec.Caption := GetLangStr('LCommandExec');
     SBCommandSelect.Enabled := True;
   end
-  else if DetectCommandTypeName((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]) = mClosePrograms then
+  else if GetLangStr(CommandList[mClosePrograms].CommandDisplayName) = (Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex] then
   begin
     LCommandExec.Caption := GetLangStr('LCommandClose');
     SBCommandSelect.Enabled := True;
   end
-  else if DetectCommandTypeName((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]) = mTextToSpeech then
+  else if GetLangStr(CommandList[mTextToSpeech].CommandDisplayName) = (Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex] then
   begin
     LCommandExec.Caption := GetLangStr('LCommandTextToSpeech');
     SBCommandSelect.Enabled := False;
+  end
+  else if GetLangStr(CommandList[mExecProgramsParams].CommandDisplayName) = (Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex] then
+  begin
+    LCommandExec.Caption := GetLangStr('LCommandExec');
+    SBCommandSelect.Enabled := True;
   end
   else
   begin
@@ -1278,13 +1390,22 @@ end;
 
 { Добывить команду }
 procedure TSettingsForm.AddCommandButtonClick(Sender: TObject);
+var
+  RowScrollCnt, I: Integer;
 begin
   if (ECommandKey.Text <> '') and (ECommandExec.Text <> '') then
   begin
     CommandStringGrid.RowCount := CommandStringGrid.RowCount + 1;
     CommandStringGrid.Cells[0,CommandStringGrid.RowCount-1] := ECommandKey.Text;
     CommandStringGrid.Cells[1,CommandStringGrid.RowCount-1] := ECommandExec.Text;
-    CommandStringGrid.Cells[2,CommandStringGrid.RowCount-1] := DetectCommandType(CBCommandType.ItemIndex);
+    CommandStringGrid.Cells[2,CommandStringGrid.RowCount-1] := CBCommandType.Items[CBCommandType.ItemIndex];
+    // Скроллинг StringGrid в самый конец
+    RowScrollCnt := 0;
+    // 12 число видимых на экране строк в StringGrid
+    if CommandStringGrid.RowCount > 12 then
+      RowScrollCnt := Trunc(CommandStringGrid.RowCount/12);
+    for I := 0 to RowScrollCnt do
+      CommandStringGrid.Perform(WM_VSCROLL, SB_PAGEDOWN, 0);
   end;
 end;
 
@@ -1294,7 +1415,7 @@ begin
   begin
     CommandStringGrid.Cells[0,CommandStringSelectedCell] := ECommandKey.Text;
     CommandStringGrid.Cells[1,CommandStringSelectedCell] := ECommandExec.Text;
-    CommandStringGrid.Cells[2,CommandStringSelectedCell] := DetectCommandType(CBCommandType.ItemIndex);
+    CommandStringGrid.Cells[2,CommandStringSelectedCell] := CBCommandType.Items[CBCommandType.ItemIndex];
   end;
 end;
 
@@ -1366,106 +1487,105 @@ begin
   TextToSpeechEngine := (Sender as TComboBox).ItemIndex;
   if (Sender as TComboBox).ItemIndex = Integer(TTTSEngine(TTSMicrosoft)) then // Microsoft SAPI
     SetSAPISettings
-  else // Google или Yandex
+  else // Google, Yandex или другие
     SetOtherTTSSettings;
 end;
 
 procedure TSettingsForm.CBVoiceChange(Sender: TObject);
+var
+  VInfo: TVoiceInfo;
 begin
   if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
   begin
     SAPIVoiceNum := (Sender as TComboBox).ItemIndex;
-    SgpIVTxt.Voice := SVoices.Item(SAPIVoiceNum);
+    MainForm.MGSAPI.TTSLang := SAPIVoiceNum;
+    VInfo := MainForm.MGSAPI.GetVoiceInfo(SAPIVoiceNum);
     with LBSAPIInfo.Items do
     begin
       Clear;
-      Add(Format('Имя: %s', [SVoices.Item((Sender as TComboBox).ItemIndex).GetAttribute('Name')]));
-      Add(Format('Создатель: %s', [SVoices.Item((Sender as TComboBox).ItemIndex).GetAttribute('Vendor')]));
-      Add(Format('Возраст: %s', [SVoices.Item((Sender as TComboBox).ItemIndex).GetAttribute('Age')]));
-      Add(Format('Пол: %s', [SVoices.Item((Sender as TComboBox).ItemIndex).GetAttribute('Gender')]));
-      Add(Format('Язык: %s', [SVoices.Item((Sender as TComboBox).ItemIndex).GetAttribute('Language')]));
-      //Add(Format('Ключь в реестре: %s', [Voices.Item((Sender as TComboBox).ItemIndex).Id]));
+      Add(Format('Имя: %s', [VInfo.VoiceName]));
+      Add(Format('Создатель: %s', [VInfo.VoiceVendor]));
+      Add(Format('Возраст: %s', [VInfo.VoiceAge]));
+      Add(Format('Пол: %s', [VInfo.VoiceGender]));
+      Add(Format('Язык: %s', [VInfo.VoiceLanguage]));
+      //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
     end
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then
-    GoogleTL := GoogleTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex])
+  begin
+    GoogleTL := MainForm.MGGoogleTTS.GTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]);
+    MainForm.MGGoogleTTS.TTSLangCode := GoogleTL;
+  end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then
-    YandexTL := YandexTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex])
+  begin
+    YandexTL := MainForm.MGYandexTTS.YTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]);
+    MainForm.MGYandexTTS.TTSLangCode := YandexTL;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then
+  begin
+    ISpeechTL := MainForm.MGISpeechTTS.ISpeechTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]);
+    MainForm.MGISpeechTTS.TTSLangCode := ISpeechTL;
+  end
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then
+  begin
+    NuanceTL := MainForm.MGNuanceTTS.NuanceTTSLanguageNameToCode((Sender as TComboBox).Items[(Sender as TComboBox).ItemIndex]);
+    MainForm.MGNuanceTTS.TTSVoice := NuanceTL;
+  end;
 end;
 
 procedure TSettingsForm.SBVoiceTestClick(Sender: TObject);
 var
   SayText: String;
+  VInfo: TVoiceInfo;
 begin
   if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then
   begin
-    if SVoices.Item(CBVoice.ItemIndex).GetAttribute('Language') = '419' then
-      SayText := GoogleTTSLanguageList[GTTS_Russian].TestPhrase
+    VInfo := MainForm.MGSAPI.GetVoiceInfo(SAPIVoiceNum);
+    if VInfo.VoiceLanguage = '419' then
+    begin
+      MainForm.MGGoogleTTS.TTSLangCode := 'ru';
+      SayText := MainForm.MGGoogleTTS.GTTSGetTestPhrase();
+    end
     else
-      SayText := GoogleTTSLanguageList[GTTS_English].TestPhrase;
+    begin
+      MainForm.MGGoogleTTS.TTSLangCode := 'en';
+      SayText := MainForm.MGGoogleTTS.GTTSGetTestPhrase();
+    end;
     SAPITextToSpeech(SayText);
   end
   else
   begin
     if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then
-      OtherTTS(GoogleTTSLanguageList[TGoogleTTSLanguage(CBVoice.ItemIndex)].TestPhrase, GetUserTempPath() + 'mspeech-tts-google-test.mp3');
+      MainForm.OtherTTS(MainForm.MGGoogleTTS.GTTSGetTestPhrase());
     if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then
-      OtherTTS(YandexTTSLanguageList[TYandexTTSLanguage(CBVoice.ItemIndex)].TestPhrase, GetUserTempPath() + 'mspeech-tts-yandex-test.mp3');
+      MainForm.OtherTTS(MainForm.MGYandexTTS.YTTSGetTestPhrase());
+    if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then
+      MainForm.OtherTTS(MainForm.MGISpeechTTS.iSpeechTTSGetTestPhrase());
+    if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then
+      MainForm.OtherTTS(MainForm.MGNuanceTTS.NuanceTTSGetTestPhrase());
   end;
 end;
 
-function TSettingsForm.OtherTTS(const Text, MP3FileName: String): Boolean;
-var
-  TTSResult: Boolean;
+procedure TSettingsForm.GetAPIKeyButtonClick(Sender: TObject);
 begin
-  TTSResult := False;
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google TTS
-  begin
-    TTSResult := GoogleTextToSpeech(Text, MP3FileName);
-    TTSDXAudioOut.Latency := 100;
-  end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex TTS
-  begin
-    TTSResult := YandexTextToSpeech(Text, MP3FileName);
-    TTSDXAudioOut.Latency := 79;
-  end;
-  if TTSResult then
-  begin
-    if FileExists(MP3FileName) then
-    begin
-      TTSMP3In.FileName := MP3FileName;
-      if TTSMP3In.Valid then
-        TTSDXAudioOut.Run
-      else
-      begin
-        if FileExists(TTSMP3In.FileName) then
-          DeleteFile(TTSMP3In.FileName);
-      end;
-    end;
-  end
-  else
-  begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'TTS - Ошибка передачи данных для синтеза речи.');
-    MsgDie(ProgramsName, GetLangStr('MsgErr13'));
-  end;
-end;
-
-procedure TSettingsForm.TTSDXAudioOutDone(Sender: TComponent);
-begin
-  if FileExists(TTSMP3In.FileName) then
-    DeleteFile(TTSMP3In.FileName);
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then
+    MainForm.MGISpeechTTS.GetAPIKey;
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then
+    MainForm.MGNuanceTTS.GetAPIKey;
 end;
 
 procedure TSettingsForm.TBVoiceSpeedChange(Sender: TObject);
 begin
   LVoiceSpeed.Caption := IntToStr((Sender as TTrackBar).Position);
-  SgpIVTxt.Rate := (Sender as TTrackBar).Position;
+  SAPIVoiceSpeed := (Sender as TTrackBar).Position;
+  MainForm.MGSAPI.TTSVoiceSpeed := SAPIVoiceSpeed;
 end;
 
 procedure TSettingsForm.TBVoiceVolumeChange(Sender: TObject);
 begin
   LVoiceVolume.Caption := IntToStr((Sender as TTrackBar).Position);
-  SgpIVTxt.Volume := (Sender as TTrackBar).Position;
+  SAPIVoiceVolume := (Sender as TTrackBar).Position;
+  MainForm.MGSAPI.TTSVoiceVolume := SAPIVoiceVolume;
 end;
 
 procedure TSettingsForm.ETextToSpeechKeyUp(Sender: TObject; var Key: Word;
@@ -1541,48 +1661,10 @@ begin
   CBTextToSpeechStatus.ItemIndex := 0;
 end;
 
-{ Активация SAPI }
-function TSettingsForm.SAPIActivate: Boolean;
-begin
-  Result := False;
-  CoInitialize(nil);
-  try
-    SgpIVTxt := TSpVoice.Create(nil);
-    SVoices := SgpIVTxt.GetVoices('','');
-    CoUninitialize;
-    Result := True;
-  except
-    on e: Exception do
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TSettingsForm.SAPIActivate - ' + e.Message);
-      Exit;
-    end;
-  end;
-end;
-
-{ Деактивация SAPI }
-procedure TSettingsForm.SAPIDeactivate;
-begin
-  if Assigned(SgpIVTxt) then
-  begin
-    try
-      SgpIVTxt.Free;
-      SgpIVTxt := nil;
-    except
-      on e: Exception do
-      begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Исключение в процедуре TSettingsForm.SAPIDeactivate - ' + e.Message);
-        Exit;
-      end;
-    end;
-  end;
-  //CBVoice.OnChange := nil;
-end;
-
 { Текст в голос с использованием SAPI }
 procedure TSettingsForm.SAPITextToSpeech(MyText: String);
 begin
-  SgpIVTxt.Speak(MyText, SVSFlagsAsync);
+  MainForm.MGSAPI.Speak(MyText);
 end;
 
 procedure TSettingsForm.CBEnableFiltersClick(Sender: TObject);
@@ -1673,6 +1755,7 @@ begin
   SettingtButtonGroup.Items[8].Caption := GetLangStr('TabSheetTextToSpeech');
   SettingtButtonGroup.Items[9].Caption := GetLangStr('TabSheetAbout');
   SaveSettingsButton.Caption := GetLangStr('SaveSettingsButton');
+  CloseButton.Caption := GetLangStr('CloseButton');
   // Общие настройки
   GBInterfaceSettings.Caption := Format(' %s ', [GetLangStr('GBInterfaceSettings')]);
   CBAlphaBlend.Caption := GetLangStr('CBAlphaBlend');
@@ -1732,6 +1815,7 @@ begin
   CBStopRecognitionAfterLockingComputer.Caption := GetLangStr('CBStopRecognitionAfterLockingComputer');
   CBStartRecognitionAfterUnlockingComputer.Caption := GetLangStr('CBStartRecognitionAfterUnlockingComputer');
   // Команды
+  CBEnableExecCommand.Caption := GetLangStr('CBEnableExecCommand');
   GBCommand.Caption := Format(' %s ', [GetLangStr('GBCommand')]);
   LCommandKey.Caption := GetLangStr('LCommandKey');
   LCommandExec.Caption := GetLangStr('LCommandExec');
@@ -1741,6 +1825,7 @@ begin
   DeleteCommandButton.Caption := GetLangStr('DeleteCommandButton');
   AddCommmandsToList;
   LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
+  TranslateCommandCodeToName(CommandStringGrid);
   // Замена текста
   CBEnableReplace.Caption := GetLangStr('CBEnableReplace');
   CBFirstLetterUpper.Caption := GetLangStr('CBFirstLetterUpper');
@@ -1764,6 +1849,15 @@ begin
   GBTextToSpeech.Caption := Format(' %s ', [GetLangStr('GBTextToSpeech')]);
   LTextToSpeechEngine.Caption := GetLangStr('LTextToSpeechEngine');
   LVoice.Caption := GetLangStr('LVoice');
+  LTTSAPIKey.Caption := GetLangStr('LTTSAPIKey');
+  ETTSAPIKey.Left := LTTSAPIKey.Left + LTTSAPIKey.Width + 10;
+  GetAPIKeyButton.Caption := GetLangStr('GetAPIKeyButton');
+  GetAPIKeyButton.Left := ETTSAPIKey.Left + ETTSAPIKey.Width + 10;
+  LTTSAPPID.Caption := GetLangStr('LTTSAPPID');
+  if LTTSAPPID.Left + LTTSAPPID.Width + 10 > ETTSAPIKey.Left then
+    ETTSAPPID.Left := LTTSAPPID.Left + LTTSAPPID.Width + 10
+  else
+    ETTSAPPID.Left := ETTSAPIKey.Left;
   LVoiceVolumeDesc.Caption := GetLangStr('LVoiceVolumeDesc');
   LVoiceSpeedDesc.Caption := GetLangStr('LVoiceSpeedDesc');
   GBTextToSpeechList.Caption := Format(' %s ', [GetLangStr('GBTextToSpeechList')]);

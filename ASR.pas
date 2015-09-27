@@ -1,8 +1,10 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.7 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
+{ #                                                                          # }
+{ #  Automated Speech Recognition (ASR) Module                               # }
 { #                                                                          # }
 { #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
 { #                                                                          # }
@@ -19,7 +21,7 @@ type
   // Структура с информацией о распознанной фразе (передается в callback процедуру)
   PRecognizeInfo = ^TRecognizeInfo;
   TRecognizeInfo = record
-    FStatus     : Integer;   // Статус распознавания: 5- запись не распознана, 0 - запись распознана
+    FStatus     : Integer;   // Статус распознавания: 5- запись не распознана, 0 - запись распознана, 1 - Ошибка парсинга ответа, 2 - ошибка получения ответа
     FConfidence : Real;      // Достоверность распознавания в %
     FTranscript : String;    // Распознанная фраза
   end;
@@ -183,20 +185,26 @@ begin
   else
   begin
     FRecognizeInfo := SendRecognizeRequest(FInputFileName);
-    if FRecognizeInfo.FStatus = 1 then // Ошибка при парсинге ответа
+    if FRecognizeInfo.FStatus = 0 then // Запись распознана
     begin
-      FRecognizeErr := reErrorGoogleResponse;
-      FRecognizeErrStr := FResultList.Text;
-      Synchronize(ErrorEvent);
+      FRecognizeStatus := rsRecognizeDone;
+      Synchronize(StatusEvent);
+    end
+    else if FRecognizeInfo.FStatus = 1 then // Ошибка при парсинге ответа
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка при получении ответа от сервера Google. (' + FRecognizeInfo.FTranscript + ')');
+      FRecognizeStatus := rsRecordingNotRecognized;
+      Synchronize(StatusEvent);
+    end
+    else if FRecognizeInfo.FStatus = 2 then // Ошибка при получении ответа от сервера
+    begin
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка при получении ответа от сервера Google, возможно запись для распознавания была слишком длинной, попробуйте её сократить до 3-5 секунд. (' + FRecognizeInfo.FTranscript + ')');
+      FRecognizeStatus := rsRecordingNotRecognized;
+      Synchronize(StatusEvent);
     end
     else if FRecognizeInfo.FStatus = 5 then // Запись не распознана
     begin
       FRecognizeStatus := rsRecordingNotRecognized;
-      Synchronize(StatusEvent);
-    end
-    else if FRecognizeInfo.FStatus = 0 then // Запись распознана
-    begin
-      FRecognizeStatus := rsRecognizeDone;
       Synchronize(StatusEvent);
     end;
   end
@@ -231,8 +239,8 @@ begin
         FURL := Format(GoogleRecognizeURLv2MSpeech, [FRecognizeLang, FGoogleAPIKey, ProgramsName+'-'+ProgramsVer]);
       if not HTTPPostFile(FURL, 'userfile', FInputFileName, FInputStream, FResultList) then
       begin
-        Result.FStatus := 1;
-        Result.FTranscript := 'Error in procedure HTTPPostFile';
+        Result.FStatus := 2;
+        Result.FTranscript := 'Failed to get a response from the server in procedure HTTPPostFile';
         Exit;
       end;
     finally
@@ -275,6 +283,7 @@ const
 var
   Bound, Str: String;
 begin
+  Result := False;
   Bound := IntToHex(Random(MaxInt), 8) + '_Synapse_boundary';
   try
     if FUseProxy then

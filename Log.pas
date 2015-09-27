@@ -1,10 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -14,30 +16,27 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Global, JvAppStorage, JvAppIniStorage, JvComponentBase,
-  JvFormPlacement, JvThread, JvExControls, JvAnimatedImage, JvGIFCtrl, ExtCtrls,
-  ComCtrls, CommCtrl, JvExStdCtrls, JclFileUtils, Menus, ClipBrd;
+  Dialogs, StdCtrls, Global, ExtCtrls, ComCtrls, CommCtrl, MGTextReader, MGThread,
+  MGVCLUtils, Menus, ClipBrd, MGPlacement;
 
 type
   TLogForm = class(TForm)
     LFileNameDesc: TLabel;
     CBFileName: TComboBox;
     DeleteLogButton: TButton;
-    LogFormStorage: TJvFormStorage;
     ReloadLogButton: TButton;
-    FileReadThread: TJvThread;
-    GIFPanel: TPanel;
-    JvGIFAnimator: TJvGIFAnimator;
-    GIFStaticText: TStaticText;
+    FileReadThread: TMGThread;
     StatusBar: TStatusBar;
     TextListView: TListView;
     LogPopupMenu: TPopupMenu;
     LogCopy: TMenuItem;
     SelectAllRow: TMenuItem;
+    MGFormPlacement: TMGFormPlacement;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
-    procedure FormResize(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure CBFileNameChange(Sender: TObject);
     procedure DeleteLogButtonClick(Sender: TObject);
     procedure ReloadLogButtonClick(Sender: TObject);
@@ -51,14 +50,11 @@ type
     procedure TextListViewCustomDrawItem(Sender: TCustomListView; Item: TListItem; State: TCustomDrawState; var DefaultDraw: Boolean);
     procedure TextListViewContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure LogCopyClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure SelectAllRowClick(Sender: TObject);
-    procedure FormKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
   private
     { Private declarations }
-    FTextReader: TJclAnsiMappedTextReader;
+    FTextReader: TMGTextReaderA;
     IsUnicodeFile: Boolean;
-    FTextList: TList;
     procedure OnLogUpdated(var Msg: TMessage); message WM_UPDATELOG;
     // Для мультиязыковой поддержки
     procedure OnLanguageChanged(var Msg: TMessage); message WM_LANGUAGECHANGED;
@@ -66,13 +62,7 @@ type
   public
     { Public declarations }
   end;
-  TMyLog = class
-    private
-      LogString: String;
-    public
-      property Log: String read LogString;
-    constructor Create(const LogString: String);
-  end;
+
 var
   LogForm: TLogForm;
 
@@ -82,13 +72,6 @@ implementation
 
 uses
   Main;
-
-// Конструктор TMyLog
-constructor TMyLog.Create(const LogString: String);
-begin
-  // Сохранение переданных параметров
-  Self.LogString := LogString;
-end;
 
 procedure TLogForm.FormCreate(Sender: TObject);
 begin
@@ -101,11 +84,14 @@ begin
   // Настройки TextListView
   // Инфо тут http://zarezky.spb.ru/lectures/mfc/list-control.html
   ListView_SetExtendedListViewStyle(TextListView.Handle, LVS_EX_DOUBLEBUFFER or LVS_EX_FULLROWSELECT); // or LVS_EX_INFOTIP
+  // Сохранение позиций окна
+  MGFormPlacement.IniFileName := WorkPath + INIFormStorage;
 end;
 
 procedure TLogForm.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(FTextReader);
+  if Assigned(FTextReader) then
+    FreeAndNil(FTextReader);
 end;
 
 procedure TLogForm.FormKeyDown(Sender: TObject; var Key: Word;
@@ -113,15 +99,6 @@ procedure TLogForm.FormKeyDown(Sender: TObject; var Key: Word;
 begin
   if Key = VK_ESCAPE then
     Close;
-end;
-
-procedure TLogForm.FormResize(Sender: TObject);
-begin
-  if GIFPanel.Visible then
-  begin
-    GIFPanel.Left := (TextListView.Width div 2) - (GIFPanel.Width div 2);
-    GIFPanel.Top := (TextListView.Height div 2) + (GIFPanel.Height div 2);
-  end;
 end;
 
 procedure TLogForm.FormShow(Sender: TObject);
@@ -134,10 +111,6 @@ begin
   CBFileName.ItemIndex := -1;
   ReloadLogButton.Enabled := False;
   DeleteLogButton.Enabled := False;
-  // Позиционируем панельку
-  GIFPanel.BringToFront;
-  GIFPanel.Left := (TextListView.Width div 2) - (GIFPanel.Width div 2);
-  GIFPanel.Top := (TextListView.Height div 2) + (GIFPanel.Height div 2);
   IsUnicodeFile := False;
 end;
 
@@ -151,7 +124,7 @@ end;
 procedure TLogForm.CBFileNameDropDown(Sender: TObject);
 begin
   // Завершаем поток
-  FileReadThreadStop;
+  //FileReadThreadStop;
   // Построение списка файлов
   CheckLogFile;
 end;
@@ -163,12 +136,13 @@ begin
   FileReadThreadStop;
   // Закрываем логи
   CloseLogFile;
+  // Ожидание...
+  StatusBar.Panels[0].Text := GetLangStr('PleaseWait');
+  StatusBar.Panels[1].Text := '';
+  StatusBar.Panels[2].Text := '';
+  StartWait;
   if EnableLogs then
     EnableLogs := False;
-  // Запуск потока
-  GIFPanel.Left := (TextListView.Width div 2) - (GIFPanel.Width div 2);
-  GIFPanel.Top := (TextListView.Height div 2) + (GIFPanel.Height div 2);
-  GIFPanel.Visible := True;
   FileReadThread.Execute(Self);
 end;
 
@@ -189,23 +163,17 @@ begin
     begin
       DeleteLogButton.Enabled := False;
       ReloadLogButton.Enabled := False;
-      FreeAndNil(FTextReader);
-      FreeAndNil(FTextList);
+      if Assigned(FTextReader) then
+        FreeAndNil(FTextReader);
       try
         TC := GetTickCount;
-        FTextReader := TJclAnsiMappedTextReader.Create(FileName);
-        FTextList := TList.Create;
-        FTextList.Clear;
+        FTextReader := TMGTextReaderA.Create(FileName);
         LineCount := FTextReader.LineCount;
         LineCountTime := GetTickCount - TC;
-        for I := 0 to LineCount-1 do
-          FTextList.Add(TMyLog.Create(FTextReader.Lines[I]));
         TextListView.Items.Count := LineCount;
-        //TextListView.Invalidate;
         StatusBar.Panels[0].Text := ExtractFileName(FileName);
         StatusBar.Panels[1].Text := Format(GetLangStr('TotalString'), [LineCount]);
         StatusBar.Panels[2].Text := Format(GetLangStr('LoadingTime'), [LineCountTime]);
-        FreeAndNil(FTextReader);
       except
         on E: Exception do
         begin
@@ -228,17 +196,19 @@ end;
 
 { Поток завершен }
 procedure TLogForm.FileReadThreadFinish(Sender: TObject);
-var
-  I: Integer;
 begin
-  GIFPanel.Visible := False;
   EnableLogs := ReadCustomINI(WorkPath, 'Main', 'EnableLogs', False);
   SendMessage(TextListView.Handle, WM_VSCROLL, SB_BOTTOM, 0);
+  // Окончание ожидания
+  StopWait;
 end;
 
 { Завершаем поток }
 procedure TLogForm.FileReadThreadStop;
 begin
+  // Окончание ожидания
+  StopWait;
+  // Останавливаем поток
   if not FileReadThread.Terminated then
     FileReadThread.Terminate;
   while not (FileReadThread.Terminated) do
@@ -246,8 +216,8 @@ begin
     Sleep(1);
     Application.ProcessMessages;
   end;
-  TextListView.Clear;
-  FreeAndNil(FTextReader);
+  if Assigned(FTextReader) then
+    FreeAndNil(FTextReader);
 end;
 
 procedure TLogForm.LogCopyClick(Sender: TObject);
@@ -292,12 +262,12 @@ end;
 
 procedure TLogForm.TextListViewData(Sender: TObject; Item: TListItem);
 begin
-  if Assigned(FTextList) then
+  if Assigned(FTextReader) then
   begin
     if IsUnicodeFile then
-      Item.Caption := UTF8ToWideString(TMyLog(FTextList[Item.Index]).Log)
+      Item.Caption := UTF8ToWideString((FTextReader.Lines[Item.Index]))
     else
-      Item.Caption := TMyLog(FTextList[Item.Index]).Log;
+      Item.Caption := String((FTextReader.Lines[Item.Index]));
   end;
 end;
 
@@ -325,7 +295,15 @@ begin
       end;
     until (Deleted) or (UserAnswer = 0);
     if Deleted then
+    begin
       if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ' - Процедура DeleteLogButtonClick: Файл ' + CBFileName.Items[CBFileName.ItemIndex] + ' удален.');
+      if Assigned(FTextReader) then
+        FreeAndNil(FTextReader);
+      TextListView.Clear;
+      StatusBar.Panels[0].Text := '';
+      StatusBar.Panels[1].Text := '';
+      StatusBar.Panels[2].Text := '';
+    end;
     CheckLogFile;
   end;
 end;
@@ -387,9 +365,6 @@ end;
 procedure TLogForm.LoadLanguageStrings;
 begin
   Caption := ProgramsName + ' - ' + GetLangStr('LogFormCaption');
-  GIFStaticText.Caption := GetLangStr('PleaseWait');
-  GIFPanel.Left := (TextListView.Width div 2) - (GIFPanel.Width div 2);
-  GIFPanel.Top := (TextListView.Height div 2) + (GIFPanel.Height div 2);
   LogPopupMenu.Items[0].Caption := GetLangStr('Copy');
   LogPopupMenu.Items[1].Caption := GetLangStr('SelectAll');
   LFileNameDesc.Caption := GetLangStr('LFileNameDesc');

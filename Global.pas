@@ -1,10 +1,12 @@
 ﻿{ ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.6 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -15,69 +17,41 @@ interface
 {$I MSpeech.inc}
 
 uses
-  Windows, SysUtils, IniFiles, Messages, XMLIntf, XMLDoc, Classes, Vcl.Grids,
-  Types, TLHELP32, SHFolder, Registry, HTTPSend, SSL_OpenSSL, synautil, JclStringConversions;
+  Windows, Messages, SysUtils, IniFiles, XMLIntf, XMLDoc, Classes, Vcl.Grids,
+  TLHELP32, MGUtils;
 
 type
-  TWinVersion = (wvUnknown,wv95,wv98,wvME,wvNT3,wvNT4,wvW2K,wvXP,wv2003,wvVista,wv7,wv2008,wv8);
   TMethodSendingText = (mWM_SETTEXT, mWM_PASTE, mWM_CHAR, mWM_PASTE_MOD);
-  TCommandType = (mExecPrograms, mClosePrograms, mKillPrograms, mTextToSpeech);
+  TCommandType = (mExecPrograms, mClosePrograms, mKillPrograms, mTextToSpeech, mExecProgramsParams);
+  TCommandTypes = record
+    CommandCode        : Integer;
+    CommandType        : TCommandType;
+    CommandDisplayName : String;
+  end;
   TCopyDataType = (cdtString = 0, cdtImage = 1, cdtRecord = 2);
   TEventsType = (mWarningRecognize, mRecordingNotRecognized, mCommandNotFound, mErrorGoogleCommunication);
   TEventsTypeStatus = (mDisable, mEnable);
   TArrayOfInteger = Array of Integer;
-  THackStrings = class(TStrings);
-  TASREngine = (ASRGoogle, ASRYandex);
+  THackStrings = class(TStrings); // Хак для получения доступа к protected-методам класса TStrings
+  TASREngine = (ASRGoogle, ASRYandex, ASRNuance);
   TASRMediaFormat = (TPCM, TFLAC, TSpeex);
-  TTTSEngine = (TTSMicrosoft, TTSGoogle, TTSYandex);
+  TTTSEngine = (TTSMicrosoft, TTSGoogle, TTSYandex, TTSISpeech, TTSNuance);
   TTTSEngines = record
     TTSDisplayName: String;
   end;
   TASREngines = record
     ASRDisplayName: String;
   end;
-  TGoogleTTSLanguage = (
-    GTTS_Arabic,      // Арабский
-    GTTS_Danish,      // Датский
-    GTTS_Deutsch,     // Немецкий
-    GTTS_Greek,       // Греческий
-    GTTS_English,     // Английский
-    GTTS_Spanish,     // Испанский
-    GTTS_Finnish,     // Финский
-    GTTS_French,      // Французский
-    GTTS_Italiano,    // Итальянский
-    GTTS_Japanese,    // Японский
-    GTTS_Korean,      // Корейский
-    GTTS_Dutch,       // Нидерландский (Голландский)
-    GTTS_Polski,      // Польский
-    GTTS_Portugal,    // Португальский
-    GTTS_Russian,     // Великий и могучий ;)
-    GTTS_Turkish,     // Турецкий
-    GTTS_Chinese      // Китайский (наверно традиционный)
-  );
-  TGoogleTTSLanguages = record
-    LangCode        : PAnsiChar;
-    LangDisplayName : String;
-    TestPhrase      : String;
-  end;
-  TYandexTTSLanguage = (
-    YTTS_English,
-    YTTS_Deutsch,
-    YTTS_French,
-    YTTS_Russian
-  );
-  TYandexTTSLanguages = record
-    LangCode        : PAnsiChar;
-    LangDisplayName : String;
-    TestPhrase      : String;
-  end;
   TASRMediaFormats = record
     MediaType        : TASRMediaFormat;
     MediaDisplayName : String;
   end;
+  TAutorunLocation = (mAutorunAllUser, mAutorunCurrentUser);
+  TAutorun = (mAutorunCheck, mAutorunEnable, mAutorunDisable);
+  TIntegerDynArray = Array of Integer;
 
 const
-  ProgramsVer : WideString = '1.5.6.0';
+  ProgramsVer: WideString = '1.5.7.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -85,25 +59,29 @@ const
   PlatformType = 'x64';
   {$ENDIF}
   ININame = 'MSpeech.ini';
-  INIFormsName = 'MSpeechForms.ini';
+  INIFormStorage = 'MSpeechFormStorage.ini';
   // Отладка
   DebugLogName = 'mspeech.log';
+  dirLangs = 'langs\';
+  defaultLangFile = 'English.xml';
+  MaxCaptionSize: Integer = 255;
   // Сообщения окнам
+  WM_LANGUAGECHANGED = WM_USER + 1;
   WM_MSGBOX = WM_USER + 2;
   WM_UPDATELOG = WM_USER + 3;
   WM_STARTSAVESETTINGS = WM_USER + 4;
   WM_SAVESETTINGSDONE = WM_USER + 5;
-  // Для мультиязыковой поддержки
-  WM_LANGUAGECHANGED = WM_USER + 1;
-  dirLangs = 'langs\';
-  defaultLangFile = 'English.xml';
-  MaxCaptionSize: Integer = 255;
   // Описание типов команд
-  CommandStr: Array[TCommandType] of String = (
-    'ExecProgramsCommandDesc',
-    'CloseProgramsCommandDesc',
-    'KillProgramsCommandDesc',
-    'TextToSpeechCommandDesc');
+  // Опорным является код команды (CommandCode), по нему определяется тип команды в MSpeech.cf
+  // По CommandDisplayName определяется имя команды в нужном языке локализации программы
+  // По полю CommandType идет поиск нужного тип команды и далее по CommandCode она сравнивается с данными из MSpeech.cf
+  CommandList: Array[TCommandType] of TCommandTypes = (
+    (CommandCode: 0; CommandType: mExecPrograms;        CommandDisplayName: 'ExecProgramsCommandDesc'),
+    (CommandCode: 1; CommandType: mClosePrograms;       CommandDisplayName: 'CloseProgramsCommandDesc'),
+    (CommandCode: 2; CommandType: mKillPrograms;        CommandDisplayName: 'KillProgramsCommandDesc'),
+    (CommandCode: 3; CommandType: mTextToSpeech;        CommandDisplayName: 'TextToSpeechCommandDesc'),
+    (CommandCode: 4; CommandType: mExecProgramsParams;  CommandDisplayName: 'ExecProgramsParamsCommandDesc')
+    );
   // Описание типов событий в программе
   EventsTypeStr: Array[TEventsType] of String = (
     'EventWarningRecognize',
@@ -186,57 +164,33 @@ const
     'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG',
     'ru-RU', 'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
     'ja-JP', 'la');
-  // Список регионов для распознавания голоса через Yandex
-  YandexRegionArray: Array[0..0] of String = ('ru-RU');
   // Список систем синтеза речи
   TTSEngineList: Array[TTTSEngine] of TTTSEngines = (
     (TTSDisplayName: 'Microsoft SAPI (Offline)'),
     (TTSDisplayName: 'Google Text-To-Speech (Online)'),
-    (TTSDisplayName: 'Yandex Text-To-Speech (Online)')
-    );
-  // Список регионов для синтеза голоса через Google
-  GoogleTTSLanguageList: Array[TGoogleTTSLanguage] of TGoogleTTSLanguages = (
-    (LangCode: 'ar';	LangDisplayName: 'العربية'; TestPhrase: 'فحص تركيب الكلام في اللغة العربية.'),
-    (LangCode: 'da';	LangDisplayName: 'Dansk'; TestPhrase: 'Kontrol af talesyntese på det danske sprog.'),
-    (LangCode: 'de';	LangDisplayName: 'Deutsch'; TestPhrase: 'Überprüfung der Sprachsynthese in deutscher Sprache.'),
-    (LangCode: 'el';	LangDisplayName: 'ελληνικά'; TestPhrase: 'Έλεγχος σύνθεσης ομιλίας στα ελληνικά.'),
-    (LangCode: 'en';	LangDisplayName: 'English'; TestPhrase: 'Checking speech synthesis on English language.'),
-    (LangCode: 'es';	LangDisplayName: 'Español'; TestPhrase: 'Comprobación de la síntesis de voz en español.'),
-    (LangCode: 'fi';	LangDisplayName: 'Suomalainen'; TestPhrase: 'Tarkkailun puhesynteesin Suomen kielen.'),
-    (LangCode: 'fr';	LangDisplayName: 'Français'; TestPhrase: 'Vérification de synthèse de la parole en français.'),
-    (LangCode: 'it';	LangDisplayName: 'Italiano'; TestPhrase: 'Controllo della sintesi vocale in lingua italiana.'),
-    (LangCode: 'ja';	LangDisplayName: '日本の'; TestPhrase: '日本語で音声合成を確認する。'),
-    (LangCode: 'ko';	LangDisplayName: '한국의'; TestPhrase: '한국의 언어에 대한 음성 합성을 확인합니다.'),
-    (LangCode: 'nl';	LangDisplayName: 'Dutch'; TestPhrase: 'Controle van spraaksynthese in het Nederlands.'),
-    (LangCode: 'pl';	LangDisplayName: 'Polski'; TestPhrase: 'Sprawdzanie syntezy mowy na język polski.'),
-    (LangCode: 'pt';	LangDisplayName: 'Português'; TestPhrase: 'Verificando a síntese de voz em Português.'),
-    (LangCode: 'ru';	LangDisplayName: 'Русский'; TestPhrase: 'Проверка синтеза речи на Русском языке.'),
-    (LangCode: 'tr';	LangDisplayName: 'Türk'; TestPhrase: 'Türk dili üzerinde konuşma sentezi denetleniyor.'),
-    (LangCode: 'zh';	LangDisplayName: '中國的'; TestPhrase: '檢查語音合成在中國。')
-    );
-  // Список регионов для синтеза голоса через Yandex
-  YandexTTSLanguageList: Array[TYandexTTSLanguage] of TYandexTTSLanguages = (
-    (LangCode: 'en_GB';	LangDisplayName: 'English'; TestPhrase: 'Checking speech synthesis on English language.'),
-    (LangCode: 'de_DE';	LangDisplayName: 'Deutsch'; TestPhrase: 'Überprüfung der Sprachsynthese in deutscher Sprache.'),
-    (LangCode: 'fr_FR';	LangDisplayName: 'Français'; TestPhrase: 'Vérification de synthèse de la parole en français.'),
-    (LangCode: 'ru_RU';	LangDisplayName: 'Русский'; TestPhrase: 'Проверка синтеза речи на Русском языке.')
+    (TTSDisplayName: 'Yandex Text-To-Speech (Online)'),
+    (TTSDisplayName: 'iSpeech Text-To-Speech (Online)'),
+    (TTSDisplayName: 'Nuance Text-To-Speech (Online)')
     );
   // Список систем распознавания речи
   TASREngineList: Array[TASREngine] of TASREngines = (
     (ASRDisplayName: 'Google (Online)'),
-    (ASRDisplayName: 'Yandex (Online)')
+    (ASRDisplayName: 'Yandex (Online)'),
+    (ASRDisplayName: 'Nuance (Online)')
     );
-  // Список форматов медиа-файлов для записи и отправки на распознавание
-  ASRMediaFormatList: Array[TASRMediaFormat] of TASRMediaFormats = (
-    (MediaType: TPCM;	MediaDisplayName: 'Microsoft PCM'),
-    (MediaType: TFLAC;	MediaDisplayName: 'FLAC'),
-    (MediaType: TSpeex;	MediaDisplayName: 'Speex')
-    );
+  PathDelim  = {$IFDEF MSWINDOWS} '\'; {$ELSE} '/'; {$ENDIF}
+  {$IFDEF MSWINDOWS}
+  advapi32 = 'advapi32.dll';
+  shell32  = 'shell32.dll';
+  HKEY_CURRENT_USER = LongWord($80000001);
+  HKEY_LOCAL_MACHINE = LongWord($80000002);
+  {$ENDIF}
 
 var
   ProgramsPath: WideString;
   OutFileName: String;
   WorkPath: WideString;
+  ConfigVersion: Integer = 2;
   OLDCommandFileName: String = 'MSpeechCommand.ini';
   ReplaceGridFile: String = 'MSpeech.rpl';
   CommandGridFile: String = 'MSpeech.cf';
@@ -308,6 +262,8 @@ var
   SAPIVoiceSpeed: Integer = 0;
   GoogleTL: String = 'ru';
   YandexTL: String = 'ru_RU';
+  iSpeechTL: String = 'rurussianfemale';
+  NuanceTL: String = 'Ava';
   // Фильтрация и VAD
   EnableFilters: Boolean = False;
   FilterType: Integer = 0; // 0 - WindowedSincFilter или 1 - VoiceFilter
@@ -321,10 +277,15 @@ var
   VoiceFilterEnableAGC: Boolean = False;
   VoiceFilterEnableNoiseReduction: Boolean = False;
   VoiceFilterEnableVAD: Boolean = True;
-  // Google API Key
+  // Google API
   GoogleAPIKey: String = '';
-  // Yandex API Key
+  // Yandex API
   YandexAPIKey: String = '';
+  // iSpeech TTS API
+  iSpeechAPIKey: String = '';
+  // Nuance TTS API
+  NuanceAPIKey: String = '';
+  NuanceAPPID: String = '';
   // Остановка распознавания после блокировки ПК
   StopRecognitionAfterLockingComputer: Boolean = True;
   // Запуск  распознавания после разблокировки ПК
@@ -332,14 +293,23 @@ var
   // Запуск MSpeech при входе в систему
   AutoRunMSpeech: Boolean = True;
 
+{$IFDEF MSWINDOWS}
+// RegistryAPI
+function RegOpenKeyW(hKey: HKEY; lpSubKey: PWideChar; out phkResult: HKEY): Longint; stdcall; external advapi32;
+function RegQueryValueExW(hKey: HKEY; lpValueName: PWideChar; lpReserved: Pointer; lpType: PDWORD; lpData: PByte; lpcbData: PDWORD): Longint; stdcall; external advapi32;
+function RegDeleteValueW(hKey: HKEY; lpValueName: PWideChar): Longint; stdcall; external advapi32;
+function RegSetValueExW(hKey: HKEY; lpValueName: PWideChar; Reserved: DWORD; dwType: DWORD; lpData: Pointer; cbData: DWORD): Longint; stdcall; external advapi32;
+function RegCloseKey(hKey: HKEY): LongInt; stdcall; external advapi32;
+// ShellAPI
+function SHGetSpecialFolderPathW(hwndOwner: HWND; lpszPath: PWideChar; nFolder: Integer; fCreate: BOOL): BOOL; stdcall; external shell32;
+{$ENDIF}
+
 function IsNumber(const S: String): Boolean;
 function BoolToStr(Bool: Boolean): String;
 function BoolToInt(Bool: Boolean): Integer;
 function IntToBool(Int: Integer): Boolean;
 procedure LoadINI(INIPath: String);
 procedure SaveINI(INIPath: String);
-function DetectWinVersion : TWinVersion;
-function DetectWinVersionStr : String;
 function GetFileSize(FileName: String): Integer;
 function MatchStrings(source, pattern: String): Boolean;
 function ExtractFileNameEx(FileName: String; ShowExtension: Boolean): String;
@@ -348,24 +318,27 @@ procedure MsgDie(Caption, Msg: WideString);
 procedure MsgInf(Caption, Msg: WideString);
 function GetLangStr(StrID: String): WideString;
 function GetSystemDefaultUILanguage: UINT; stdcall; external kernel32 name 'GetSystemDefaultUILanguage';
-function GetSysLang: AnsiString;
-procedure CoreLanguageChanged;
+function GetSysLang: String;
+function CoreLanguageChanged: Boolean;
 function Tok(Sep: String; var s: String): String;
 function ReadCustomINI(INIPath, CustomSection, CustomParams, DefaultParamsStr: String): String; overload;
 function ReadCustomINI(INIPath, CustomSection, CustomParams: String; DefaultParamsStr: Boolean): Boolean; overload;
 procedure WriteCustomINI(INIPath, CustomSection, CustomParams, ParamsStr: String);
 function DetectMethodSendingText(Method: Integer): TMethodSendingText;
-function DetectCommandType(CType: Integer): String; overload;
-function DetectCommandType(CType: TCommandType): Integer; overload;
-function DetectCommandTypeName(CType: TCommandType): String; overload;
-function DetectCommandTypeName(CType: String): TCommandType; overload;
+function GetCommands(Value: TStrings; mDisplayName: Boolean = False): Boolean;
+function CheckCommandCode(const Value: Integer): Integer;
+function GetCommandCode(const Value: String): Integer;
+function GetCommandType(const Value: Integer): TCommandType;
+function GetCommandName(const Value: Integer): String;
+function CommandNum(mDest: TStrings; mCommandName: String): Integer;
 function DetectRegionStr(RegionID: Integer): String;
 function DetectRegionID(RegionStr: String): Integer;
 procedure SaveReplaceDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 procedure LoadReplaceDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 procedure SaveCommandDataStringGrid(MyFile: String; FileGrid: TStringGrid);
 procedure LoadCommandDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
-procedure LoadOLDCommandFileToGrid(MyFile: String; FileGrid: TStringGrid);
+procedure TranslateCommandCodeToName(FileGrid: TStringGrid);
+procedure TranslateCommandNameToCode(FileGrid: TStringGrid);
 function RusLowercaseToUppercase(MyText: String): String;
 function EngLowercaseToUppercase(MyText: String): String;
 function GetMyExeVersion: String;
@@ -385,15 +358,7 @@ function GetMyFileSize(const Path: WideString): Integer;
 function OpenLogFile(LogPath: WideString): Boolean;
 procedure CloseLogFile;
 procedure WriteInLog(LogPath: WideString; TextString: String);
-function GetGoogleTTSLanguageCode(LangName: TGoogleTTSLanguage): String;
-function GoogleTTSLanguageCodeToName(const Value: String) : String;
-function GoogleTTSLanguageNameToCode(const Value: String) : String;
-function GetYandexTTSLanguageCode(LangName: TYandexTTSLanguage): String;
-function YandexTTSLanguageCodeToName(const Value: String) : String;
-function YandexTTSLanguageNameToCode(const Value: String) : String;
-function GetTTSLanguages(mDest: TStrings; mTTSEngine: TTTSEngine; mDisplayName: Boolean = False): Boolean;
 function GetTTSEngines(mDest: TStrings): Boolean;
-function GetTTSLanguageNum(mDest: TStrings; mTTSEngine: TTTSEngine): Integer;
 function DetectEventsType(CType: Integer): String; overload;
 function DetectEventsType(CType: TEventsType): Integer; overload;
 function DetectEventsTypeName(CType: TEventsType): String; overload;
@@ -404,19 +369,13 @@ function DetectEventsTypeStatusName(CType: TEventsTypeStatus): String; overload;
 function DetectEventsTypeStatusName(CType: String): TEventsTypeStatus; overload;
 procedure LoadTextToSpeechDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
 procedure SaveTextToSpeechDataStringGrid(MyFile: String; FileGrid: TStringGrid);
-function GetSpecialFolderPath(FolderType: Integer) : WideString;
 function HackTStringsIndexOf(MyStrings: TStrings; const S: String): TArrayOfInteger;
-procedure AddAllUserAutorun(AppTitle, AppExe: String);
-procedure AddCurrentUserAutorun(AppTitle, AppExe: String);
-procedure DeleteAllUserAutorun(AppTitle: String);
-procedure DeleteCurrentUserAutorun(AppTitle: String);
-function CheckAllUserAutorun(AppTitle: String): Boolean;
-function CheckCurrentUserAutorun(AppTitle: String): Boolean;
-function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
-function YandexTextToSpeech(const Text, MP3FileName: String): Boolean;
-function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64; overload;
-function HTTPYandexGetSize(URL: String): int64;
-function HTTPGetSize(URL: String): int64; overload;
+{$IFDEF MSWINDOWS}
+function CheckAutorun(AutorunLocation: TAutorunLocation; Autorun: TAutorun; ClientName, ClientFullPath: WideString): Boolean;
+function GetAppDataFolderPath: WideString;
+function IsPathDelimiter(const S: WideString; Index: Integer): Boolean;
+function IncludeTrailingPathDelimiter(const S: WideString): WideString;
+{$ENDIF}
 
 implementation
 
@@ -463,12 +422,19 @@ begin
   Path := INIPath + ININame;
   INI := TIniFile.Create(Path);
   try
+    if INI.ReadInteger('Main', 'ConfigVersion', 0) = 0 then
+      if FileExists(Path) then
+        DeleteFile(Path);
     if FileExists(Path) then
     begin
+      ConfigVersion := INI.ReadInteger('Main', 'ConfigVersion', 0);
       EnableLogs := INI.ReadBool('Main', 'EnableLogs', False);
       MaxDebugLogSize := INI.ReadInteger('Main', 'MaxDebugLogSize', 1000);
       GoogleAPIKey := INI.ReadString('Main', 'GoogleSpeechAPIKey', '');
       YandexAPIKey := INI.ReadString('Main', 'YandexSpeechAPIKey', '');
+      iSpeechAPIKey := INI.ReadString('Main', 'iSpeechAPIKey', '');
+      NuanceAPIKey := INI.ReadString('Main', 'NuanceAPIKey', '');
+      NuanceAPPID := INI.ReadString('Main', 'NuanceAPPID', '');
       DefaultLanguage := INI.ReadString('Main', 'DefaultLanguage', 'Russian');
       DefaultSpeechRecognizeLang := INI.ReadString('Main', 'DefaultSpeechRecognizeLang', 'ru-RU');
       SecondSpeechRecognizeLang := INI.ReadString('Main', 'SecondSpeechRecognizeLang', 'en-US');
@@ -523,14 +489,20 @@ begin
       SAPIVoiceSpeed := INI.ReadInteger('TextToSpeech', 'SAPIVoiceSpeed', 0);
       GoogleTL := INI.ReadString('TextToSpeech', 'GoogleTL', 'ru');
       YandexTL := INI.ReadString('TextToSpeech', 'YandexTL', 'ru_RU');
+      iSpeechTL := INI.ReadString('TextToSpeech', 'iSpeechTL', 'rurussianfemale');
+      NuanceTL := INI.ReadString('TextToSpeech', 'NuanceTL', 'Ava');
       INIFileLoaded := True;
     end
     else
     begin
+      INI.WriteInteger('Main', 'ConfigVersion', ConfigVersion);
       INI.WriteBool('Main', 'EnableLogs', EnableLogs);
       INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
       INI.WriteString('Main', 'GoogleSpeechAPIKey', GoogleAPIKey);
       INI.WriteString('Main', 'YandexSpeechAPIKey', YandexAPIKey);
+      INI.WriteString('Main', 'iSpeechAPIKey', iSpeechAPIKey);
+      INI.WriteString('Main', 'NuanceAPIKey', NuanceAPIKey);
+      INI.WriteString('Main', 'NuanceAPPID', NuanceAPPID);
       INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
       INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
       INI.WriteBool('Main', 'AlphaBlendEnable', AlphaBlendEnable);
@@ -584,6 +556,8 @@ begin
       INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
       INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
       INI.WriteString('TextToSpeech', 'YandexTL', YandexTL);
+      INI.WriteString('TextToSpeech', 'iSpeechTL', iSpeechTL);
+      INI.WriteString('TextToSpeech', 'NuanceTL', NuanceTL);
       INIFileLoaded := False;
     end;
     INI.Free;
@@ -604,9 +578,13 @@ begin
   Path := INIPath + ININame;
   INI := TIniFile.Create(Path);
   try
+    INI.WriteInteger('Main', 'ConfigVersion', ConfigVersion);
     INI.WriteBool('Main', 'EnableLogs', EnableLogs);
     INI.WriteString('Main', 'GoogleSpeechAPIKey', GoogleAPIKey);
     INI.WriteString('Main', 'YandexSpeechAPIKey', YandexAPIKey);
+    INI.WriteString('Main', 'iSpeechAPIKey', iSpeechAPIKey);
+    INI.WriteString('Main', 'NuanceAPIKey', NuanceAPIKey);
+    INI.WriteString('Main', 'NuanceAPPID', NuanceAPPID);
     INI.WriteInteger('Main', 'MaxDebugLogSize', MaxDebugLogSize);
     INI.WriteString('Main', 'DefaultSpeechRecognizeLang', DefaultSpeechRecognizeLang);
     INI.WriteString('Main', 'SecondSpeechRecognizeLang', SecondSpeechRecognizeLang);
@@ -662,108 +640,12 @@ begin
     INI.WriteInteger('TextToSpeech', 'SAPIVoiceSpeed', SAPIVoiceSpeed);
     INI.WriteString('TextToSpeech', 'GoogleTL', GoogleTL);
     INI.WriteString('TextToSpeech', 'YandexTL', YandexTL);
+    INI.WriteString('TextToSpeech', 'iSpeechTL', iSpeechTL);
+    INI.WriteString('TextToSpeech', 'NuanceTL', NuanceTL);
     MsgInf(ProgramsName, GetLangStr('MsgInf7'));
   finally
     INI.Free;
   end;
-end;
-
-{
-DwMajorVersion:DWORD - старшая цифра версии Windows
-
-   Windows 95      - 4
-   Windows 98      - 4
-   Windows Me      - 4
-   Windows NT 3.51 - 3
-   Windows NT 4.0  - 4
-   Windows 2000    - 5
-   Windows XP      - 5
-   Windows 2008    - 6
-   Windows 7       - 6
-   Windows 8       - 7
-
-DwMinorVersion: DWORD - младшая цифра версии
-
-   Windows 95      - 0
-   Windows 98      - 10
-   Windows Me      - 90
-   Windows NT 3.51 - 51
-   Windows NT 4.0  - 0
-   Windows 2000    - 0
-   Windows XP      - 1
-   Windows 2008    - 0
-   Windows 7       - 1
-   Windows 8       - 1
-
-DwBuildNumber: DWORD
- Win NT 4 - номер билда
- Win 9x   - старший байт - старшая и младшая цифры версии / младший - номер
-билда
-
-dwPlatformId: DWORD
-
-  VER_PLATFORM_WIN32s            Win32s on Windows 3.1.
-  VER_PLATFORM_WIN32_WINDOWS     Win32 on Windows 9x
-  VER_PLATFORM_WIN32_NT          Win32 on Windows NT, 2000 
-
-SzCSDVersion:DWORD
-  NT - содержит PСhar с инфо о установленном ServicePack
-  9x - доп. инфо, может и не быть
-}
-function DetectWinVersion: TWinVersion;
-var
-  OSVersionInfo : TOSVersionInfo;
-begin
-  Result := wvUnknown;                      // Неизвестная версия ОС
-  OSVersionInfo.dwOSVersionInfoSize := sizeof(TOSVersionInfo);
-  if GetVersionEx(OSVersionInfo)
-    then
-      begin
-        case OSVersionInfo.DwMajorVersion of
-          3:  Result := wvNT3;              // Windows NT 3
-          4:  case OSVersionInfo.DwMinorVersion of
-                0: if OSVersionInfo.dwPlatformId = VER_PLATFORM_WIN32_NT
-                   then Result := wvNT4     // Windows NT 4
-                   else Result := wv95;     // Windows 95
-                10: Result := wv98;         // Windows 98
-                90: Result := wvME;         // Windows ME
-              end;
-          5:  case OSVersionInfo.DwMinorVersion of
-                0: Result := wvW2K;         // Windows 2000
-                1: Result := wvXP;          // Windows XP
-                2: Result := wv2003;        // Windows 2003
-                3: Result := wvVista;       // Windows Vista
-              end;
-          6:  case OSVersionInfo.DwMinorVersion of
-                0: Result := wv2008;        // Windows 2008
-                1: Result := wv7;           // Windows 7
-              end;
-          7:  case OSVersionInfo.DwMinorVersion of
-                1: Result := wv8;           // Windows 8
-              end;
-        end;
-      end;
-end;
-
-{ Определение версии Windows }
-function DetectWinVersionStr: String;
-const
-  VersStr : Array[TWinVersion] of String = (
-    'Unknown OS',
-    'Windows 95',
-    'Windows 98',
-    'Windows ME',
-    'Windows NT 3',
-    'Windows NT 4',
-    'Windows 2000',
-    'Windows XP',
-    'Windows Server 2003',
-    'Windows Vista',
-    'Windows 7',
-    'Windows Server 2008',
-    'Windows 8');
-begin
-  Result := VersStr[DetectWinVersion];
 end;
 
 { Определяет размер файла, если файла нет возвращает -1 }
@@ -792,7 +674,7 @@ begin
   if (exStyle and WS_EX_LAYERED = 0) then
   begin
     exStyle := exStyle or WS_EX_LAYERED;
-    SetwindowLong(winHWND, GWL_EXSTYLE, exStyle);
+    SetWindowLong(winHWND, GWL_EXSTYLE, exStyle);
   end;
   SetLayeredWindowAttributes(winHWND, 0, AlphaBlendEnableValue, LWA_ALPHA);
 end;
@@ -809,21 +691,25 @@ end;
 procedure MsgInf(Caption, Msg: WideString);
 begin
   if AlphaBlendEnable then
-    PostMessage(GetForegroundWindow, WM_MSGBOX, 0, 0);
+    PostMessageW(GetForegroundWindow, WM_MSGBOX, 0, 0);
   MessageBoxW(GetForegroundWindow, PWideChar(Msg), PWideChar(Caption), MB_ICONINFORMATION);
 end;
 
 { Функция для мультиязыковой поддержки }
-procedure CoreLanguageChanged;
+function CoreLanguageChanged: Boolean;
 var
   LangFile: String;
 begin
+  Result := False;
   if CoreLanguage = '' then
     Exit;
   try
     LangFile := ProgramsPath + dirLangs + CoreLanguage + '.xml';
     if FileExists(LangFile) then
-      LangDoc.LoadFromFile(LangFile)
+    begin
+      LangDoc.LoadFromFile(LangFile);
+      Result := True;
+    end
     else
     begin
       if FileExists(ProgramsPath + dirLangs + defaultLangFile) then
@@ -859,7 +745,7 @@ begin
     Result := 'String not found';
 end;
 
-function GetSysLang: AnsiString;
+function GetSysLang: String;
 var
   WinLanguage: Array [0..50] of Char;
 begin
@@ -1084,60 +970,93 @@ begin
   end;
 end;
 
-{ Определения типа команды (строка) по номеру }
-function DetectCommandType(CType: Integer): String;
+// Заполнение списка возможных типов команд
+function GetCommands(Value: TStrings; mDisplayName: Boolean = False): Boolean;
+var
+  sCommandType: TCommandType;
 begin
-  Result := DetectCommandTypeName(mExecPrograms);
-  case CType of
-    0:
-      Result := DetectCommandTypeName(mExecPrograms);
-    1:
-      Result := DetectCommandTypeName(mClosePrograms);
-    2:
-      Result := DetectCommandTypeName(mKillPrograms);
-    3:
-      Result := DetectCommandTypeName(mTextToSpeech);
+  Result := False;
+  for sCommandType := Low(CommandList) to High(CommandList) do
+  begin
+    if mDisplayName then
+      Value.Add(GetLangStr(CommandList[sCommandType].CommandDisplayName))
     else
-      Result := DetectCommandTypeName(mExecPrograms);
+      Value.Add(String(AnsiString(CommandList[sCommandType].CommandDisplayName)));
+  end;
+  if Value.Count > 0 then
+    Result := True;
+end;
+
+// Проверка кода команды на правильность
+function CheckCommandCode(const Value: Integer): Integer;
+var
+  sCommandType: TCommandType;
+begin
+  Result := CommandList[mExecPrograms].CommandCode;
+  for sCommandType := Low(CommandList) to High(CommandList) do
+    if CommandList[sCommandType].CommandCode = Value then
+    begin
+      Result := CommandList[sCommandType].CommandCode;
+      Break;
+    end;
+end;
+
+// Определение кода команды по ее читабельному языковому имени
+function GetCommandCode(const Value: String): Integer;
+var
+  sCommandType: TCommandType;
+begin
+  Result := CommandList[mExecPrograms].CommandCode;
+  if Value <> '' then
+  begin
+    for sCommandType := Low(CommandList) to High(CommandList) do
+      if SameText(String(AnsiString(GetLangStr(CommandList[sCommandType].CommandDisplayName))), Value) then
+      begin
+        Result := CommandList[sCommandType].CommandCode;
+        Break;
+      end;
   end;
 end;
 
-{ Определения номера типа команды по TCommandType }
-function DetectCommandType(CType: TCommandType): Integer;
-begin
-  Result := Integer(mExecPrograms);
-  case CType of
-    mExecPrograms:
-      Result := Integer(mExecPrograms);
-    mClosePrograms:
-      Result := Integer(mClosePrograms);
-    mKillPrograms:
-      Result := Integer(mKillPrograms);
-    mTextToSpeech:
-      Result := Integer(mTextToSpeech);
-    else
-      Result := Integer(mExecPrograms);
-  end;
-end;
-
-{ Определения имени команды по TCommandType }
-function DetectCommandTypeName(CType: TCommandType): String;
-begin
-  Result := GetLangStr(CommandStr[CType]);
-end;
-
-{ Определения типа команды (TCommandType) по имени }
-function DetectCommandTypeName(CType: String): TCommandType;
+// Определение типа команды по ее читабельному языковому имени
+function GetCommandType(const Value: Integer): TCommandType;
+var
+  sCommandType: TCommandType;
 begin
   Result := mExecPrograms;
-  if CType = DetectCommandTypeName(mExecPrograms) then
-    Result := mExecPrograms
-  else if CType = DetectCommandTypeName(mClosePrograms) then
-    Result := mClosePrograms
-  else if CType = DetectCommandTypeName(mKillPrograms) then
-    Result := mKillPrograms
-  else if CType = DetectCommandTypeName(mTextToSpeech) then
-    Result := mTextToSpeech;
+  for sCommandType := Low(CommandList) to High(CommandList) do
+    if CommandList[sCommandType].CommandCode = Value then
+    begin
+      Result := CommandList[sCommandType].CommandType;
+      Break;
+    end;
+end;
+
+// Определение читабельного языкового имени команды по ее коду
+function GetCommandName(const Value: Integer): String;
+var
+  sCommandType: TCommandType;
+begin
+  Result := GetLangStr(CommandList[mExecPrograms].CommandDisplayName);
+  for sCommandType := Low(CommandList) to High(CommandList) do
+    if CommandList[sCommandType].CommandCode = Value then
+    begin
+      Result := GetLangStr(CommandList[sCommandType].CommandDisplayName);
+      Break;
+    end;
+end;
+
+// Определение индекса команды в списке по её читабельному языковому имени
+function CommandNum(mDest: TStrings; mCommandName: String): Integer;
+var
+  sCommandType: TCommandType;
+begin
+  Result := 0;
+  for sCommandType := Low(CommandList) to High(CommandList) do
+  begin
+    if GetLangStr(CommandList[sCommandType].CommandDisplayName) = mCommandName then
+      Result := mDest.IndexOf(mCommandName)
+  end;
 end;
 
 { Перевод внутренного ID региона из CBRegion в его код }
@@ -1157,105 +1076,6 @@ begin
       Result := Cnt;
 end;
 
-// TTS Google
-
-function GetGoogleTTSLanguageCode(LangName: TGoogleTTSLanguage): String;
-begin
-  Result := GoogleTTSLanguageList[LangName].LangCode;
-end;
-
-function GoogleTTSLanguageCodeToName(const Value: String) : String;
-var
-  sLng : TGoogleTTSLanguage;
-begin
-  Result := '';
-  for sLng := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
-    if SameText(String(AnsiString(GoogleTTSLanguageList[sLng].LangCode)), Value) then
-    begin
-      Result := GoogleTTSLanguageList[sLng].LangDisplayName;
-      Break;
-    end;
-end;
-
-function GoogleTTSLanguageNameToCode(const Value: String) : String;
-var
-  sLang : TGoogleTTSLanguage;
-begin
-  Result := '';
-  for sLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
-    if SameText(GoogleTTSLanguageList[sLang].LangDisplayName, Value) then
-    begin
-      Result := String(AnsiString(GoogleTTSLanguageList[sLang].LangCode));
-      Break;
-    end;
-end;
-
-// TTS Yandex
-
-function GetYandexTTSLanguageCode(LangName: TYandexTTSLanguage): String;
-begin
-  Result := YandexTTSLanguageList[LangName].LangCode;
-end;
-
-function YandexTTSLanguageCodeToName(const Value: String) : String;
-var
-  sLng : TYandexTTSLanguage;
-begin
-  Result := '';
-  for sLng := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
-    if SameText(String(AnsiString(YandexTTSLanguageList[sLng].LangCode)), Value) then
-    begin
-      Result := YandexTTSLanguageList[sLng].LangDisplayName;
-      Break;
-    end;
-end;
-
-function YandexTTSLanguageNameToCode(const Value: String) : String;
-var
-  sLang : TYandexTTSLanguage;
-begin
-  Result := '';
-  for sLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
-    if SameText(YandexTTSLanguageList[sLang].LangDisplayName, Value) then
-    begin
-      Result := String(AnsiString(YandexTTSLanguageList[sLang].LangCode));
-      Break;
-    end;
-end;
-
-// TTS
-
-function GetTTSLanguages(mDest: TStrings; mTTSEngine: TTTSEngine; mDisplayName: Boolean = False): Boolean;
-var
-  sGoogleLang: TGoogleTTSLanguage;
-  sYandexLang: TYandexTTSLanguage;
-begin
-  Result := False;
-  mDest.Clear;
-  if mTTSEngine= TTSGoogle then
-  begin
-    for sGoogleLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
-    begin
-      if mDisplayName then
-        mDest.Add(GoogleTTSLanguageList[sGoogleLang].LangDisplayName)
-      else
-        mDest.Add(String(AnsiString(GoogleTTSLanguageList[sGoogleLang].LangCode)));
-    end;
-  end
-  else if mTTSEngine= TTSYandex then
-  begin
-    for sYandexLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
-    begin
-      if mDisplayName then
-        mDest.Add(YandexTTSLanguageList[sYandexLang].LangDisplayName)
-      else
-        mDest.Add(String(AnsiString(YandexTTSLanguageList[sYandexLang].LangCode)));
-    end;
-  end;
-  if mDest.Count > 0 then
-    Result := True;
-end;
-
 function GetTTSEngines(mDest: TStrings): Boolean;
 var
   sEngine: TTTSEngine;
@@ -1267,32 +1087,6 @@ begin
   if mDest.Count > 0 then
     Result := True;
 end;
-
-function GetTTSLanguageNum(mDest: TStrings; mTTSEngine: TTTSEngine): Integer;
-var
-  sGoogleLang: TGoogleTTSLanguage;
-  sYandexLang: TYandexTTSLanguage;
-begin
-  Result := 0;
-  if mTTSEngine= TTSGoogle then
-  begin
-    for sGoogleLang := Low(GoogleTTSLanguageList) to High(GoogleTTSLanguageList) do
-    begin
-      if GoogleTTSLanguageList[sGoogleLang].LangCode = GoogleTL then
-        Result := mDest.IndexOf(GoogleTTSLanguageCodeToName(GoogleTL))
-    end;
-  end
-  else if mTTSEngine= TTSYandex then
-  begin
-    for sYandexLang := Low(YandexTTSLanguageList) to High(YandexTTSLanguageList) do
-    begin
-      if YandexTTSLanguageList[sYandexLang].LangCode = YandexTL then
-        Result := mDest.IndexOf(YandexTTSLanguageCodeToName(YandexTL))
-    end;
-  end;
-end;
-
-// End
 
 { Загружка данных замены в TStringGrid из файла }
 procedure LoadReplaceDataStringGrid(MyFile: String; var FileGrid: TStringGrid);
@@ -1416,32 +1210,12 @@ begin
           if k = 2 then // 3-й столбец
           begin
             if IsNumber(INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '0')) then
-            begin
-              {if DetectCommandTypeName(DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0))) = mTextToSpeech then
-              begin
-                if EnableTextToSpeech then
-                  FileGrid.Cells[k,l] := DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0));
-              end
-              else}
-                FileGrid.Cells[k,l] := DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0));
-            end
+              FileGrid.Cells[k,l] := IntToStr(CheckCommandCode(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), 0)))
             else
-              FileGrid.Cells[k,l] := DetectCommandType(0);
+              FileGrid.Cells[k,l] := IntToStr(CommandList[mExecPrograms].CommandCode);
           end
           else
-          begin
-            {if DetectCommandTypeName(DetectCommandType(INI.ReadInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+'2', 0))) = mTextToSpeech then
-            begin
-              if EnableTextToSpeech then
-              begin
-                FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
-              end
-              else
-                FileGrid.RowCount := FileGrid.RowCount - 1;
-            end
-            else}
-              FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
-          end;
+            FileGrid.Cells[k,l] := INI.ReadString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), '');
           Inc(k);
         end;
         k := 0;
@@ -1460,62 +1234,62 @@ begin
       FileGrid.RowCount := 9;
       FileGrid.Cells[0,0] := 'блокнот';
       FileGrid.Cells[1,0] := 'notepad.exe';
-      FileGrid.Cells[2,0] := DetectCommandType(0);
+      FileGrid.Cells[2,0] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,1] := 'paint';
       FileGrid.Cells[1,1] := 'mspaint.exe';
-      FileGrid.Cells[2,1] := DetectCommandType(0);
+      FileGrid.Cells[2,1] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,2] := 'свернуть все программы';
-      FileGrid.Cells[1,2] := 'script\Show_Desktop.scf';
-      FileGrid.Cells[2,2] := DetectCommandType(0);
+      FileGrid.Cells[1,2] := 'script\Show_Desktop.vbs';
+      FileGrid.Cells[2,2] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,3] := 'заблокировать компьютер';
       FileGrid.Cells[1,3] := 'script\Lock_Workstation.cmd';
-      FileGrid.Cells[2,3] := DetectCommandType(0);
+      FileGrid.Cells[2,3] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,4] := 'выключить компьютер';
       FileGrid.Cells[1,4] := 'script\Halt_Workstation.cmd';
-      FileGrid.Cells[2,4] := DetectCommandType(0);
+      FileGrid.Cells[2,4] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,5] := 'перезагрузить компьютер';
       FileGrid.Cells[1,5] := 'script\Reboot_Workstation.cmd';
-      FileGrid.Cells[2,5] := DetectCommandType(0);
+      FileGrid.Cells[2,5] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,6] := 'завершить сеанс';
       FileGrid.Cells[1,6] := 'script\Logoff_Workstation.cmd';
-      FileGrid.Cells[2,6] := DetectCommandType(0);
+      FileGrid.Cells[2,6] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,7] := 'интернет';
       FileGrid.Cells[1,7] := 'firefox.exe';
-      FileGrid.Cells[2,7] := DetectCommandType(0);
+      FileGrid.Cells[2,7] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,8] := 'привет';
       FileGrid.Cells[1,8] := 'добрый день';
-      FileGrid.Cells[2,8] := DetectCommandType(3);
+      FileGrid.Cells[2,8] := IntToStr(CommandList[mTextToSpeech].CommandCode);
     end
     else
     begin
       FileGrid.RowCount := 9;
       FileGrid.Cells[0,0] := 'notepad';
       FileGrid.Cells[1,0] := 'notepad.exe';
-      FileGrid.Cells[2,0] := DetectCommandType(0);
+      FileGrid.Cells[2,0] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,1] := 'paint';
       FileGrid.Cells[1,1] := 'mspaint.exe';
-      FileGrid.Cells[2,1] := DetectCommandType(0);
+      FileGrid.Cells[2,1] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,2] := 'hide all programs';
-      FileGrid.Cells[1,2] := 'script\Show_Desktop.scf';
-      FileGrid.Cells[2,2] := DetectCommandType(0);
+      FileGrid.Cells[1,2] := 'script\Show_Desktop.vbs';
+      FileGrid.Cells[2,2] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,3] := 'lock computer';
       FileGrid.Cells[1,3] := 'script\Lock_Workstation.cmd';
-      FileGrid.Cells[2,3] := DetectCommandType(0);
+      FileGrid.Cells[2,3] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,4] := 'turn off computer';
       FileGrid.Cells[1,4] := 'script\Halt_Workstation.cmd';
-      FileGrid.Cells[2,4] := DetectCommandType(0);
+      FileGrid.Cells[2,4] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,5] := 'restart computer';
       FileGrid.Cells[1,5] := 'script\Reboot_Workstation.cmd';
-      FileGrid.Cells[2,5] := DetectCommandType(0);
+      FileGrid.Cells[2,5] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,6] := 'quit user';
       FileGrid.Cells[1,6] := 'script\Logoff_Workstation.cmd';
-      FileGrid.Cells[2,6] := DetectCommandType(0);
+      FileGrid.Cells[2,6] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,7] := 'internet';
       FileGrid.Cells[1,7] := 'firefox.exe';
-      FileGrid.Cells[2,7] := DetectCommandType(0);
+      FileGrid.Cells[2,7] := IntToStr(CommandList[mExecPrograms].CommandCode);
       FileGrid.Cells[0,8] := 'hi';
       FileGrid.Cells[1,8] := 'hello';
-      FileGrid.Cells[2,8] := DetectCommandType(3);
+      FileGrid.Cells[2,8] := IntToStr(CommandList[mTextToSpeech].CommandCode);
     end;
   end;
 end;
@@ -1536,15 +1310,7 @@ begin
     for RowN := 0 to FileGrid.RowCount-1 do
     begin
       for ColN := 0 to FileGrid.ColCount-1 do
-      begin
-        if ColN = 2 then // 3-й столбец
-        begin
-          CTypeName := FileGrid.Cells[ColN,RowN];
-          INI.WriteInteger('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), Integer(DetectCommandTypeName(CTypeName)));
-        end
-        else
-          INI.WriteString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), FileGrid.Cells[ColN,RowN]);
-      end;
+        INI.WriteString('MSpeechCommandGrid', 'Item'+IntToStr(RowN)+IntToStr(ColN), FileGrid.Cells[ColN,RowN]);
     end;
   except
     on e : Exception do
@@ -1553,48 +1319,43 @@ begin
   INI.Free;
 end;
 
-procedure LoadOLDCommandFileToGrid(MyFile: String; FileGrid: TStringGrid);
+procedure TranslateCommandCodeToName(FileGrid: TStringGrid);
 var
-  TF: TextFile;
-  Str1, Str2: String;
-  I, J, RowN, ColN: Integer;
+  ColN, RowN: Integer;
+  CommandCode: String;
 begin
-  // Грузим старый список команд в StringGrid
-  // Делаем такой изврат лишь с одной целью - легко реализуемый поиск по колонкам
-  I := 0;
-  AssignFile(TF, MyFile);
-  Reset(TF);
-  while not eof(TF) do
-  begin
-    Readln(TF, Str1);
-    Inc(I);
-    J := 0;
-    while Pos(';', Str1)<>0 do
-    begin
-      Str2 := Copy(Str1,1,Pos(';', Str1)-1);
-      Inc(J);
-      Delete(Str1, 1, Pos(';', Str1));
-      FileGrid.Cells[J-1, I-1] := Str2;
-    end;
-    if Pos(';', Str1) = 0 then
-    begin
-      Inc(J);
-      FileGrid.Cells[J-1, I-1] := Str1;
-    end;
-    FileGrid.ColCount := J;
-    FileGrid.RowCount := I+1;
-  end;
-  CloseFile(TF);
-  FileGrid.ColCount := FileGrid.ColCount+1;
   for RowN := 0 to FileGrid.RowCount-1 do
   begin
     for ColN := 0 to FileGrid.ColCount-1 do
     begin
       if ColN = 2 then // 3-й столбец
-        FileGrid.Cells[ColN,RowN] := DetectCommandType(0)
+      begin
+        CommandCode := FileGrid.Cells[ColN,RowN];
+        if IsNumber(CommandCode) then
+          FileGrid.Cells[2,RowN] := GetCommandName(StrToInt(CommandCode))
+        else
+          FileGrid.Cells[2,RowN] := IntToStr(CommandList[mExecPrograms].CommandCode);
+      end
     end;
   end;
-  FileGrid.RowCount := FileGrid.RowCount-1;
+end;
+
+procedure TranslateCommandNameToCode(FileGrid: TStringGrid);
+var
+  ColN, RowN: Integer;
+  CommandName: String;
+begin
+  for RowN := 0 to FileGrid.RowCount-1 do
+  begin
+    for ColN := 0 to FileGrid.ColCount-1 do
+    begin
+      if ColN = 2 then // 3-й столбец
+      begin
+        CommandName := FileGrid.Cells[ColN,RowN];
+        FileGrid.Cells[2,RowN] := IntToStr(GetCommandCode(CommandName))
+      end
+    end;
+  end;
 end;
 
 { Перевод первых букв в русском тексте в верхний регистр }
@@ -1691,18 +1452,6 @@ begin
   GetLongPathName(PChar(UserPath), PChar(UserPath), MAX_PATH);
   SetLength(UserPath, StrLen(PChar(UserPath)));
   Result := IncludeTrailingPathDelimiter(UserPath);
-end;
-
-function GetSpecialFolderPath(FolderType: Integer) : WideString;
-const
-  SHGFP_TYPE_CURRENT = 0;
-var
-  Path: Array [0..MAX_PATH] of Char;
-begin
-  if SUCCEEDED(SHGetFolderPath(0, FolderType, 0, SHGFP_TYPE_CURRENT, @Path[0])) then
-    Result := Path
-  else
-    Result := ProgramsPath;
 end;
 
 function EnumThreadWndProc(hwnd: HWND; lParam: LPARAM): BOOL; stdcall;
@@ -2229,332 +1978,65 @@ begin
   end;
 end;
 
-procedure AddAllUserAutorun(AppTitle, AppExe: String);
+function CheckAutorun(AutorunLocation: TAutorunLocation; Autorun: TAutorun; ClientName, ClientFullPath: WideString): Boolean;
+{$IFDEF MSWINDOWS}
+const
+  PATH : PWideChar = 'Software\Microsoft\Windows\CurrentVersion\Run';
 var
-  Reg: TRegistry;
-begin
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      Reg.WriteString(AppTitle, AppExe);
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
-  end;
-end;
-
-procedure AddCurrentUserAutorun(AppTitle, AppExe: String);
-var
-  Reg: TRegistry;
-begin
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      Reg.WriteString(AppTitle, AppExe);
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
-  end;
-end;
-
-procedure DeleteAllUserAutorun(AppTitle: String);
-var
-  Reg: TRegistry;
-begin
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      Reg.DeleteValue(AppTitle);
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
-  end;
-end;
-
-procedure DeleteCurrentUserAutorun(AppTitle: String);
-var
-  Reg: TRegistry;
-begin
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      Reg.DeleteValue(AppTitle);
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
-  end;
-end;
-
-function CheckAllUserAutorun(AppTitle: String): Boolean;
-var
-  Reg: TRegistry;
+  GlobalKey: HKEY;
+  Key: HKEY;
+  dt, ds : LongInt;
 begin
   Result := False;
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_LOCAL_MACHINE;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      if Reg.ValueExists(AppTitle) then
-        Result := True;
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
+  case AutorunLocation of
+    mAutorunAllUser:
+      GlobalKey := HKEY_LOCAL_MACHINE;
+    mAutorunCurrentUser:
+      GlobalKey := HKEY_CURRENT_USER;
   end;
-end;
-
-function CheckCurrentUserAutorun(AppTitle: String): Boolean;
-var
-  Reg: TRegistry;
-begin
-  Result := False;
-  Reg := TRegistry.Create();
-  try
-    Reg.RootKey := HKEY_CURRENT_USER;
-    if Reg.OpenKey('Software\Microsoft\Windows\CurrentVersion\Run', True) then
-    begin
-      if Reg.ValueExists(AppTitle) then
-        Result := True;
-      Reg.CloseKey();
-    end;
-  finally
-    Reg.Free;
-  end;
-end;
-
-{ Отправка текстового запроса в Google и прием mp3-файла }
-function GoogleTextToSpeech(const Text, MP3FileName: String): Boolean;
-const
-  CRLF = #$0D + #$0A;
-var
-  HTTP: THTTPSend;
-  MaxSize: int64;
-begin
-  Result := False;
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
-    end;
-    //if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Запрос: ' + 'https://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-    //MaxSize := HTTPGetSize('https://translate.google.com/translate_tts?ie=UTF-8&total=1&idx=100&textlen=100&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-    MaxSize := HTTPGetSize('https://translate.google.com/translate_tts?ie=UTF-8&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-    if MaxSize > 0 then
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Размер данных = ' + inttostr(MaxSize) + ' байт.');
-      if FileExists(MP3FileName) then
-        DeleteFile(MP3FileName);
-      HTTP.Document.Clear;
-      HTTP.Headers.Clear;
-      HTTP.MimeType := 'application/x-www-form-urlencoded';
-      HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-      Result := HTTP.HTTPMethod('GET', 'https://translate.google.com/translate_tts?ie=UTF-8&prev=input&tl=' + GoogleTL + '&q='+WideStringToUTF8(StringReplace(Text, ' ', '%20', [rfReplaceAll])));
-      if LowerCase(HTTP.ResultString) = 'ok' then
-      begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Данные из системы TTS Google получены.');
-        HTTP.Document.SaveToFile(MP3FileName);
-        Result := FileExists(MP3FileName);
-      end
-      else
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'GoogleTextToSpeech - Ошибка передачи данных в систему TTS Google (' + HTTP.ResultString + ')');
-    end;
-  finally
-    HTTP.Free;
-  end;
-end;
-
-{ Отправка текстового запроса в Yandex и прием mp3-файла }
-function YandexTextToSpeech(const Text, MP3FileName: String): Boolean;
-const
-  CRLF = #$0D + #$0A;
-var
-  HTTP: THTTPSend;
-  MaxSize: int64;
-begin
-  Result := False;
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
-    end;
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - Запрос: ' + 'https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
-    MaxSize := HTTPYandexGetSize('https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
-    if MaxSize > 0 then
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - Размер данных = ' + inttostr(MaxSize) + ' байт.');
-      if FileExists(MP3FileName) then
-        DeleteFile(MP3FileName);
-      HTTP.Document.Clear;
-      HTTP.Headers.Clear;
-      HTTP.MimeType := 'application/x-www-form-urlencoded';
-      HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-      Result := HTTP.HTTPMethod('GET', 'https://tts.voicetech.yandex.net/tts?format=mp3&quality=hi&platform=web&application=translate&lang=' + YandexTL + '&text='+StringReplace(Text, ' ', '%20', [rfReplaceAll]));
-      if LowerCase(HTTP.ResultString) = 'ok' then
-      begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - Данные из системы TTS Yandex получены.');
-        HTTP.Document.SaveToFile(MP3FileName);
-        Result := FileExists(MP3FileName);
-      end
-      else
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'YandexTextToSpeech - Ошибка передачи данных в систему TTS Yandex (' + HTTP.ResultString + ')');
-    end;
-  finally
-    HTTP.Free;
-  end;
-end;
-
-function HTTPGetSize(URL: String): int64;
-const
-  CRLF = #$0D + #$0A;
-var
-  Size: String;
-  HTTP: THTTPSend;
-begin
-  Result := -1;
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
-    end;
-    HTTP.Document.Clear;
-    HTTP.Headers.Clear;
-    HTTP.MimeType := 'application/x-www-form-urlencoded';
-    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-    if HTTP.HTTPMethod('HEAD', URL) then
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - Результат запроса Headers = ' + HTTP.Headers.Text);
-      HeadersToList(HTTP.Headers);
-      Size := HTTP.Headers.Values['Content-Length'];
-      Result := StrToIntDef(Size, -1);
-      if Result > -1 then
-        Result := Result + Length(HTTP.Headers.Text);
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - Результат запроса ResultString = ' + HTTP.ResultString);
-    end;
-  finally
-    HTTP.Free;
-  end;
-end;
-
-function HTTPYandexGetSize(URL: String): int64;
-const
-  CRLF = #$0D + #$0A;
-var
-  Size: String;
-  HTTP: THTTPSend;
-begin
-  Result := -1;
-  HTTP := THTTPSend.Create;
-  try
-    if UseProxy then
-    begin
-      HTTP.ProxyHost := ProxyAddress;
-      if ProxyPort <> '' then
-        HTTP.ProxyPort := ProxyPort
-      else
-        HTTP.ProxyPort := '3128';
-      if ProxyAuth then
-      begin
-        HTTP.ProxyUser := ProxyUser;
-        HTTP.ProxyPass := ProxyUserPasswd;
-      end;
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Пробуем отправить данные через Proxy-сервер (Адрес: %s, Порт: %s, Логин: %s, Пароль: %s)',
-                 [FormatDateTime('dd.mm.yy hh:mm:ss', Now), HTTP.ProxyHost, HTTP.ProxyPort, HTTP.ProxyUser, HTTP.ProxyPass]));
-    end;
-    HTTP.Document.Clear;
-    HTTP.Headers.Clear;
-    HTTP.MimeType := 'application/x-www-form-urlencoded';
-    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-    if HTTP.HTTPMethod('GET', URL) then
-    begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPYandexGetSize - Результат запроса Headers = ' + HTTP.Headers.Text);
-      HeadersToList(HTTP.Headers);
-      Size := HTTP.Headers.Values['Content-Length'];
-      Result := StrToIntDef(Size, -1);
-      if Result > -1 then
-        Result := Result + Length(HTTP.Headers.Text);
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPYandexGetSize - Результат запроса ResultString = ' + HTTP.ResultString);
-    end;
-  finally
-    HTTP.Free;
-  end;
-end;
-
-function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64;
-var
-  I: Integer;
-  Size: String;
-  Ch: Char;
-begin
-  Result := -1;
-  HTTP.Document.Clear;
-  HTTP.Headers.Clear;
-  HTTP.MimeType := 'application/x-www-form-urlencoded';
-  HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
-  if HTTP.HTTPMethod('HEAD',URL) then
+  if RegOpenKeyW(GlobalKey, PATH, Key) = 0 then
   begin
-    for I := 0 to HTTP.Headers.Count - 1 do
-    begin
-      if Pos('content-length', lowercase(HTTP.Headers[I])) > 0 then
-      begin
-        Size := '';
-        for Ch in HTTP.Headers[i] do
-          if Ch in ['0'..'9'] then
-            Size := Size + Ch;
-        Result := StrToInt(Size) + Length(HTTP.Headers.Text);
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'HTTPGetSize - Результат запроса HTTP.Headers.Text = ' + HTTP.Headers.Text);
-        Break;
-      end;
+    case Autorun of
+      mAutorunCheck:
+        Result := RegQueryValueExW(Key, PWideChar(ClientName), nil, @dt, nil, @ds) = 0;
+      mAutorunEnable:
+        Result := True;
+      mAutorunDisable:
+        RegDeleteValueW(Key, PWideChar(ClientName));
     end;
+    if Result then
+      Result := RegSetValueExW(Key, PWideChar(ClientName), 0, 1, PWideChar(ClientFullPath), Length(ClientFullPath) * SizeOf(WideChar)) = 0;
+    RegCloseKey(Key);
   end;
+end;
+{$ELSE}
+begin
+  Result := False;
+end;
+{$ENDIF}
+
+function GetAppDataFolderPath: WideString;
+var
+  Str: WideString;
+begin
+  SetLength(Str, 255);
+  if not SHGetSpecialFolderPathW(0, PWideChar(Str), $1C{CSIDL_LOCAL_APPDATA}, True) then
+    Result := ExtractFilePath(ParamStr(0))
+  else
+    Result := IncludeTrailingPathDelimiter(PWideChar(Str));
+end;
+
+function IsPathDelimiter(const S: WideString; Index: Integer): Boolean;
+begin
+  Result := (Index >= Low(WideString)) and (Index <= High(S)) and (S[Index] = PathDelim)
+    and (ByteType(S, Index) = mbSingleByte);
+end;
+
+function IncludeTrailingPathDelimiter(const S: WideString): WideString;
+begin
+  Result := S;
+  if not IsPathDelimiter(Result, High(Result)) then
+    Result := Result + PathDelim;
 end;
 
 begin

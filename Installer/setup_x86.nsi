@@ -7,7 +7,7 @@
 
 !define PRODUCT_NAME "MSpeech"
 !define NAME "MSpeech"
-!define VERSION 1.5.6
+!define VERSION 1.5.7
 !define COMPANY "Mikhael Grigorev"
 !define URL http://www.im-history.ru
 
@@ -106,6 +106,14 @@
 
 Function .onInit
 
+  ; Предотвращение множественности запуска 
+  System::Call 'kernel32::CreateMutexA(i 0, i 0, t "$(^Name)") i .r1 ?e'
+  Pop $R0
+  ${IfNot} $R0 == 0
+    MessageBox MB_OK|MB_ICONEXCLAMATION "One copy of the installer $(^Name) is already running."
+    Abort
+  ${EndIf}
+
 uac_tryagain:
 !insertmacro UAC_RunElevated
 ${Switch} $0
@@ -128,6 +136,7 @@ ${Default}
 ${EndSwitch}
 
   !insertmacro MUI_LANGDLL_DISPLAY
+
 FunctionEnd
 
 ;--------------------------------
@@ -164,6 +173,77 @@ StrCmp $R0 "" +1 +2
 DeleteRegKey /ifempty "${ROOT}" "${SUBKEY}"
 Pop $R0
 !macroend
+
+; Удаление RHVoice
+Function UninstallRHVoice
+DetailPrint "Uninstalling RHVoice..."
+StrCpy $R1 ""
+ReadRegStr $0 HKLM "Software\RHVoice" "path"
+;DetailPrint "RHVoicePath: $0"
+${If} $0 == ""
+  ${If} ${RunningX64}
+  SetRegView 64
+  ReadRegStr $0 HKLM "Software\RHVoice" "path"
+  SetRegView 32
+  ${EndIf}
+  ${If} $0 == ""
+    ; Хвосты оригинального RHVoice
+    StrCpy $R1 "$PROGRAMFILES\RHVoice"
+    DetailPrint "Original RHVoice directory set: $R1"
+  ${Else}
+    DetailPrint "In the registry, found information on RHVoiceDir (x64): $0"
+    StrCpy $R1 $0
+  ${EndIf}
+${Else}
+  DetailPrint "In the registry, found information on RHVoiceDir (x86): $0"
+  StrCpy $R1 $0
+${EndIf}
+; Проверка оригинального RHVoice
+IfFileExists "$R1\lib32\RHVoiceSvr.dll" rhvoicedelete 0
+  StrCpy $R1 "$INSTDIR\rhvoice"
+rhvoicedelete:
+IfFileExists "$R1\lib32\RHVoiceSvr.dll" 0 rhvoicedone
+  DetailPrint "Found library RHVoice: $R1\lib32\RHVoiceSvr.dll"
+  !insertmacro UnInstallLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED "$R1\lib32\RHVoiceSvr.dll"
+  !define LIBRARY_X64
+  ${If} ${RunningX64}
+  !insertmacro UnInstallLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED "$R1\lib64\RHVoiceSvr.dll"
+  ${EndIf}
+  !undef LIBRARY_X64
+  Delete "$R1\lib32\RHVoiceSvr.dll"
+  Rmdir "$R1\lib32"
+  Delete "$R1\lib64\RHVoiceSvr.dll"
+  Rmdir "$R1\lib64"
+  ; Удаляем хвосты оригинального RHVoice
+  IfFileExists "$PROGRAMFILES\RHVoice\uninstall\uninstall-RHVoice.exe" 0 rhvoice32
+    DetailPrint "Delete original RHVoice: $PROGRAMFILES\RHVoice\uninstall\uninstall-RHVoice.exe"
+    Delete "$PROGRAMFILES\RHVoice\uninstall\uninstall-RHVoice.exe"
+    Rmdir "$PROGRAMFILES\RHVoice\uninstall"
+    Rmdir "$PROGRAMFILES\RHVoice\"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\RHVoice"
+    Goto nodelorig
+  rhvoice32:
+  IfFileExists "$PROGRAMFILES32\RHVoice\uninstall\uninstall-RHVoice.exe" 0 nodelorig
+    DetailPrint "Delete original RHVoice (x86): $PROGRAMFILES32\RHVoice\uninstall\uninstall-RHVoice.exe"
+    Delete "$PROGRAMFILES32\RHVoice\uninstall\uninstall-RHVoice.exe"
+    Rmdir "$PROGRAMFILES32\RHVoice\uninstall"
+    Rmdir "$PROGRAMFILES32\RHVoice\"
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\RHVoice"
+  nodelorig:
+  DeleteRegKey HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice"
+  ${If} ${RunningX64}
+  SetRegView 64
+  DeleteRegKey HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice"
+  SetRegView 32
+  ${EndIf}
+  DeleteRegKey HKLM "Software\RHVoice"
+  ${If} ${RunningX64}
+  SetRegView 64
+  DeleteRegKey HKLM "Software\RHVoice"
+  SetRegView 32
+  ${EndIf}
+rhvoicedone:
+FunctionEnd
 
 ;--------------------------------
 ;Language Strings
@@ -240,6 +320,7 @@ Section "MSpeech" SecMainProgramUserSpace
   File "${HOME}\changelog.txt"
   File "${HOME}\getlicense_en.txt"
   File "${HOME}\getlicense_ru.txt"
+  File "${HOME}\LICENSE"
 
   IfFileExists "$INSTDIR\MSpeechForms.ini" 0 +2
    Delete "$INSTDIR\MSpeechForms.ini"
@@ -262,6 +343,7 @@ Section "MSpeech" SecMainProgramUserSpace
   File "${HOME}\script\Logoff_Workstation.cmd"
   File "${HOME}\script\Reboot_Workstation.cmd"
   File "${HOME}\script\Show_Desktop.scf"
+  File "${HOME}\script\Show_Desktop.vbs"
   File "${HOME}\script\StopHalt_Workstation.cmd"
 
   SetOutPath "$INSTDIR"
@@ -291,8 +373,26 @@ SectionEnd
 SectionGroup $(SecAddRHVoiceDesc) SecAddRHVoice
 
 	Section $(SecAddRHVoiceCoreDesc) SecAddRHVoiceCore
+		; Проверяем наличие RHVoice
+		ClearErrors
+		EnumRegKey $0 HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice" 0
+		IfErrors 0 keyrhvoiceexist
+		  DetailPrint "RHVoice not found (x86)"
+		  ${If} ${RunningX64}
+		  ClearErrors
+		  SetRegView 64
+		  EnumRegKey $0 HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice" 0
+		  SetRegView 32
+		  ${EndIf}
+		  IfErrors 0 keyrhvoiceexist
+		    DetailPrint "RHVoice not found (x64)"
+		    Goto rhvoiceinstall
+		keyrhvoiceexist:
+			Call UninstallRHVoice
+		rhvoiceinstall:
 		SetOverwrite on
-		; Регистрация DLL
+		; Регистрация RHVoice DLL
+		DetailPrint "Installing RHVoice..."
 		SetOutPath "$INSTDIR\rhvoice\lib32"
 		!insertmacro installLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED ${HOME}\rhvoice\lib32\RHVoiceSvr.dll "RHVoiceSvr.dll" $INSTDIR
 		!define LIBRARY_X64
@@ -301,7 +401,7 @@ SectionGroup $(SecAddRHVoiceDesc) SecAddRHVoice
 		!insertmacro installLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED ${HOME}\rhvoice\lib64\RHVoiceSvr.dll "RHVoiceSvr.dll" $INSTDIR
 		${EndIf}
 		!undef LIBRARY_X64
-		; Прописываем пути к файлам данных движка
+		; Прописываем пути к файлам данных движка RHVoice 
 		WriteRegStr HKLM "Software\RHVoice" "path" "$INSTDIR\rhvoice"
 		WriteRegStr HKLM "Software\RHVoice" "data_path" "$INSTDIR\rhvoice\data"
 		${If} ${RunningX64}
@@ -593,9 +693,9 @@ Section "Uninstall"
   !insertmacro UnInstallLib REGDLL NOTSHARED NOREBOOT_NOTPROTECTED "$INSTDIR\rhvoice\lib64\RHVoiceSvr.dll"
   ${EndIf}
   !undef LIBRARY_X64
-  Delete "$INSTDIR\rhvoice\rhvoice\lib32\*.*"
+  Delete "$INSTDIR\rhvoice\rhvoice\lib32\RHVoiceSvr.dll"
   Rmdir "$INSTDIR\rhvoice\lib32"
-  Delete "$INSTDIR\rhvoice\rhvoice\lib64\*.*"
+  Delete "$INSTDIR\rhvoice\rhvoice\lib64\RHVoiceSvr.dll"
   Rmdir "$INSTDIR\rhvoice\lib64"
   DeleteRegKey HKLM "Software\Microsoft\Speech\Voices\TokenEnums\RHVoice"
   ${If} ${RunningX64}
@@ -638,6 +738,7 @@ Section "Uninstall"
   Delete "$INSTDIR\*.rpl"
   Delete "$INSTDIR\*.log"
   Delete "$INSTDIR\*.tts"
+  Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\uninstall.ico"
   Delete "$INSTDIR\langs\*.*"
   Delete "$INSTDIR\script\*.*"

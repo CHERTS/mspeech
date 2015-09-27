@@ -1,6 +1,6 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.5 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8 - Распознавание речи используя Google Speech API         # }
 { #                                                                          # }
 { #  License: GPLv3                                                          # }
 { #                                                                          # }
@@ -26,7 +26,7 @@ uses
 begin
   if not Init_Mutex(ProgramsName) then
   begin
-    if GetSysLang = 'Русский' then
+    if (GetSysLang = 'Русский') or (GetSysLang = 'Russian') or (MatchStrings(GetSysLang, 'Русский*')) then
       Application.MessageBox('Программа уже запущена.', 'Ошибка запуска', 0 or 48)
     else
       Application.MessageBox('The program is already running.', 'Error', 0 or 48);
@@ -34,7 +34,7 @@ begin
   end;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'MSpeech - Распознавание голоса с помощью GoogleSpeech';
+  Application.Title := 'MSpeech - Распознавание голоса с помощью Google Speech API';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TSettingsForm, SettingsForm);
   Application.CreateForm(TLogForm, LogForm);
