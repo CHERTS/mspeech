@@ -57,9 +57,9 @@ begin
   SearchTimer.Interval := 50;
   SearchTimer.Enabled := not SearchTimer.Enabled;
   if SearchTimer.Enabled then
-    StartStopSearchButton.Caption := 'Остановить поиск'
+    StartStopSearchButton.Caption := 'Stop search'
   else
-    StartStopSearchButton.Caption := 'Начать поиск'
+    StartStopSearchButton.Caption := 'Start search'
 end;
 
 procedure TMainForm.SearchTimerTimer(Sender: TObject);

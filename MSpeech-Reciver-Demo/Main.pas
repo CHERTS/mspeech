@@ -20,6 +20,8 @@ type
   TCopyDataType = (cdtString = 0, cdtImage = 1, cdtRecord = 2);
   TMainForm = class(TForm)
     ReciverMemo: TMemo;
+    LInfoRU: TLabel;
+    LInfoEN: TLabel;
   private
     { Private declarations }
     procedure OnControlReq(var Msg : TWMCopyData); message WM_COPYDATA;

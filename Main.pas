@@ -912,7 +912,7 @@ var
   Grid: TArrayOfInteger;
 begin
   case pInfo.FStatus of
-    rsErrorGetAPIKey: MsgStr := 'Ошибка: Новый Google API Key не был получен с сервере MSpeech: ' + pInfo.FMessage;
+    rsErrorGetAPIKey: MsgStr := 'Ошибка: Google Speech API Key не указан в настройках, заблокирован или достигнут лимит запросов в сутки: ' + pInfo.FMessage;
     rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
     rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
     rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';

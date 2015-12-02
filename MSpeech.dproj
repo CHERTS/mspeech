@@ -86,7 +86,7 @@
         <VerInfo_AutoIncVersion>true</VerInfo_AutoIncVersion>
         <VerInfo_Release>2</VerInfo_Release>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.2.1;InternalName=MSpeech;LegalCopyright=Mikhail Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.2.0;Comments=http://www.programs74.ru</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.7.0;InternalName=MSpeech;LegalCopyright=Mikhail Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.7.0;Comments=http://www.programs74.ru</VerInfo_Keys>
         <DCC_DebugInformation>true</DCC_DebugInformation>
         <DCC_MapFile>3</DCC_MapFile>
     </PropertyGroup>

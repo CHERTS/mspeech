@@ -1,12 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.7 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.8                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Automated Speech Recognition (ASR) Module                               # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
-{ #  Author: Mikhail Grigorev (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -18,23 +18,26 @@ uses Windows, Classes, SysUtils, Global, HTTPSend, synautil;
 
 type
   //JSONError = class(Exception);
-  // Структура с информацией о распознанной фразе (передается в callback процедуру)
-  PRecognizeInfo = ^TRecognizeInfo;
+  // Статусы
+  TRecognizeStatus = (rsRecognizeDone, rsRecordingNotRecognized,
+                  rsErrorJsonParse, rsErrorResponse,
+                  rsInfo, rsAbort, rsErrorGetAPIKey,
+                  rsFileSizeNull, rsErrorConnectionTimedOut,
+                  rsErrorNoRouteToHost, rsErrorHostNotFound,
+                  rsErrorCommunication, rsErrorPermissionDenied);
+  // Структура с информацией о статусе распознавания (передается в callback процедуру)
   TRecognizeInfo = record
-    FStatus     : Integer;   // Статус распознавания: 5- запись не распознана, 0 - запись распознана, 1 - Ошибка парсинга ответа, 2 - ошибка получения ответа
-    FConfidence : Real;      // Достоверность распознавания в %
-    FTranscript : String;    // Распознанная фраза
+    FStatus     : TRecognizeStatus; // Статус
+    FMessage    : String;           // Сообщение
+    FConfidence : Real;             // Достоверность распознавания в %
+    FTranscript : String;           // Распознанная фраза
   end;
-  TRecognizeStatus = (rsResolving, rsConnect, rsSendRequest, rsResponseReceived, rsRecognizeDone, rsRecordingNotRecognized, rsRecognizeAbort);
-  TRecognizeError = (reErrorGoogleCommunication, reErrorGoogleResponse, reFileSizeNull, reErrorHostNotFound, reErrorConnectionTimedOut);
 
   // callback процедура, вызываемая после распознавания
-  TRecognizeResultEvent = procedure (Sender: TObject; pStatus: TRecognizeStatus; pInfo: TRecognizeInfo) of object;
-  // callback процедура, вызываемая при появлении ошибок
-  TRecognizeErrorEvent = procedure(Sender: TObject; E: TRecognizeError; EStr: String) of object;
+  TRecognizeResultEvent = procedure (Sender: TObject; pInfo: TRecognizeInfo) of object;
 
   // Запуск распознавания
-  procedure StartRecognize(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent; pRecognizeErrorCallBack: TRecognizeErrorEvent);
+  procedure StartRecognize(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent);
   // Остановка распознавания
   procedure StopRecognize;
 
@@ -59,31 +62,28 @@ type
     FProxyAuthUserName: String;
     FProxyAuthPassword: String;
     FRecognizeInfoCallBack: TRecognizeResultEvent;
-    FRecognizeErrorCallBack: TRecognizeErrorEvent;
-    FRecognizeErr: TRecognizeError;
-    FRecognizeErrStr: String;
     FRecognizeInfo: TRecognizeInfo;
-    FRecognizeStatus: TRecognizeStatus;
     FTerminated: Boolean;
     FGoogleAPIKey: String;
     FHTTP: THTTPSend;
-    procedure StatusEvent;
-    procedure ErrorEvent;
+    FReadCount: Integer;
+    procedure RecognizeEvent;
+    function RecognizeResult(E: Boolean; eType: TRecognizeStatus; eText: String): Boolean;
     function GetFileSize(FileName: String): Integer;
     function HTTPPostFile(Const URL, FieldName, FileName: String; Const Data: TStream; Const ResultData: TStrings): Boolean;
-    function ErrorResult(E: Boolean; eType: TRecognizeError; eText: String): Boolean;
     procedure HTTPStatus(Sender: TObject; Reason: THookSocketReason; const Value: String);
     function SendRecognizeRequest(AudioFile: String): TRecognizeInfo;
     function ParseJSONv2(JStringList: TStringList): TRecognizeInfo;
+    function HTTPGetSize(var HTTP: THTTPSend; URL: String): int64; overload;
+    function HTTPGetSize(URL: String): int64; overload;
   protected
     procedure Execute; override;
   public
-    constructor Create(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent; pRecognizeErrorCallBack: TRecognizeErrorEvent);
+    constructor Create(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent);
     destructor Destroy; override;
     property Terminated;
     procedure Terminate(NewPriority: TThreadPriority = tpIdle); reintroduce;
     property OnRecognize: TRecognizeResultEvent read FRecognizeInfoCallBack;
-    property OnError: TRecognizeErrorEvent read FRecognizeErrorCallBack;
   end;
 
 var
@@ -98,9 +98,9 @@ const
   FLACInSampleRate = '44100';
   HTTPTimeout = 4000;
 
-procedure StartRecognize(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent; pRecognizeErrorCallBack: TRecognizeErrorEvent);
+procedure StartRecognize(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent);
 begin
-  GoogleRecognize := TGoogleRecognizer.Create(pGoogleAPIKey, pFileName, pRecognizeLang, pUseProxy, pProxyAddress, pProxyPort, pProxyAuth, pProxyAuthUserName, pProxyAuthPassword, pRecognizeInfoCallBack, pRecognizeErrorCallBack);
+  GoogleRecognize := TGoogleRecognizer.Create(pGoogleAPIKey, pFileName, pRecognizeLang, pUseProxy, pProxyAddress, pProxyPort, pProxyAuth, pProxyAuthUserName, pProxyAuthPassword, pRecognizeInfoCallBack);
 end;
 
 procedure StopRecognize;
@@ -111,6 +111,7 @@ begin
     GoogleRecognize.Terminate;
   end;
 end;
+
 
 procedure DeallocRecognizerThread;
 begin
@@ -128,7 +129,7 @@ begin
   end;
 end;
 
-constructor TGoogleRecognizer.Create(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent; pRecognizeErrorCallBack: TRecognizeErrorEvent);
+constructor TGoogleRecognizer.Create(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent);
 begin
   inherited Create(True);
   FreeOnTerminate := True;
@@ -140,13 +141,13 @@ begin
   FProxyAuth := pProxyAuth;
   FProxyAuthUserName := pProxyAuthUserName;
   FProxyAuthPassword := pProxyAuthPassword;
-  FRecognizeErrorCallBack := pRecognizeErrorCallBack;
   FRecognizeInfoCallBack := pRecognizeInfoCallBack;
   FResultList := TStringList.Create;
   FHTTP := THTTPSend.Create;
-  FRecognizeInfo.FStatus := 5;
+  FRecognizeInfo.FStatus := rsRecordingNotRecognized;
   FRecognizeInfo.FConfidence := 0;
   FRecognizeInfo.FTranscript := '';
+  FReadCount := 0;
   if pGoogleAPIKey = '' then
     FGoogleAPIKey := GoogleRecognizePublicAPIKey
   else
@@ -175,6 +176,25 @@ begin
   inherited Terminate;
 end;
 
+procedure TGoogleRecognizer.RecognizeEvent;
+begin
+  if Assigned(FRecognizeInfoCallBack) then
+    FRecognizeInfoCallBack(Self, FRecognizeInfo);
+end;
+
+function TGoogleRecognizer.RecognizeResult(E: Boolean; eType: TRecognizeStatus; eText: String): Boolean;
+begin
+  Result := E;
+  if E then
+  begin
+    FRecognizeInfo.FStatus := eType;
+    FRecognizeInfo.FMessage := eText;
+    FRecognizeInfo.FConfidence := 0;
+    FRecognizeInfo.FTranscript := '';
+    RecognizeEvent;
+  end;
+end;
+
 procedure TGoogleRecognizer.Execute;
 begin
   if not FileExists(FInputFileName) then
@@ -185,27 +205,19 @@ begin
   else
   begin
     FRecognizeInfo := SendRecognizeRequest(FInputFileName);
-    if FRecognizeInfo.FStatus = 0 then // Запись распознана
+    if FRecognizeInfo.FStatus = rsErrorJsonParse then // Ошибка при парсинге ответа
     begin
-      FRecognizeStatus := rsRecognizeDone;
-      Synchronize(StatusEvent);
+      FRecognizeInfo.FStatus := rsErrorGetAPIKey;
+      FRecognizeInfo.FMessage := 'Validity of Key Speech API, obtained from the server MSpeech, already ended.';
+      Synchronize(RecognizeEvent);
     end
-    else if FRecognizeInfo.FStatus = 1 then // Ошибка при парсинге ответа
+    else if FRecognizeInfo.FStatus = rsRecordingNotRecognized then // Запись не распознана
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка при получении ответа от сервера Google. (' + FRecognizeInfo.FTranscript + ')');
-      FRecognizeStatus := rsRecordingNotRecognized;
-      Synchronize(StatusEvent);
+      Synchronize(RecognizeEvent);
     end
-    else if FRecognizeInfo.FStatus = 2 then // Ошибка при получении ответа от сервера
+    else if FRecognizeInfo.FStatus = rsRecognizeDone then // Запись распознана
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка при получении ответа от сервера Google, возможно запись для распознавания была слишком длинной, попробуйте её сократить до 3-5 секунд. (' + FRecognizeInfo.FTranscript + ')');
-      FRecognizeStatus := rsRecordingNotRecognized;
-      Synchronize(StatusEvent);
-    end
-    else if FRecognizeInfo.FStatus = 5 then // Запись не распознана
-    begin
-      FRecognizeStatus := rsRecordingNotRecognized;
-      Synchronize(StatusEvent);
+      Synchronize(RecognizeEvent);
     end;
   end
 end;
@@ -218,7 +230,7 @@ var
   FJSON, FJo, FJoV2: TJSONobject;
   JArray: TJSONArray;
 begin
-  if ErrorResult(GetFileSize(AudioFile) <= 0, reFileSizeNull, 'File size ' + FInputFileName + ' ' + IntToStr(GetFileSize(AudioFile))) then
+  if RecognizeResult(GetFileSize(AudioFile) <= 0, rsFileSizeNull, 'File size ' + FInputFileName + ' ' + IntToStr(GetFileSize(AudioFile))) then
     Exit
   else
   begin
@@ -239,26 +251,20 @@ begin
         FURL := Format(GoogleRecognizeURLv2MSpeech, [FRecognizeLang, FGoogleAPIKey, ProgramsName+'-'+ProgramsVer]);
       if not HTTPPostFile(FURL, 'userfile', FInputFileName, FInputStream, FResultList) then
       begin
-        Result.FStatus := 2;
-        Result.FTranscript := 'Failed to get a response from the server in procedure HTTPPostFile';
+        Result.FStatus := rsErrorCommunication;
+        Result.FTranscript := 'Failed to get a response from the Google ASR';
         Exit;
       end;
     finally
       FInputStream.Free;
     end;
-    if EnableLogs then
+    {if EnableLogs then
     begin
       WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': FResultList.Count = ' + IntToStr(FResultList.Count));
       WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': FResultList.Text = ' + UTF8ToString(FResultList.Text));
-    end;
+    end;}
     Result := ParseJSONv2(FResultList);
   end;
-end;
-
-procedure TGoogleRecognizer.StatusEvent;
-begin
-  if Assigned(FRecognizeInfoCallBack) then
-    FRecognizeInfoCallBack(Self, FRecognizeStatus, FRecognizeInfo);
 end;
 
 function TGoogleRecognizer.GetFileSize(FileName: String): Integer;
@@ -331,6 +337,8 @@ begin
 end;
 
 procedure TGoogleRecognizer.HTTPStatus(Sender: TObject; Reason: THookSocketReason; const Value: String);
+var
+  Status: String;
 begin
   {$IFDEF DEBUG}
   if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + GetEnumName(TypeInfo(THookSocketReason),ord(Reason))+': '+Value);
@@ -340,67 +348,72 @@ begin
     FTerminated := True;
     if Sender is TTCPBlockSocket then
       TTCPBlockSocket(Sender).StopFlag := True;
-    FRecognizeStatus := rsRecognizeAbort;
-    Synchronize(StatusEvent);
+    FRecognizeInfo.FStatus := rsAbort;
+    FRecognizeInfo.FMessage := 'Requested stop sending data';
+    FRecognizeInfo.FConfidence := 0;
+    FRecognizeInfo.FTranscript := '';
+    Synchronize(RecognizeEvent);
   end;
   if not FTerminated then
   begin
-    if Reason = HR_ResolvingBegin then
+    if Value <> '' then
     begin
-      FRecognizeStatus := rsResolving;
-      Synchronize(StatusEvent);
-    end;
-    if Reason = HR_Connect then
-    begin
-      FRecognizeStatus := rsConnect;
-      Synchronize(StatusEvent);
-    end;
-    if Reason = HR_WriteCount then
-    begin
-      FRecognizeStatus := rsSendRequest;
-      Synchronize(StatusEvent);
-    end;
-    if Reason = HR_ReadCount then
-    begin
-      FRecognizeStatus := rsResponseReceived;
-      Synchronize(StatusEvent);
-    end;
-    if Reason = HR_Error then
-    begin
-      if ErrorResult(Value = '11001,Host not found', reErrorHostNotFound, Value) then
-        Exit
-      else if ErrorResult(Value = '10060,Connection timed out', reErrorConnectionTimedOut, Value) then
-        Exit
-      else if Value = '10054,Connection reset by peer' then
-        Exit
-      else if ErrorResult(Value = '11002,Non authoritative - host not found', reErrorHostNotFound, Value) then
-        Exit
-      else
+      case Reason of
+        HR_ResolvingBegin: Status := 'Start resolving: ' + Value;
+        HR_ResolvingEnd: Status := 'End resolving: ' + Value;
+        HR_SocketCreate: Status := 'Socket created: ' + Value;
+        HR_SocketClose: Status := 'Socket closed: ' + Value;
+        HR_Bind: Status := 'Socket binded: ' + Value;
+        HR_Connect: Status := 'Socket connected: ' + Value;
+        HR_CanRead: Status := 'Read: ' + Value;
+        HR_CanWrite: Status := 'Write: ' + Value;
+        HR_Listen: Status := 'Listen: ' + Value;
+        HR_Accept: Status := 'Accept: ' + Value;
+        HR_ReadCount:
+        begin
+          // Считаем количество принятых байт, потом их выведем суммарно и отдельно
+          // В это количество не входит размер заголовка и т.п.
+          FReadCount := FReadCount+StrToInt(Value);
+          Status := '';
+        end;
+        HR_WriteCount: Status := 'WriteCount: ' + Value;
+        HR_Wait: Status := 'Wait: ' + Value;
+        HR_Error:
+        begin
+          if RecognizeResult(Value = '10065,No route to host', rsErrorNoRouteToHost, Value) then
+            Exit
+          else if RecognizeResult(Value = '11001,Host not found', rsErrorHostNotFound, Value) then
+            Exit
+          else if RecognizeResult(Value = '10060,Connection timed out', rsErrorConnectionTimedOut, Value) then
+            Exit
+          else if Value = '10054,Connection reset by peer' then
+            Exit
+          else if RecognizeResult(Value = '11002,Non authoritative - host not found', rsErrorHostNotFound, Value) then
+            Exit
+          else if RecognizeResult(Value = '10013,Permission denied', rsErrorPermissionDenied, Value) then
+            Exit
+          else
+          begin
+            Status := 'Error: ' + Value;
+            FRecognizeInfo.FStatus := rsErrorCommunication;
+            FRecognizeInfo.FMessage := Status;
+            FRecognizeInfo.FConfidence := 0;
+            FRecognizeInfo.FTranscript := '';
+            Synchronize(RecognizeEvent);
+            Exit;
+          end;
+        end;
+      end;
+      if Status <> '' then
       begin
-        FRecognizeErr := reErrorGoogleCommunication;
-        FRecognizeErrStr := Value;
-        Synchronize(ErrorEvent);
-        Exit;
+        FRecognizeInfo.FStatus := rsInfo;
+        FRecognizeInfo.FMessage := Status;
+        FRecognizeInfo.FConfidence := 0;
+        FRecognizeInfo.FTranscript := '';
+        Synchronize(RecognizeEvent);
       end;
     end;
   end;
-end;
-
-function TGoogleRecognizer.ErrorResult(E: Boolean; eType: TRecognizeError; eText: String): Boolean;
-begin
-  Result := E;
-  if E then
-  begin
-    FRecognizeErr := eType;
-    FRecognizeErrStr := eText;
-    ErrorEvent;
-  end;
-end;
-
-procedure TGoogleRecognizer.ErrorEvent;
-begin
-  if Assigned(FRecognizeErrorCallBack) then
-    OnError(Self, FRecognizeErr, FRecognizeErrStr);
 end;
 
 function TGoogleRecognizer.ParseJSONv2(JStringList: TStringList): TRecognizeInfo;
@@ -409,7 +422,8 @@ var
   FJSON, FJo, FJo2: TJSONobject;
   JArray, JArrayA: TJSONArray;
 begin
-  Result.FStatus := 5;
+  Result.FStatus := rsRecordingNotRecognized;
+  Result.FMessage := '';
   Result.FConfidence := 0;
   Result.FTranscript := '';
   for JStringListCnt := 0 to JStringList.Count-1 do
@@ -422,8 +436,8 @@ begin
       begin
         //raise JSONError.Create(SysErrorMessage(GetLastError));
         FJSON.Free;
-        Result.FStatus := 1;
-        Result.FTranscript := e.Message;
+        Result.FStatus := rsErrorJsonParse;
+        Result.FMessage := e.Message;
         Exit;
       end;
     end;
@@ -436,8 +450,8 @@ begin
           on e: Exception do
           begin
             //raise JSONError.Create(SysErrorMessage(GetLastError));
-            Result.FStatus := 1;
-            Result.FTranscript := e.Message;
+            Result.FStatus := rsErrorJsonParse;
+            Result.FMessage := e.Message;
             JArray.Free;
             FJSON.Free;
             Exit;
@@ -454,8 +468,8 @@ begin
               on e: Exception do
               begin
                 //raise JSONError.Create(SysErrorMessage(GetLastError));
-                Result.FStatus := 1;
-                Result.FTranscript := e.Message;
+                Result.FStatus := rsErrorJsonParse;
+                Result.FMessage := e.Message;
                 FJo.Free;
                 JArray.Free;
                 FJSON.Free;
@@ -465,15 +479,17 @@ begin
             try
               if FJo.optString('final') = 'true' then
               begin
+                {$IFDEF DEBUG}
                 if EnableLogs then WriteInLog(WorkPath, Format('%s: Cтрока alternative = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FJo.optString('alternative')]));
+                {$ENDIF}
                 try
                   JArrayA := TJSONArray.create(FJo.optString('alternative'));
                 except
                   on e: Exception do
                   begin
                     //raise JSONError.Create(SysErrorMessage(GetLastError));
-                    Result.FStatus := 1;
-                    Result.FTranscript := e.Message;
+                    Result.FStatus := rsErrorJsonParse;
+                    Result.FMessage := e.Message;
                     JArrayA.Free;
                     FJo.Free;
                     JArray.Free;
@@ -482,7 +498,9 @@ begin
                   end;
                 end;
                 try
+                  {$IFDEF DEBUG}
                   if EnableLogs then WriteInLog(WorkPath, Format('%s: Размер массива alternative = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArrayA.length]));
+                  {$ENDIF}
                   if JArrayA.length > 0 then
                   begin
                     if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, JArrayA.get(0).toString]));
@@ -492,8 +510,8 @@ begin
                       on e: Exception do
                       begin
                         //raise JsonError.Create(SysErrorMessage(GetLastError));
-                        Result.FStatus := 1;
-                        Result.FTranscript := e.Message;
+                        Result.FStatus := rsErrorJsonParse;
+                        Result.FMessage := e.Message;
                         FJo2.Free;
                         JArrayA.Free;
                         FJo.Free;
@@ -503,7 +521,8 @@ begin
                       end;
                     end;
                     try
-                      Result.FStatus := 0;
+                      Result.FStatus := rsRecognizeDone;
+                      Result.FMessage := '';
                       if not FJo2.isNull('transcript') then
                       begin
                         Result.FTranscript := FJo2.optString('transcript');
@@ -534,6 +553,73 @@ begin
     finally
       FJSON.Free;
     end;
+  end;
+end;
+
+function TGoogleRecognizer.HTTPGetSize(var HTTP: THTTPSend; URL: String): int64;
+var
+  I: Integer;
+  Size: String;
+  Ch: Char;
+begin
+  Result := -1;
+  HTTP.Document.Clear;
+  HTTP.Headers.Clear;
+  HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+  if HTTP.HTTPMethod('HEAD',URL) then
+  begin
+    for I := 0 to HTTP.Headers.Count - 1 do
+    begin
+      if Pos('content-length', lowercase(HTTP.Headers[I])) > 0 then
+      begin
+        Size := '';
+        for Ch in HTTP.Headers[i]do
+          if Ch in ['0'..'9'] then
+            Size := Size + Ch;
+        Result := StrToInt(Size) + Length(HTTP.Headers.Text);
+        Break;
+      end;
+    end;
+  end;
+end;
+
+function TGoogleRecognizer.HTTPGetSize(URL: String): int64;
+const
+  CRLF = #$0D + #$0A;
+var
+  Size: String;
+  HTTP: THTTPSend;
+begin
+  Result := -1;
+  HTTP := THTTPSend.Create;
+  try
+    if FUseProxy then
+    begin
+      HTTP.ProxyHost := FProxyAddress;
+      if FProxyPort <> '' then
+        HTTP.ProxyPort := FProxyPort
+      else
+        HTTP.ProxyPort := '3128';
+      if FProxyAuth then
+      begin
+        HTTP.ProxyUser := FProxyAuthUserName;
+        HTTP.ProxyPass := FProxyAuthPassword;
+      end;
+    end;
+    HTTP.Document.Clear;
+    HTTP.Headers.Clear;
+    HTTP.MimeType := 'application/x-www-form-urlencoded';
+    HTTP.UserAgent := 'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/30.0.1599.17 Safari/537.36';
+    if HTTP.HTTPMethod('HEAD', URL) then
+    begin
+      HeadersToList(HTTP.Headers);
+      Size := HTTP.Headers.Values['Content-Length'];
+      Result := StrToIntDef(Size, -1);
+      if Result > -1 then
+        Result := Result + Length(HTTP.Headers.Text);
+    end;
+  finally
+    HTTP.Free;
   end;
 end;
 
