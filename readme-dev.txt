@@ -16,11 +16,11 @@ WWW:		http://www.programs74.ru
 Для сборки MSpeech необходимы:
 ------------------------------
 
-1. Embarcadero RAD Studio XE6, XE7, XE8
+1. Embarcadero RAD Studio XE8
 
 2. New Audio Components for Delphi
    Сайт: http://symmetrica.net/newac/
-   Репозитарий: https://code.google.com/p/newac/
+   Репозитарий: https://github.com/CHERTS/newac
 
 3. Набор компонентов MGSoft
    Находится в папке MGSoft.
@@ -35,4 +35,4 @@ WWW:		http://www.programs74.ru
 3. Плагин Registry plug-in
    Сайт: http://nsis.sourceforge.net/Registry_plug-in
 
-(c) 2012-2014 by Mikhail Grigorev
+(c) 2012-2015 by Mikhail Grigorev

@@ -1,0 +1,198 @@
+object MainForm: TMainForm
+  Left = 291
+  Top = 208
+  Caption = 'MGTessOCR FMX Demo'
+  ClientHeight = 674
+  ClientWidth = 926
+  Position = ScreenCenter
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop, iPhone, iPad]
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Left = 291
+  Top = 208
+  DesignerMobile = False
+  DesignerWidth = 0
+  DesignerHeight = 0
+  DesignerDeviceName = ''
+  DesignerOrientation = 0
+  DesignerOSVersion = ''
+  object Splitter: TSplitter
+    Align = Left
+    Cursor = crHSplit
+    Height = 674.000000000000000000
+    MinSize = 1.000000000000000000
+    Position.X = 477.000000000000000000
+    Width = 4.000000000000000000
+    Left = 477
+  end
+  object PanelLeft: TPanel
+    Align = Left
+    Height = 674.000000000000000000
+    Width = 477.000000000000000000
+    TabOrder = 0
+    object Panel: TPanel
+      Align = Bottom
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Height = 630.000000000000000000
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 40.000000000000000000
+      Width = 469.000000000000000000
+      TabOrder = 2
+      Left = 4
+      Top = 37
+      object Image: TImage
+        MultiResBitmap = <
+          item
+          end>
+        Align = Client
+        Height = 622.000000000000000000
+        Margins.Left = 4.000000000000000000
+        Margins.Top = 4.000000000000000000
+        Margins.Right = 4.000000000000000000
+        Margins.Bottom = 4.000000000000000000
+        Width = 461.000000000000000000
+        Left = 1
+        Top = 1
+      end
+    end
+    object CBLanguage: TComboBox
+      DisableFocusEffect = False
+      Height = 21.000000000000000000
+      ItemIndex = 0
+      Position.X = 113.000000000000000000
+      Position.Y = 9.000000000000000000
+      TabOrder = 1
+      Width = 186.000000000000000000
+      Left = 116
+      Top = 9
+      object TListBoxItem
+        Height = 19.000000000000000000
+        IsSelected = True
+        TabOrder = 0
+        Text = 'English'
+        Width = 19.000000000000000000
+      end
+      object TListBoxItem
+        Height = 19.000000000000000000
+        TabOrder = 1
+        Text = 'German'
+        Width = 19.000000000000000000
+      end
+      object TListBoxItem
+        Height = 19.000000000000000000
+        TabOrder = 2
+        Text = #1056#1091#1089#1089#1082#1080#1081
+        Width = 19.000000000000000000
+      end
+    end
+    object ButtonSelectPicture: TButton
+      Height = 22.000000000000000000
+      Position.X = 8.000000000000000000
+      Position.Y = 8.000000000000000000
+      TabOrder = 0
+      Text = 'Select Picture'
+      Width = 96.000000000000000000
+      OnClick = ButtonSelectPictureClick
+    end
+  end
+  object PanelRight: TPanel
+    Align = Client
+    Height = 674.000000000000000000
+    Width = 445.000000000000000000
+    TabOrder = 1
+    Left = 480
+    object ButtonRecognize: TButton
+      Enabled = False
+      Height = 22.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 8.000000000000000000
+      TabOrder = 1
+      Text = 'Recognize'
+      Width = 75.000000000000000000
+      OnClick = ButtonRecognizeClick
+      Left = 4
+      Top = 8
+    end
+    object ButtonCancel: TButton
+      Height = 22.000000000000000000
+      Position.X = 16.000000000000000000
+      Position.Y = 8.000000000000000000
+      TabOrder = 0
+      Text = 'Cancel'
+      Visible = False
+      Width = 75.000000000000000000
+      OnClick = ButtonCancelClick
+      Left = 3
+      Top = 7
+    end
+    object ProgressBar: TProgressBar
+      Anchors = [akLeft, akTop, akRight]
+      Height = 17.000000000000000000
+      Orientation = Horizontal
+      Position.X = 128.000000000000000000
+      Position.Y = 10.000000000000000000
+      Width = 304.000000000000000000
+      Left = 120
+      Top = 11
+    end
+    object LWordCount: TLabel
+      Height = 17.000000000000000000
+      Position.X = 96.000000000000000000
+      Position.Y = 10.000000000000000000
+      Text = '0'
+      Width = 26.000000000000000000
+    end
+    object TabControl: TTabControl
+      Align = Bottom
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Height = 630.000000000000000000
+      Margins.Left = 4.000000000000000000
+      Margins.Top = 4.000000000000000000
+      Margins.Right = 4.000000000000000000
+      Margins.Bottom = 4.000000000000000000
+      Position.X = 4.000000000000000000
+      Position.Y = 40.000000000000000000
+      TabIndex = 0
+      TabOrder = 4
+      Width = 437.000000000000000000
+      object TabSheetText: TTabItem
+        CustomIcon = <
+          item
+          end>
+        Height = 24.000000000000000000
+        IsSelected = True
+        TabOrder = 0
+        Text = 'Text'
+        Width = 39.000000000000000000
+        object MemoText: TMemo
+          Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
+          Align = Client
+          Height = 598.000000000000000000
+          Margins.Left = 4.000000000000000000
+          Margins.Top = 4.000000000000000000
+          Margins.Right = 4.000000000000000000
+          Margins.Bottom = 4.000000000000000000
+          TabOrder = 0
+          Width = 429.000000000000000000
+          ReadOnly = True
+        end
+      end
+    end
+  end
+  object OpenPictureDialog: TOpenDialog
+    Left = 125
+    Top = 49
+  end
+  object MGTessOCR: TMGTessOCR
+    LanguageCode = 'eng'
+    OnProgress = OcrProgress
+    Left = 213
+    Top = 49
+  end
+end

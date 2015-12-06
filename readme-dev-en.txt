@@ -16,13 +16,13 @@ OS: Win2000/XP/2003/Vista/7/8
 The necessary components for the assembly:
 ------------------------------------------
 
-1. Embarcadero RAD Studio XE6, XE7, XE8
+1. Embarcadero RAD Studio XE8
 
 2. New Audio Components for Delphi
    Web-site: http://symmetrica.net/newac/
-   Latest version: https://code.google.com/p/newac/
+   Latest version: https://github.com/CHERTS/newac
 
 3. MGSoft Components
    Look in the folder MGSoft.
 
-(c) 2012-2014 by Mikhail Grigorev
+(c) 2012-2015 by Mikhail Grigorev
