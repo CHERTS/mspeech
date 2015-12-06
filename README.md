@@ -1,27 +1,8 @@
 ###MSpeech
 
-MSpeech - это программа для распознавание речи используя Google Voice API выполнения голосовых команд, передачи распознанного текста в другие программы и многое другое.<br>
+[По-русски / In Russian](README.ru.md)
 
-На текущий момент в программе реализован следующий функционал:<br>
-* Распознавание голоса с помощью Google Voice API более чем на 50 языках.<br>
-* Активация записи по заранее заданному уровню сигнала.<br>
-* Неограниченное количество команд, которые можно добавить через удобный интерфейс.<br>
-* Возможность назначить горячие клавиши для начала-остановки процесса записи-распознавания.<br>
-* Передача распознанного текста в поля ввода других приложений разными методами.<br>
-* Коррекция текста после распознавания и до передачи в поля ввода (Замена слов по списку, Изменение первых букв предложений на прописные).<br>
-* Работа через прокси-сервер.<br>
-* Возможность выбора источника звука.<br>
-* Изменение языка интерфейса программы (English, Russian).<br>
-* Синтез голоса через Microsoft SAPI (Используется бесплатный синтезатор RHVoice), Google Text-To-Speech, Yandex Text-To-Speech, iSpeech Text-To-Speech, Nuance Text-To-Speech.<br>
-
-www: http://programs74.ru/mspeech.html<br>
-email: sleuthhound@gmail.com
-
-=========
-
-###MSpeech
-
-MSpeech - a program for speech recognition using Google Speech API voice commands, transfer the recognized text into other applications, and much more.<br>
+<b>MSpeech</b> - a program for speech recognition using Google Speech API voice commands, transfer the recognized text into other applications, and much more.<br>
 
 Main features:<br>
 * Voice Recognition using Google Voice API for more than 50 languages.<br>
