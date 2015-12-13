@@ -1,0 +1,10 @@
+13.12.2015:
+
++ Доработан компонент TMGTessOCR:
+  + Добавлены свойства:
+    Picture: TPicture
+    PictureHeight: Integer
+    PictureLeft: Integer
+    PictureTop: Integer
+    PictureWidth: Integer
+    PixelFormat: TMGTessOCRPixelFormat
