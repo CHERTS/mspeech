@@ -1,7 +1,7 @@
 13.12.2015:
 
-+ Доработан компонент TMGTessOCR:
-  + Добавлены свойства:
++ Р”РѕСЂР°Р±РѕС‚Р°РЅ РєРѕРјРїРѕРЅРµРЅС‚ TMGTessOCR:
+  + Р”РѕР±Р°РІР»РµРЅС‹ СЃРІРѕР№СЃС‚РІР°:
     Picture: TPicture
     PictureHeight: Integer
     PictureLeft: Integer
