@@ -19,7 +19,8 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, Types, StdCtrls, IniFiles, ComCtrls,  ExtCtrls, ButtonGroup, MGButtonGroup,
-  Buttons, Menus, ImgList, Vcl.Grids, Vcl.Samples.Spin, ShellApi, Global, MGHotKeyManager, MGSAPI
+  Buttons, Menus, ImgList, Vcl.Grids, Vcl.Samples.Spin, ShellApi, Global, MGHotKeyManager, MGSAPI,
+  System.ImageList
   {$ifdef LICENSE}, License{$endif LICENSE};
 
 type

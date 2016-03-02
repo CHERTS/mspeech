@@ -23,7 +23,8 @@ uses
   ImgList, Menus, Grids, Vcl.ExtCtrls, Vcl.Buttons, Clipbrd,
   XMLIntf, XMLDoc, AudioDMO, ACS_Procs, ACS_WinMedia, ACS_smpeg,
   SHFolder, StrUtils, ASR, MGTrayIcon, MGHotKeyManager, MGPlacement, MGSAPI,
-  MGYandexTTS, MGGoogleTTS, MGOSInfo, MGiSpeechTTS, MGNuanceTTS;
+  MGYandexTTS, MGGoogleTTS, MGOSInfo, MGiSpeechTTS, MGNuanceTTS,
+  System.ImageList;
 
 type
   TMainForm = class(TForm)
@@ -912,7 +913,7 @@ var
   Grid: TArrayOfInteger;
 begin
   case pInfo.FStatus of
-    rsErrorGetAPIKey: MsgStr := 'Ошибка: Google Speech API Key не указан в настройках, заблокирован или достигнут лимит запросов в сутки: ' + pInfo.FMessage;
+    rsErrorGetAPIKey: MsgStr := 'Ошибка: Новый Google API Key не был получен с сервере MSpeech: ' + pInfo.FMessage;
     rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
     rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
     rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
@@ -1080,7 +1081,8 @@ end;
 { Нажата горячая клавиша }
 procedure TMainForm.MSpeechHotKeyManagerHotKeyPressed(HotKey: Cardinal; Index: Word);
 begin
-  SetForegroundWindow(Application.Handle);
+  if not EnableSendText then
+    SetForegroundWindow(Application.Handle);
   // Старт записи с передачей текста
   if Index = StartRecordHotKeyIndex then
   begin
