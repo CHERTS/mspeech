@@ -35,10 +35,6 @@ TMGThreadStringList - nonVLC component-line StringList;<br>
 
 ####Components source code:
 
-Исходный код компонентов TMGSAPI, TMGGoogleTTS, TMGYandexTTS, TMGISpeechTTS, TMGNuanceTTS, TMGTessOCR, TMGOSInfo, TMGSMTP распространяется только после его покупки.<br>
-Стоимость исходного кода каждого компонента 1000 рублей или $20. При покупке исходного кода 3 и более компонентов предоставляется скидка 10%.<br>
-Исходный код остальных компонентов (TMGButtonGroup, TMGHotKeyManager, TMGWindowHook, TMGFormStorage, TMGFormPlacement, TMGThread, TMGTrayIcon, TMGTextReaderA, TMGTextReaderW, TMGThreadStringList) распростряняется по запросу бесплатно.<br>
-
 Source code components TMGSAPI, TMGGoogleTTS, TMGYandexTTS, TMGISpeechTTS, TMGNuanceTTS, TMGTessOCR, TMGOSInfo, TMGSMTP applies only after purchase.<br>
 The cost of the source code of one component of $20 USD. When you purchase the source code of 3 or more components of a discount of 10%.<br>
 The source code of the other components (TMGButtonGroup, TMGHotKeyManager, TMGWindowHook, TMGFormStorage, TMGFormPlacement, TMGThread, TMGTrayIcon, TMGTextReaderA, TMGTextReaderW, TMGThreadStringList) distributed on request for free.<br>
