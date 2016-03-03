@@ -61,4 +61,4 @@ https://code.google.com/p/mspeech/ и скомпилировать его самостоятельно. Тем самы
 
 После Шага 2 текст передается в поле ввода программы.
 
-(с) 2013-2015 by Mikhail Grigorev
+(с) 2013-2016 by Mikhail Grigorev

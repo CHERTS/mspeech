@@ -8,7 +8,7 @@ del *.map
 del *.identcache 
 del *.local
 del *.drc
-del /Q /F dcu\*.*
+del /Q /F Release\*.*
 rd /S /Q __history
 
 cd Search-App-Class-Name

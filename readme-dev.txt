@@ -35,4 +35,4 @@ WWW:		http://www.programs74.ru
 3. Плагин Registry plug-in
    Сайт: http://nsis.sourceforge.net/Registry_plug-in
 
-(c) 2012-2015 by Mikhail Grigorev
+(c) 2012-2016 by Mikhail Grigorev

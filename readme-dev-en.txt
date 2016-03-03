@@ -25,4 +25,4 @@ The necessary components for the assembly:
 3. MGSoft Components
    Look in the folder MGSoft.
 
-(c) 2012-2015 by Mikhail Grigorev
+(c) 2012-2016 by Mikhail Grigorev

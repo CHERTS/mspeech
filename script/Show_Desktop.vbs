@@ -1,0 +1,1 @@
+CreateObject("Shell.Application").MinimizeAll

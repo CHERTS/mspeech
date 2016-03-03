@@ -3,7 +3,7 @@
 set prg_name=MSpeech.exe
 set search_prg_name=Search-App-Class-Name\SearchAppClassName.exe
 set reciver_prg_name=MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.exe
-set installer_prg_name=MSpeech-Setup-1.5.6.exe
+set installer_prg_name=MSpeech-Setup-1.5.8.exe
 
 if "%ProgramFiles(x86)%"=="" goto DoWin32
 set PROGRAMFILES=%ProgramFiles(x86)%
