@@ -1,8 +1,8 @@
 ﻿{ ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.8                                                          # }
+{ #  MSpeech v1.5.9                                                          # }
 { #                                                                          # }
-{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (с) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -33,25 +33,25 @@ type
   TEventsTypeStatus = (mDisable, mEnable);
   TArrayOfInteger = Array of Integer;
   THackStrings = class(TStrings); // Хак для получения доступа к protected-методам класса TStrings
-  TASREngine = (ASRGoogle, ASRYandex, ASRNuance);
-  TASRMediaFormat = (TPCM, TFLAC, TSpeex);
+  //TASREngine = (ASRGoogle, ASRYandex, ASRNuance);
+  //TASRMediaFormat = (TPCM, TFLAC, TSpeex);
   TTTSEngine = (TTSMicrosoft, TTSGoogle, TTSYandex, TTSISpeech, TTSNuance);
   TTTSEngines = record
     TTSDisplayName: String;
   end;
-  TASREngines = record
+  {TASREngines = record
     ASRDisplayName: String;
   end;
   TASRMediaFormats = record
     MediaType        : TASRMediaFormat;
     MediaDisplayName : String;
-  end;
+  end;}
   TAutorunLocation = (mAutorunAllUser, mAutorunCurrentUser);
   TAutorun = (mAutorunCheck, mAutorunEnable, mAutorunDisable);
   TIntegerDynArray = Array of Integer;
 
 const
-  ProgramsVer: WideString = '1.5.7.0';
+  ProgramsVer: WideString = '1.5.9.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
@@ -172,12 +172,12 @@ const
     (TTSDisplayName: 'iSpeech Text-To-Speech (Online)'),
     (TTSDisplayName: 'Nuance Text-To-Speech (Online)')
     );
-  // Список систем распознавания речи
-  TASREngineList: Array[TASREngine] of TASREngines = (
+  // Список систем распознавания речи (пока не используется)
+  {TASREngineList: Array[TASREngine] of TASREngines = (
     (ASRDisplayName: 'Google (Online)'),
     (ASRDisplayName: 'Yandex (Online)'),
     (ASRDisplayName: 'Nuance (Online)')
-    );
+    );}
   PathDelim  = {$IFDEF MSWINDOWS} '\'; {$ELSE} '/'; {$ENDIF}
   {$IFDEF MSWINDOWS}
   advapi32 = 'advapi32.dll';

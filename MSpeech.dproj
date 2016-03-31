@@ -98,12 +98,13 @@
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win32)'!=''">
-        <VerInfo_Release>8</VerInfo_Release>
+        <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+        <VerInfo_Release>9</VerInfo_Release>
         <DCC_LocalDebugSymbols>true</DCC_LocalDebugSymbols>
         <VerInfo_MinorVer>5</VerInfo_MinorVer>
         <DCC_AssertionsAtRuntime>false</DCC_AssertionsAtRuntime>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.8.0;InternalName=MSpeech;LegalCopyright=Mikhail Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.8.0;Comments=http://www.programs74.ru</VerInfo_Keys>
+        <VerInfo_Keys>CompanyName=Michael Grigorev;FileDescription=MSpeech;FileVersion=1.5.9.0;InternalName=MSpeech;LegalCopyright=Mikhail Grigorev;LegalTrademarks=MSpeech;OriginalFilename=MSpeech.exe;ProductName=MSpeech;ProductVersion=1.5.9.0;Comments=http://www.programs74.ru</VerInfo_Keys>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

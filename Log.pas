@@ -1,8 +1,8 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.8                                                          # }
+{ #  MSpeech v1.5.9                                                          # }
 { #                                                                          # }
-{ #  Copyright (ñ) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (ñ) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
