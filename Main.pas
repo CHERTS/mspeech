@@ -1,8 +1,8 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.8                                                          # }
+{ #  MSpeech v1.5.9                                                          # }
 { #                                                                          # }
-{ #  Copyright (с) 2012-2015, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (с) 2012-2019, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -99,6 +99,10 @@ type
     StartRecordWithoutExecCommandHotKeyIndex: Word;
     SwitchesLanguageRecognizeHotKeyIndex: Word;
     procedure LoadLanguageStrings;
+  {protected
+    procedure CreateParams(var Params: TCreateParams); override;
+    procedure WMActivate(var M:TMessage); message WM_ACTIVATE;
+    procedure WMMouseActivate(var Message: TWMMouseActivate); message WM_MOUSEACTIVATE;}
   public
     { Public declarations }
     MSpeechMainFormHidden: Boolean;
@@ -158,6 +162,35 @@ var
   FLACDoneCnt: Integer = 0;
   NULLOutStart: Boolean = False;
   NULLOutDoneCnt: Integer = 0;
+
+{procedure TMainForm.WMActivate(var M: TMessage);
+var
+  Log: string;
+begin
+  inherited;
+  Log := 'WM_ACTIVATE';
+  case m.WParam of
+    WA_ACTIVE:
+      Log := Log + ' : WA_ACTIVE';
+    WA_CLICKACTIVE:
+      Log := Log + ' : WA_CLICKACTIVE';
+    WA_INACTIVE:
+      Log := Log + ' : WA_INACTIVE';
+  end;
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + Log);
+end;
+
+procedure TMainForm.WMMouseActivate(var Message: TWMMouseActivate);
+begin
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': WM_MOUSEACTIVATE');
+  Message.Result := MA_NOACTIVATE;
+end;
+
+procedure TMainForm.CreateParams(var Params: TCreateParams);
+begin
+  inherited CreateParams(Params);
+  Params.ExStyle := Params.ExStyle + WS_EX_NOACTIVATE;
+end;}
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
@@ -297,6 +330,7 @@ begin
   MGFormPlacement.IniFileName := WorkPath + INIFormStorage;
   StopRecord := True;
   FCount := 0;
+  //SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_NOACTIVATE);
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
@@ -913,7 +947,7 @@ var
   Grid: TArrayOfInteger;
 begin
   case pInfo.FStatus of
-    rsErrorGetAPIKey: MsgStr := 'Ошибка: Новый Google API Key не был получен с сервере MSpeech: ' + pInfo.FMessage;
+    rsErrorGetAPIKey: MsgStr := 'Ошибка: Google Speech API Key не указан в настройках, заблокирован или достигнут лимит запросов в сутки: ' + pInfo.FMessage;
     rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
     rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
     rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';

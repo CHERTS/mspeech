@@ -1,10 +1,12 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.8 - Распознавание речи используя Google Speech API         # }
+{ #  MSpeech v1.5.9                                                          # }
 { #                                                                          # }
-{ #  License: GPLv3                                                          # }
+{ #  Copyright (с) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
-{ #  Author: Grigorev Michael (icq: 161867489, email: sleuthhound@gmail.com) # }
+{ #  License: http://opensource.org/licenses/GPL-3.0                         # }
+{ #                                                                          # }
+{ #  Contact: Mikhail Grigorev (email: sleuthhound@gmail.com)                # }
 { #                                                                          # }
 { ############################################################################ }
 
@@ -34,7 +36,7 @@ begin
   end;
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
-  Application.Title := 'MSpeech - Распознавание голоса с помощью Google Speech API';
+  Application.Title := 'MSpeech';
   Application.CreateForm(TMainForm, MainForm);
   Application.CreateForm(TSettingsForm, SettingsForm);
   Application.CreateForm(TLogForm, LogForm);

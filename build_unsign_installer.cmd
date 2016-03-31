@@ -3,7 +3,7 @@
 set prg_name=MSpeech.exe
 set search_prg_name=Search-App-Class-Name\SearchAppClassName.exe
 set reciver_prg_name=MSpeech-Reciver-Demo\MSpeech_Reciver_Demo.exe
-set installer_prg_name=MSpeech-Setup-1.5.8.exe
+set installer_prg_name=MSpeech-Setup-1.5.9.exe
 
 if "%ProgramFiles(x86)%"=="" goto DoWin32
 set PROGRAMFILES=%ProgramFiles(x86)%
@@ -14,9 +14,6 @@ cls
 call clear.bat
 
 if exist %prg_name% (
-  upx.exe -9 %prg_name%
-  upx.exe -9 %search_prg_name%
-  upx.exe -9 %reciver_prg_name%
   copy /Y langs\*.xml Installer\base\langs\
   copy /Y script\*.* Installer\base\script\
   copy /Y %prg_name% Installer\base\
