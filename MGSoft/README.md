@@ -11,7 +11,7 @@ License:	GNU GPLv3<br>
 ####System requirements:
 
 OS:		Win2000/XP/2003/Vista/7/8<br>
-Delphi:		RAD Studio XE5,XE8 (possible build of components for the Delphi 7 to XE8)<br>
+Delphi:		RAD Studio XE8 (possible build of components for the Delphi 7 to XE8)<br>
 
 ####Components:
 
