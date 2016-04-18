@@ -20,8 +20,7 @@ uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, Types, StdCtrls, IniFiles, ComCtrls,  ExtCtrls, ButtonGroup, MGButtonGroup,
   Buttons, Menus, ImgList, Vcl.Grids, Vcl.Samples.Spin, ShellApi, Global, MGHotKeyManager, MGSAPI,
-  System.ImageList
-  {$ifdef LICENSE}, License{$endif LICENSE};
+  System.ImageList{$ifdef LICENSE}, License{$endif LICENSE};
 
 type
   THackGrid = class(TStringGrid);
@@ -287,7 +286,6 @@ type
     procedure OnLanguageChanged(var Msg: TMessage); message WM_LANGUAGECHANGED;
     procedure msgBoxShow(var Msg: TMessage); message WM_MSGBOX;
     procedure LoadLanguageStrings;
-    procedure SAPITextToSpeech(MyText: String);
   public
     { Public declarations }
     ActivateAddReplaceButton: Boolean;
@@ -399,6 +397,7 @@ end;
 
 procedure TSettingsForm.CloseButtonClick(Sender: TObject);
 begin
+  //SendMessage(MainFormHandle, WM_SAVESETTINGSDONE, 0, 0);
   Close;
 end;
 
@@ -772,11 +771,11 @@ begin
     with LBSAPIInfo.Items do
     begin
       Clear;
-      Add(Format('Имя: %s', [VInfo.VoiceName]));
-      Add(Format('Создатель: %s', [VInfo.VoiceVendor]));
-      Add(Format('Возраст: %s', [VInfo.VoiceAge]));
-      Add(Format('Пол: %s', [VInfo.VoiceGender]));
-      Add(Format('Язык: %s', [VInfo.VoiceLanguage]));
+      Add(Format(GetLangStr('LBSAPIVoiceName'), [VInfo.VoiceName]));
+      Add(Format(GetLangStr('LBSAPIVoiceVendor'), [VInfo.VoiceVendor]));
+      Add(Format(GetLangStr('LBSAPIVoiceAge'), [VInfo.VoiceAge]));
+      Add(Format(GetLangStr('LBSAPIVoiceGender'), [VInfo.VoiceGender]));
+      Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
       //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
     end;
     GBTextToSpeechList.Visible := True;
@@ -1510,11 +1509,11 @@ begin
     with LBSAPIInfo.Items do
     begin
       Clear;
-      Add(Format('Имя: %s', [VInfo.VoiceName]));
-      Add(Format('Создатель: %s', [VInfo.VoiceVendor]));
-      Add(Format('Возраст: %s', [VInfo.VoiceAge]));
-      Add(Format('Пол: %s', [VInfo.VoiceGender]));
-      Add(Format('Язык: %s', [VInfo.VoiceLanguage]));
+      Add(Format(GetLangStr('LBSAPIVoiceName'), [VInfo.VoiceName]));
+      Add(Format(GetLangStr('LBSAPIVoiceVendor'), [VInfo.VoiceVendor]));
+      Add(Format(GetLangStr('LBSAPIVoiceAge'), [VInfo.VoiceAge]));
+      Add(Format(GetLangStr('LBSAPIVoiceGender'), [VInfo.VoiceGender]));
+      Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
       //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
     end
   end
@@ -1558,7 +1557,7 @@ begin
       MainForm.MGGoogleTTS.TTSLangCode := 'en';
       SayText := MainForm.MGGoogleTTS.GTTSGetTestPhrase();
     end;
-    SAPITextToSpeech(SayText);
+    MainForm.MGSAPI.Speak(SayText);
   end
   else
   begin
@@ -1668,12 +1667,6 @@ begin
   CBTextToSpeechStatus.ItemIndex := 0;
 end;
 
-{ Текст в голос с использованием SAPI }
-procedure TSettingsForm.SAPITextToSpeech(MyText: String);
-begin
-  MainForm.MGSAPI.Speak(MyText);
-end;
-
 procedure TSettingsForm.CBEnableFiltersClick(Sender: TObject);
 begin
   GBFilters.Visible := (Sender as TCheckBox).Checked;
@@ -1749,6 +1742,8 @@ end;
 
 { Для мультиязыковой поддержки }
 procedure TSettingsForm.LoadLanguageStrings;
+var
+  VInfo: TVoiceInfo;
 begin
   Caption := ProgramsName + ' - ' + GetLangStr('SettingsFormCaption');
   SettingtButtonGroup.Items[0].Caption := GetLangStr('TabSheetSettings');
@@ -1877,6 +1872,19 @@ begin
   AddEventsTypeToList;
   AddEventsTypeStatusToList;
   LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechStringGrid);
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+  begin
+    VInfo := MainForm.MGSAPI.GetVoiceInfo(SAPIVoiceNum);
+    with LBSAPIInfo.Items do
+    begin
+      Clear;
+      Add(Format(GetLangStr('LBSAPIVoiceName'), [VInfo.VoiceName]));
+      Add(Format(GetLangStr('LBSAPIVoiceVendor'), [VInfo.VoiceVendor]));
+      Add(Format(GetLangStr('LBSAPIVoiceAge'), [VInfo.VoiceAge]));
+      Add(Format(GetLangStr('LBSAPIVoiceGender'), [VInfo.VoiceGender]));
+      Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
+    end;
+  end;
   // Фильтры
   CBEnableFilters.Caption := GetLangStr('CBEnableFilters');
   GBFilters.Caption := Format(' %s ', [GetLangStr('GBFilters')]);

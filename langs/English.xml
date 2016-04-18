@@ -148,6 +148,11 @@
   <LAPINotes>If you do not specify your own key to access the Speech API, the public will be used, but we can not guarantee that with him recognition system will work. To get your own key, you can use the instructions posted on the site http://www.chromium.org/developers/how-tos/api-keys</LAPINotes>
   <CBStopRecognitionAfterLockingComputer>Stop recognition after locking the PC</CBStopRecognitionAfterLockingComputer>
   <CBStartRecognitionAfterUnlockingComputer>Start recognition after unlocking PC</CBStartRecognitionAfterUnlockingComputer>
+  <LBSAPIVoiceName>Name: %s</LBSAPIVoiceName>
+  <LBSAPIVoiceVendor>Vendor: %s</LBSAPIVoiceVendor>
+  <LBSAPIVoiceGender>Gender: %s</LBSAPIVoiceGender>
+  <LBSAPIVoiceAge>Age: %s</LBSAPIVoiceAge>
+  <LBSAPIVoiceLanguage>Language: %s</LBSAPIVoiceLanguage>
 
   <StartStopRecord>Start\stop recording</StartStopRecord>
   <StartStopRecordWithoutSendText>Start\stop recording without send text</StartStopRecordWithoutSendText>

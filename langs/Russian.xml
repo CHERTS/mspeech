@@ -142,6 +142,11 @@
   <LAPINotes>Если Вы не укажите собственный ключ для доступа к Speech API, то будет использоваться публичный, но мы не даём гарантии, что с ним система распознавания будет работать. Для получения собственного ключа можно воспользоваться инструкцией размещенной на сайте http://www.chromium.org/developers/how-tos/api-keys</LAPINotes>
   <CBStopRecognitionAfterLockingComputer>Остановить распознавание после блокировки ПК</CBStopRecognitionAfterLockingComputer>
   <CBStartRecognitionAfterUnlockingComputer>Запустить распознавание после разблокировки ПК</CBStartRecognitionAfterUnlockingComputer>
+  <LBSAPIVoiceName>Имя: %s</LBSAPIVoiceName>
+  <LBSAPIVoiceVendor>Создатель: %s</LBSAPIVoiceVendor>
+  <LBSAPIVoiceGender>Пол: %s</LBSAPIVoiceGender>
+  <LBSAPIVoiceAge>Возраст: %s</LBSAPIVoiceAge>
+  <LBSAPIVoiceLanguage>Язык: %s</LBSAPIVoiceLanguage>
 
   <EventWarningRecognize>Ошибка распознавания</EventWarningRecognize>
   <EventRecordingNotRecognized>Команда не распознана</EventRecordingNotRecognized>
