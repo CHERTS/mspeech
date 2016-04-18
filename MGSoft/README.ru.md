@@ -56,9 +56,9 @@ TMGTessOCR	- Распознавания текста используя библ
 
 1. Содержимое папки MGSoft\Bin\Delphi22\Win32\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\
 2. Содержимое папки MGSoft\Bin\Delphi22\Win64\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\Win64
-3. Запустите RAD Studio XE8, установите компоненты через меню Component -> Install Packages... -> Add..., выберите файл C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\dclMGSoft220.bpl<br>
-4. Добавте папку MGSoft\Lib\Delphi22\Win32\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 32-bit Windows<br>
-5. Добавте папку MGSoft\Lib\Delphi22\Win64\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 64-bit Windows<br>
+3. Добавте папку MGSoft\Lib\Delphi22\Win32\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 32-bit Windows<br>
+4. Добавте папку MGSoft\Lib\Delphi22\Win64\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 64-bit Windows<br>
+5. Запустите RAD Studio XE8, установите компоненты через меню Component -> Install Packages... -> Add..., выберите файл C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\dclMGSoft220.bpl<br>
 6. Перезапустите RAD Studio XE8<br>
 7. Можете использовать компоненты MGSoft и открыть примеры MGSoft\Demos\MGSoftDemo.groupproj<br>
 
@@ -69,7 +69,8 @@ TMGTessOCR	- Распознавания текста используя библ
 2. Удалите путь до компонентов MGSoft из список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 32-bit Windows<br>
 3. Удалите путь до компонентов MGSoft из список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 64-bit Windows<br>
 4. Закройте RAD Studio XE8<br>
-5. Удалите папку MGSoft<br>
+5. Удалите файлы dclMGSoft220.bpl и MGSoft220.bpl из папки C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\<br>
+6. Удалите файл MGSoft220.bpl из папки C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\Win64<br><br>
 
 ####Исходный код компонентов:
 
