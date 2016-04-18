@@ -54,8 +54,8 @@ TMGTessOCR	- Распознавания текста используя библ
 
 ####Установка компонентов для RAD Studio XE8:
 
-1. Содержимое папки MGSoft\Lib\Delphi22\Win32\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\
-2. Содержимое папки MGSoft\Lib\Delphi22\Win64\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\Win64
+1. Содержимое папки MGSoft\Bin\Delphi22\Win32\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\
+2. Содержимое папки MGSoft\Bin\Delphi22\Win64\ скопируйте в C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\Win64
 3. Запустите RAD Studio XE8, установите компоненты через меню Component -> Install Packages... -> Add..., выберите файл C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\dclMGSoft220.bpl<br>
 4. Добавте папку MGSoft\Lib\Delphi22\Win32\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 32-bit Windows<br>
 5. Добавте папку MGSoft\Lib\Delphi22\Win64\ в список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 64-bit Windows<br>
