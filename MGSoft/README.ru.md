@@ -69,7 +69,7 @@ TMGTessOCR	- Распознавания текста используя библ
 2. Удалите путь до компонентов MGSoft из список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 32-bit Windows<br>
 3. Удалите путь до компонентов MGSoft из список библиотек Library path через меню Tools -> Options... -> Environment options -> Delphi Options -> Library для платформы 64-bit Windows<br>
 4. Закройте RAD Studio XE8<br>
-5. Удалите файлы dclMGSoft220.bpl и MGSoft220.bpl из папки C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\<br>
+5. Удалите файлы dclMGSoft220.bpl и MGSoft220.bpl из папки C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl<br>
 6. Удалите файл MGSoft220.bpl из папки C:\Users\All Users\Documents\Embarcadero\Studio\16.0\Bpl\Win64<br><br>
 
 ####Исходный код компонентов:
