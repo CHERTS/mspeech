@@ -17,13 +17,13 @@ After listing the donations must write a letter to the developers address sleuth
 In a letter be sure to include the amount of donation, a system through which you sent him (Paypal, WebMoney
 or shops), as well as your name or nickname to create a license.
 
-If you donate $10, you can get a license for 1 month.
-If you donated from $11 to $20, you can get a license for 3 months.
-If you donate $21 to $30, you can get a license for 5 months.
-If you donated from $31 to $40, you can get a license for 7 months.
-If you donated from $41 to $50, you can get a license for 9 months.
-If you donated from $51 to $100, you can get a license for 20 months.
-If you donate $100 or more, you can get a unlimit license.
+If you donate $5, you can get a license for 1 month.
+If you donated from $6 to $10, you can get a license for 3 months.
+If you donate $11 to $20, you can get a license for 5 months.
+If you donated from $21 to $30, you can get a license for 7 months.
+If you donated from $31 to $40, you can get a license for 9 months.
+If you donated from $41 to $50, you can get a license for 20 months.
+If you donate $50 or more, you can get a unlimit license.
 
 If you do not like this approach, you can download the source code from the site
 https://github.com/CHERTS/mspeech and compile it yourself. By doing so you will receive
