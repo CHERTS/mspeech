@@ -1,3 +1,0 @@
-[submodule "MGSoft/Bin/tessdata"]
-	path = MGSoft/Bin/tessdata
-	url = https://github.com/tesseract-ocr/tessdata.git
