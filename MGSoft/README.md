@@ -39,4 +39,4 @@ Source code components TMGSAPI, TMGGoogleTTS, TMGYandexTTS, TMGISpeechTTS, TMGNu
 The cost of the source code of one component of $20 USD. When you purchase the source code of 3 or more components of a discount of 10%.<br>
 The source code of the other components (TMGButtonGroup, TMGHotKeyManager, TMGWindowHook, TMGFormStorage, TMGFormPlacement, TMGThread, TMGTrayIcon, TMGTextReaderA, TMGTextReaderW, TMGThreadStringList) distributed on request for free.<br>
 
-(c) 2014-2016 by Mikhail Grigorev
+(c) 2014-2017 by Mikhail Grigorev

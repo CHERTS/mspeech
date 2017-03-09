@@ -79,4 +79,4 @@ TMGTessOCR	- Распознавания текста используя библ
 Исходный код остальных компонентов (TMGButtonGroup, TMGHotKeyManager, TMGWindowHook, TMGFormStorage, TMGFormPlacement, TMGThread, TMGTrayIcon, TMGTextReaderA, TMGTextReaderW, TMGThreadStringList) распространяется по запросу бесплатно.<br>
 
 
-(c) 2014-2016 by Mikhail Grigorev
+(c) 2014-2017 by Mikhail Grigorev
