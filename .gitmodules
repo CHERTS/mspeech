@@ -1,0 +1,3 @@
+[submodule "MGSoft"]
+	path = MGSoft
+	url = https://github.com/CHERTS/MGSoft.git
