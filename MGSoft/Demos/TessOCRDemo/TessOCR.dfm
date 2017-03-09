@@ -41,15 +41,30 @@ object MainForm: TMainForm
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvLowered
       TabOrder = 0
+      OnResize = PanelResize
       object Image: TImage
         Left = 1
         Top = 1
         Width = 467
         Height = 631
+        Cursor = crArrow
         Align = alClient
         Center = True
         Proportional = True
         Stretch = True
+        OnMouseDown = ImageMouseDown
+        OnMouseMove = ImageMouseMove
+        OnMouseUp = ImageMouseUp
+      end
+      object Shape: TShape
+        Left = 16
+        Top = 16
+        Width = 433
+        Height = 401
+        Brush.Style = bsClear
+        Enabled = False
+        Pen.Color = clRed
+        Pen.Style = psDot
       end
     end
     object ButtonSelectPicture: TButton
@@ -68,6 +83,7 @@ object MainForm: TMainForm
       Height = 21
       Style = csDropDownList
       TabOrder = 2
+      OnChange = CBLanguageChange
     end
   end
   object PanelRight: TPanel
@@ -128,10 +144,6 @@ object MainForm: TMainForm
       TabOrder = 2
       object TabSheetText: TTabSheet
         Caption = 'Text'
-        ExplicitLeft = 0
-        ExplicitTop = 0
-        ExplicitWidth = 0
-        ExplicitHeight = 0
         object MemoText: TMemo
           Left = 0
           Top = 0

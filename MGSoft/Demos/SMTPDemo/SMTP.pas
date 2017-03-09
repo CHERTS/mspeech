@@ -26,11 +26,15 @@ type
     MemoLog: TMemo;
     LLog: TLabel;
     CBFullSSL: TCheckBox;
+    ETo: TEdit;
+    LTo: TLabel;
     procedure ButtonSendClick(Sender: TObject);
     procedure MGSMTP1Status(Sender: TObject; Reason: THookSocketReason;
       const Value: string);
     procedure FormCreate(Sender: TObject);
     procedure MGSMTP1ReadFilter(Sender: TObject; var Value: AnsiString);
+    procedure CBFullSSLClick(Sender: TObject);
+    procedure CBTLSClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -43,6 +47,37 @@ var
 implementation
 
 {$R *.dfm}
+
+procedure TMainForm.CBFullSSLClick(Sender: TObject);
+begin
+  if (Sender as TCheckBox).Checked then
+    EPort.Text := '465'
+  else
+  begin
+    if CBTLS.Checked then
+      EPort.Text := '587'
+    else
+      EPort.Text := '25';
+  end;
+end;
+
+procedure TMainForm.CBTLSClick(Sender: TObject);
+begin
+  if (Sender as TCheckBox).Checked then
+  begin
+    if CBFullSSL.Checked then
+      EPort.Text := '465'
+    else
+      EPort.Text := '587';
+  end
+  else
+  begin
+    if CBFullSSL.Checked then
+      EPort.Text := '465'
+    else
+      EPort.Text := '25';
+  end;
+end;
 
 procedure TMainForm.FormCreate(Sender: TObject);
 begin
@@ -92,10 +127,11 @@ begin
   MGSMTP1.Password := EPasswd.Text;
   MGSMTP1.UseTLS := CBTLS.Checked;
   MGSMTP1.FullSSL := CBFullSSL.Checked;
+  MGSMTP1.FromEmail := EFrom.Text;
   MGSMTP1.Recipients.Clear;
-  MGSMTP1.Recipients.Text := EFrom.Text;
+  MGSMTP1.Recipients.Text := ETo.Text;
   {MailToList := TStringList.Create;
-  MailToList.Text := StringReplace(EFrom.Text, ';', #13#10, [rfReplaceAll]);
+  MailToList.Text := StringReplace(ETo.Text, ';', #13#10, [rfReplaceAll]);
   MGSMTP1.Recipients.Assign(MailToList);
   MailToList.Free;}
   MGSMTP1.AddText(MemoText.Text);

@@ -56,7 +56,7 @@ object MainForm: TMainForm
   end
   object LText: TLabel
     Left = 16
-    Top = 169
+    Top = 196
     Width = 26
     Height = 13
     Caption = 'Text:'
@@ -68,6 +68,13 @@ object MainForm: TMainForm
     Height = 13
     Caption = 'Log:'
   end
+  object LTo: TLabel
+    Left = 16
+    Top = 169
+    Width = 12
+    Height = 13
+    Caption = 'To'
+  end
   object EHost: TEdit
     Left = 101
     Top = 8
@@ -75,7 +82,7 @@ object MainForm: TMainForm
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 0
-    Text = 'smtp.gmail.com'
+    Text = 'smtp.yandex.ru'
   end
   object EPort: TEdit
     Left = 101
@@ -114,6 +121,7 @@ object MainForm: TMainForm
     Checked = True
     State = cbChecked
     TabOrder = 4
+    OnClick = CBTLSClick
   end
   object EFrom: TEdit
     Left = 77
@@ -122,12 +130,13 @@ object MainForm: TMainForm
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 5
+    Text = 'LOGIN@yandex.ru'
   end
   object MemoText: TMemo
     Left = 77
-    Top = 166
+    Top = 193
     Width = 308
-    Height = 51
+    Height = 41
     Anchors = [akLeft, akTop, akRight]
     Lines.Strings = (
       'Hello!')
@@ -144,9 +153,9 @@ object MainForm: TMainForm
   end
   object MemoLog: TMemo
     Left = 77
-    Top = 223
+    Top = 240
     Width = 308
-    Height = 138
+    Height = 121
     Anchors = [akLeft, akTop, akRight]
     ScrollBars = ssVertical
     TabOrder = 8
@@ -158,11 +167,20 @@ object MainForm: TMainForm
     Height = 17
     Caption = 'Full SSL'
     TabOrder = 9
+    OnClick = CBFullSSLClick
+  end
+  object ETo: TEdit
+    Left = 77
+    Top = 166
+    Width = 310
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 10
+    Text = 'recipient@gmail.com'
   end
   object MGSMTP1: TMGSMTP
     Host = 'smtp.gmail.com'
-    FromEmail = 'sleuthhound@gmail.com'
-    FromName = 'Mikhail Grigorev'
+    FromName = 'MGSMTP'
     Port = 587
     UseTLS = True
     FullSSL = False
