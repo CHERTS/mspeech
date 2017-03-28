@@ -1100,6 +1100,12 @@
           Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect, goColSizing, goRowSelect]
           TabOrder = 2
           OnSelectCell = CommandStringGridSelectCell
+          ColWidths = (
+            150
+            150
+            150)
+          RowHeights = (
+            18)
         end
         object AddCommandButton: TButton
           Left = 8
@@ -1212,6 +1218,9 @@
           ColWidths = (
             296
             133)
+          RowHeights = (
+            18
+            18)
         end
         object IMHotKey: THotKey
           Left = 16
@@ -1435,6 +1444,8 @@
             ColWidths = (
               170
               133)
+            RowHeights = (
+              18)
           end
           object AddReplaceButton: TButton
             Left = 16
@@ -1754,6 +1765,12 @@
             Options = [goFixedVertLine, goFixedHorzLine, goRangeSelect, goColSizing, goRowSelect]
             TabOrder = 1
             OnSelectCell = TextToSpeechStringGridSelectCell
+            ColWidths = (
+              150
+              150
+              150)
+            RowHeights = (
+              18)
           end
           object AddTextToSpeechButton: TButton
             Left = 8
@@ -1844,7 +1861,7 @@
         Top = 104
         Width = 130
         Height = 13
-        Caption = 'Copyright '#169' 2011-2016 by'
+        Caption = 'Copyright '#169' 2011-2017 by'
       end
       object LAuthor: TLabel
         Left = 156
@@ -1949,7 +1966,7 @@
     Left = 48
     Top = 232
     Bitmap = {
-      494C01010D001100140010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C01010D001100180010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000004000000001002000000000000040
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000

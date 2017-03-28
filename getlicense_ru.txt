@@ -61,4 +61,4 @@ https://github.com/CHERTS/mspeech и скомпилировать его самостоятельно. Тем самым
 
 После Шага 2 текст передается в поле ввода программы.
 
-(с) 2013-2016 by Mikhail Grigorev
+(с) 2013-2017 by Mikhail Grigorev

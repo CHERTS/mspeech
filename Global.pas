@@ -1,6 +1,6 @@
 ﻿{ ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.9                                                          # }
+{ #  MSpeech v1.5.10                                                          # }
 { #                                                                          # }
 { #  Copyright (с) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
@@ -51,7 +51,7 @@ type
   TIntegerDynArray = Array of Integer;
 
 const
-  ProgramsVer: WideString = '1.5.9.0';
+  ProgramsVer: WideString = '1.5.10.0';
   ProgramsName = 'MSpeech';
   {$IFDEF WIN32}
   PlatformType = 'x86';
