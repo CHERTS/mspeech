@@ -1,3 +1,6 @@
 [submodule "DCPcrypt"]
 	path = DCPcrypt
 	url = https://github.com/CHERTS/DCPcrypt
+[submodule "MGSoft"]
+	path = MGSoft
+	url = https://github.com/CHERTS/MGSoft
