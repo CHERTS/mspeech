@@ -284,6 +284,9 @@ LangString SecAddRHVoiceEnglishVoiceAlanDesc ${LANG_ENGLISH} "English voice Alan
 LangString SecAddRHVoiceEnglishVoiceCLBDesc ${LANG_RUSSIAN} "Английский голос CLB для RHVoice"
 LangString SecAddRHVoiceEnglishVoiceCLBDesc ${LANG_ENGLISH} "English voice CLB for RHVoice"
 
+LangString SecAddRHVoiceEnglishVoiceSLTDesc ${LANG_RUSSIAN} "Английский голос SLT для RHVoice"
+LangString SecAddRHVoiceEnglishVoiceSLTDesc ${LANG_ENGLISH} "English voice SLT for RHVoice"
+
 LangString RunMSpeechDesc ${LANG_RUSSIAN} "Запустить MSpeech.lnk"
 LangString RunMSpeechDesc ${LANG_ENGLISH} "Run MSpeech.lnk"
 
@@ -441,6 +444,7 @@ SectionGroup $(SecAddRHVoiceDesc) SecAddRHVoice
 			File "${HOME}\rhvoice\data\languages\Russian\rulex_dict.fst"
 			File "${HOME}\rhvoice\data\languages\Russian\rulex_rules.fst"
 			File "${HOME}\rhvoice\data\languages\Russian\spell.fst"
+			File "${HOME}\rhvoice\data\languages\Russian\split.fst"
 			File "${HOME}\rhvoice\data\languages\Russian\stress.fsm"
 			File "${HOME}\rhvoice\data\languages\Russian\stress.fst"
 			File "${HOME}\rhvoice\data\languages\Russian\syl.fst"
@@ -611,6 +615,29 @@ SectionGroup $(SecAddRHVoiceDesc) SecAddRHVoice
 			File "${HOME}\rhvoice\data\voices\CLB\tree-mgc.inf"
 			File "${HOME}\rhvoice\data\voices\CLB\voice.info"
 			File "${HOME}\rhvoice\data\voices\CLB\voice.params"
+			SetOutPath "$INSTDIR"
+		SectionEnd
+
+		Section /o $(SecAddRHVoiceEnglishVoiceSLTDesc) SecAddRHVoiceEnglishVoiceSLT
+			SetOverwrite on
+			SetOutPath "$INSTDIR\rhvoice\data\voices\SLT"
+			File "${HOME}\rhvoice\data\voices\SLT\dur.pdf"
+			File "${HOME}\rhvoice\data\voices\SLT\lf0.pdf"
+			File "${HOME}\rhvoice\data\voices\SLT\lf0.win1"
+			File "${HOME}\rhvoice\data\voices\SLT\lf0.win2"
+			File "${HOME}\rhvoice\data\voices\SLT\lf0.win3"
+			File "${HOME}\rhvoice\data\voices\SLT\lpf.pdf"
+			File "${HOME}\rhvoice\data\voices\SLT\lpf.win1"
+			File "${HOME}\rhvoice\data\voices\SLT\mgc.pdf"
+			File "${HOME}\rhvoice\data\voices\SLT\mgc.win1"
+			File "${HOME}\rhvoice\data\voices\SLT\mgc.win2"
+			File "${HOME}\rhvoice\data\voices\SLT\mgc.win3"
+			File "${HOME}\rhvoice\data\voices\SLT\tree-dur.inf"
+			File "${HOME}\rhvoice\data\voices\SLT\tree-lf0.inf"
+			File "${HOME}\rhvoice\data\voices\SLT\tree-lpf.inf"
+			File "${HOME}\rhvoice\data\voices\SLT\tree-mgc.inf"
+			File "${HOME}\rhvoice\data\voices\SLT\voice.info"
+			File "${HOME}\rhvoice\data\voices\SLT\voice.params"
 			SetOutPath "$INSTDIR"
 		SectionEnd
 
