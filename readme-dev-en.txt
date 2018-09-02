@@ -25,4 +25,4 @@ The necessary components for the assembly:
 3. MGSoft Components
    Latest version: https://github.com/CHERTS/MGSoft
 
-(c) 2012-2017 by Mikhail Grigorev
+(c) 2012-2018 by Mikhail Grigorev
