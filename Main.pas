@@ -506,21 +506,21 @@ begin
       if Message.wParam = WTS_SESSION_LOCK then // ПК заблокирован
       begin
         Inc(FLockedCount);
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Computer is locked.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
         if StopRecognitionAfterLockingComputer then
         begin
           if MaxLevelOnAutoControl then
             MaxLevelOnAutoControl := False;
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Останавливаем запись и распознавание.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Stop recording and recognition.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
           Stop();
         end;
       end;
       if Message.wParam = WTS_SESSION_UNLOCK then // ПК разблокирован
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован %d раз.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Computer locked %d times.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
         if StartRecognitionAfterUnlockingComputer then
         begin
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Запускаем запись.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Start recording.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
           MaxLevelOnAutoControl := ReadCustomINI(WorkPath, 'Main', 'MaxLevelOnAutoControl', False);
           if MaxLevelOnAutoControl then
             StartNULLRecord
@@ -549,7 +549,7 @@ procedure TMainForm.MGGoogleTTSEvent(Sender: TObject; pInfo: TGTTSResultInfo);
 begin
   if pInfo.FStatus = TGTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: TTS result saved to file: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -557,23 +557,23 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: The file %s has an invalid format.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TGTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TGTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Info: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGYandexTTSEvent(Sender: TObject; pInfo: TYTTSResultInfo);
 begin
   if pInfo.FStatus = TYTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: TTS result saved to file: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -581,23 +581,23 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: The file %s has an invalid format.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         {if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);}
       end;
     end;
   end
   else if pInfo.FStatus = TYTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TYTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Info: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGISpeechTTSEvent(Sender: TObject; pInfo: TISpeechTTSResultInfo);
 begin
   if pInfo.FStatus = TISpeechTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: TTS result saved to file: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -605,25 +605,25 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: The file %s has an invalid format.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TISpeechTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TISpeechTTSStatus.ttsWarning then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Сервис iSpeech сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: iSpeech service reported an error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TISpeechTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Info: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGNuanceTTSEvent(Sender: TObject; pInfo: TNuanceTTSResultInfo);
 begin
   if pInfo.FStatus = TNuanceTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: TTS result saved to file: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       WaveIn.FileName := pInfo.FResult;
@@ -631,18 +631,18 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: The file %s has an invalid format.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(WaveIn.FileName) then
           DeleteFile(WaveIn.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TNuanceTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TNuanceTTSStatus.ttsWarning then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Сервис Nuance сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Nuance service reported an error: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TNuanceTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Info: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MSpeechExitClick(Sender: TObject);
@@ -724,7 +724,7 @@ begin
   except
     on e: Exception do
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Неизвестное исключение в процедуре FastGainIndicatorGainData - ' + e.Message);
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Unknown exception to procedure FastGainIndicatorGainData - ' + e.Message);
       Exit;
     end;
   end;
@@ -734,7 +734,7 @@ procedure TMainForm.FLACOutDone(Sender: TComponent);
 begin
   FLACDoneCnt := 0;
   SaveFLACDone := True;
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Файл ' + OutFileName + ' сохранен.');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': File ' + OutFileName + ' saved.');
   if not StartSaveSettings then
   begin
     if (StopRecordAction = 1) or (StopRecordAction = 3) then
@@ -746,13 +746,13 @@ begin
   else
   begin
     ShowBalloonHint(ProgramsName, GetLangStr('MsgInf11'),  bitWarning);
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Открыто окно Настройки. Распознавание речи отключено.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Settings window is open. Speech recognition disabled.');
   end;
 end;
 
 procedure TMainForm.FLACOutThreadException(Sender: TComponent);
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка записи в файл ' + OutFileName);
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Error writing to file ' + OutFileName);
   FLACOut.Stop;
   MSpeechTray.IconIndex := 5;
   StartButton.Enabled := True;
@@ -867,7 +867,7 @@ end;
 
 procedure TMainForm.Stop;
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Получен запрос на остановку записи.');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': A request to stop recording was received.');
   StopRecord := True;
   MSpeechTray.IconIndex := 0;
   StartButton.Enabled := True;
@@ -909,7 +909,7 @@ end;
 
 procedure TMainForm.NULLOutThreadException(Sender: TComponent);
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка записи в пустоту');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Error writing to NULL');
   StopNULLRecord;
   MSpeechTray.IconIndex := 5;
 end;
@@ -926,13 +926,13 @@ begin
     //FLACOut.Input := FastGainIndicator;
     FLACOut.FileName := OutFileName;
     FLACOut.Run;
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Начата запись в файл ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Start writing to file ' + OutFileName);
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InSampleRate = ' + IntToStr(DXAudioIn.InSampleRate));
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InBitsPerSample = ' + IntToStr(DXAudioIn.InBitsPerSample));
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InChannels = ' + IntToStr(DXAudioIn.InChannels));
   end
   else
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Не найдена библиотека libFLAC.dll');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Library libFLAC.dll not found.');
 end;
 
 { Запуск потока отправки данных и выполнения команды }
@@ -945,7 +945,7 @@ begin
   end
   else
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognizer - Ошибка чтения файла ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognizer - Error reading file ' + OutFileName);
     StartButton.Enabled := True;
     StopButton.Enabled := False;
   end;
@@ -961,14 +961,14 @@ var
   Grid: TArrayOfInteger;
 begin
   case pInfo.FStatus of
-    rsErrorGetAPIKey: MsgStr := 'Ошибка: Google Speech API Key не указан в настройках, заблокирован или достигнут лимит запросов в сутки: ' + pInfo.FMessage;
-    rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
-    rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
-    rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
-    rsErrorNoRouteToHost: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте подключение к Интернет и сетевые настройки.';
-    rsErrorConnectionTimedOut: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а или прокси-сервера.';
-    rsInfo: MsgStr := 'Информация: ' + pInfo.FMessage;
-    rsAbort: MsgStr := 'Отмена: ' + pInfo.FMessage;
+    rsErrorGetAPIKey: MsgStr := 'Error: Google Speech API Key not found in settings, blocked or reached the limit of requests per day: ' + pInfo.FMessage;
+    rsFileSizeNull: MsgStr := 'Error: Zero file size for recognition: ' + pInfo.FMessage;
+    rsErrorHostNotFound: MsgStr := 'Error: ' + pInfo.FMessage + '. Check firewall settings.';
+    rsErrorPermissionDenied: MsgStr := 'Error: ' + pInfo.FMessage + '. Check firewall settings.';
+    rsErrorNoRouteToHost: MsgStr := 'Error: ' + pInfo.FMessage + '. Check your internet connection and network settings.';
+    rsErrorConnectionTimedOut: MsgStr := 'Error: ' + pInfo.FMessage + '. Check your firewall or proxy settings.';
+    rsInfo: MsgStr := 'Info: ' + pInfo.FMessage;
+    rsAbort: MsgStr := 'Cancel: ' + pInfo.FMessage;
   end;
   if pInfo.FStatus = rsRecordingNotRecognized then // Запись не распознана
   begin
@@ -978,7 +978,7 @@ begin
   end
   else if pInfo.FStatus = rsRecognizeDone then // Запись распознана
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Распознанная строка = %s, Достоверность распознавания = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript, FloatToStr(pInfo.FConfidence)]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Recognized string = %s, Recognition accuracy = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript, FloatToStr(pInfo.FConfidence)]));
     RecognizeStr := pInfo.FTranscript;
     // Замена текста
     if EnableTextCorrection then
@@ -1002,9 +1002,9 @@ begin
       if EnableSendTextInactiveWindow then
       begin
         if OnSendMessage(InactiveWindowCaption, RecognizeStr) then
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Текст передан методом WM_COPYDATA.')
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Text transmitted by WM_COPYDATA method.')
         else
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Программа с заголовком ' + InactiveWindowCaption + ' не найдена.')
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Program with ' + InactiveWindowCaption + ' caption not found.')
       end
       else
       begin // Передача текста в активное окно программы
@@ -1039,14 +1039,14 @@ begin
       Grid := HackTStringsIndexOf(CommandSGrid.Cols[0], RecognizeStr); // Поиск команд
       if Length(Grid) > 0 then // Команда найдена в списке
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: В CommandSGrid найдено %d команд.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: In CommandSGrid found %d command.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
         // Перебор найденных команд
         for K := Low(Grid) to High(Grid) do
         begin
           // Запуск программы
           if IntToStr(CommandList[mExecPrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Run the program: ' + CommandSGrid.Cells[1,Grid[K]]);
             if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_HIDE)
             else
@@ -1055,7 +1055,7 @@ begin
           // Запуск программы и передача ей распознанной строки
           else if IntToStr(CommandList[mExecProgramsParams].CommandCode) =  CommandSGrid.Cells[2,Grid[K]] then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу с передачей ей распознанной строки: ' + CommandSGrid.Cells[1,Grid[K]] + ' "' + RecognizeStr + '"');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Run program by sending recognized string to it: ' + CommandSGrid.Cells[1,Grid[K]] + ' "' + RecognizeStr + '"');
             if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), PWideChar('"'+RecognizeStr+'"'), nil, SW_HIDE)
             else
@@ -1066,7 +1066,7 @@ begin
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Close the program: ' + CommandSGrid.Cells[1,Grid[K]]);
               EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])), WM_CLOSE);
             end;
           end
@@ -1075,7 +1075,7 @@ begin
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Kill the program: ' + CommandSGrid.Cells[1,Grid[K]]);
               KillTask(ExtractFileName(CommandSGrid.Cells[1,Grid[K]]));
             end;
           end
@@ -1089,7 +1089,7 @@ begin
         // Выполнение команды по-умолчанию если она определена
         if DefaultCommandExec  <> '' then
         begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run the default command = ' + DefaultCommandExec);
           if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
             ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
           else
@@ -1097,7 +1097,7 @@ begin
         end
         else
         begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Команда не распознана или её нет в базе MSpeech.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': The command is not recognized or it is not in the MSpeech database.');
           TextToSpeech(mCommandNotFound);
           ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
         end;
@@ -1135,7 +1135,7 @@ begin
   // Старт записи с передачей текста
   if Index = StartRecordHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Key pressed '+HotKeyToText(HotKey, True));
     if StopRecord then
     begin
       EnableSendText := ReadCustomINI(WorkPath, 'SendText', 'EnableSendText', False);
@@ -1149,7 +1149,7 @@ begin
   // Старт записи без передачи текста
   if Index = StartRecordWithoutSendTextHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Key pressed '+HotKeyToText(HotKey, True));
     if StopRecord then // Начинаем запись
     begin
       EnableExecCommand := ReadCustomINI(WorkPath, 'Main', 'EnableExecCommand', True);
@@ -1164,7 +1164,7 @@ begin
   // Старт записи без выполнения команд
   if Index = StartRecordWithoutExecCommandHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Key pressed '+HotKeyToText(HotKey, True));
     if StopRecord then // Начинаем запись
     begin
       if EnableExecCommand then
@@ -1178,7 +1178,7 @@ begin
   // Смена языка распознавания
   if Index = SwitchesLanguageRecognizeHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Key pressed '+HotKeyToText(HotKey, True));
     if CurrentSpeechRecognizeLang = DefaultSpeechRecognizeLang then
       CurrentSpeechRecognizeLang := SecondSpeechRecognizeLang
     else
@@ -1252,22 +1252,22 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Подключение успешно.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Connection successful.');
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Focus found.');
         if Boolean(GetClassName(hFocusedWnd, pszClassName, 256)) then
         begin
           if String(pszClassName) = MyClassName then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден класс ' + MyClassName);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Class found ' + MyClassName);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Send command.');
             if SendMessage(hFocusedWnd, WM_SETTEXT, 0, lParam(PChar(MyText))) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Команда WM_SETTEXT успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - WM_SETTEXT command sent successfully.');
           end;
         end;
       end;
@@ -1285,16 +1285,16 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Найден фокус.');
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Отправляем команду.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Focus found.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Send command.');
         if SendMessage(hFocusedWnd, WM_SETTEXT, 0, lParam(PChar(MyText))) > 0 then
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Команда WM_SETTEXT успешно передана.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - WM_SETTEXT command sent successfully.');
       end;
       AttachThreadInput(GetCurrentThreadId, dwThreadID, False);
     end;
@@ -1313,14 +1313,14 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Подключение успешно.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Connection successful.');
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Focus found.');
         dwBytesNeeded := SendMessage(hFocusedWnd, WM_GETTEXTLENGTH, 0, 0);
         if dwBytesNeeded > 0 then
         begin
@@ -1332,12 +1332,12 @@ begin
             begin
               if String(pszClassName) = MyClassName then
               begin
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден класс ' + MyClassName);
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Отправляем команду.');
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Class found ' + MyClassName);
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Send command.');
                 if SendMessage(hFocusedWnd, EM_SETSEL, wParam(dwBytesNeeded), lParam(dwBytesNeeded)) > 0 then
-                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Команда EM_SETSEL успешно передана.');
+                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - EM_SETSEL command sent successfully.');
                 if SendMessage(hFocusedWnd, EM_REPLACESEL, 0, lParam(PChar(MyText))) > 0 then
-                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Команда EM_REPLACESEL успешно передана.');
+                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - EM_REPLACESEL command sent successfully.');
               end;
             end;
           finally
@@ -1363,24 +1363,24 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Focus found.');
         dwBytesNeeded := SendMessage(hFocusedWnd, WM_GETTEXTLENGTH, 0, 0);
         if dwBytesNeeded > 0 then
         begin
           GetMem(pszWindowText, dwBytesNeeded + 1);
           try
             ZeroMemory(pszWindowText, dwBytesNeeded + 1);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Send command.');
             if SendMessage(hFocusedWnd, EM_SETSEL, wParam(dwBytesNeeded), lParam(dwBytesNeeded)) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Команда EM_SETSEL успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - EM_SETSEL command sent successfully.');
             if SendMessage(hFocusedWnd, EM_REPLACESEL, 0, lParam(PChar(MyText))) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Команда EM_REPLACESEL успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - EM_REPLACESEL command sent successfully.');
           finally
             FreeMem(pszWindowText);
           end;
@@ -1405,26 +1405,26 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Focus found.');
         if Boolean(GetClassName(hFocusedWnd, pszClassName, 256)) then
         begin
           if String(pszClassName) = MyClassName then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден класс ' + MyClassName);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Class found ' + MyClassName);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Send command.');
             Clipboard.Clear;
             Clipboard.AsText := MyText;
             if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
             begin
               // Метод WM_PASTE
               if SendMessage(hFocusedWnd, WM_PASTE, 0, 0) > 0 then
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Команда WM_PASTE успешно передана.');
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - WM_PASTE command sent successfully.');
             end
             else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
             begin
@@ -1434,7 +1434,7 @@ begin
               keybd_event(Ord('V'), MapVirtualKey(Ord('V'), 0), 0, 0);
               keybd_event(Ord('V'), 0, KEYEVENTF_KEYUP, 0);
               keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL,0), KEYEVENTF_KEYUP, 0);
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда Ctrl+V успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Ctrl+V command sent successfully.');
             end;
           end;
         end;
@@ -1454,20 +1454,20 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Focus found.');
         Clipboard.Clear;
         Clipboard.AsText := MyText;
         if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
         begin
           // Метод WM_PASTE
           if SendMessage(hFocusedWnd, WM_PASTE, 0, 0) > 0 then
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда WM_PASTE успешно передана.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - WM_PASTE command sent successfully.');
         end
         else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
         begin
@@ -1477,7 +1477,7 @@ begin
           keybd_event(Ord('V'), MapVirtualKey(Ord('V'), 0), 0, 0);
           keybd_event(Ord('V'), 0, KEYEVENTF_KEYUP, 0);
           keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL,0), KEYEVENTF_KEYUP, 0);
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда Ctrl+V успешно передана.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Ctrl+V command sent successfully.');
         end;
       end;
       AttachThreadInput(GetCurrentThreadId, dwThreadID, False);
@@ -1497,14 +1497,14 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Found process.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Найден фокус.');
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Отправляем текст...');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Focus found.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Send text...');
         for Cnt := 1 to Length(MyText) do
           PostMessage(hFocusedWnd, WM_CHAR, Word(MyText[Cnt]), 0);
         //PostMessage(hFocusedWnd, WM_KEYDOWN, VK_RETURN, 0);
@@ -1522,11 +1522,11 @@ var
 begin
   if EnableTextToSpeech then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск SAPITextToSpeech.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run SAPITextToSpeech.');
     Grid := HackTStringsIndexOf(TextToSpeechSGrid.Cols[1], DetectEventsTypeName(EType));
     if Length(Grid) > 0 then // Команда найдена в списке
     begin
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: В TextToSpeechSGrid найдено %d событий.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: In TextToSpeechSGrid found %d events.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
       for K := Low(Grid) to High(Grid) do // Перебор найденных событий
       begin
         if DetectEventsTypeStatusName(TextToSpeechSGrid.Cells[2,Grid[K]]) = mEnable then
@@ -1547,7 +1547,7 @@ procedure TMainForm.TextToSpeech(SayText: String);
 begin
   if EnableTextToSpeech then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск TextToSpeech. Говорим: ' + SayText);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run TextToSpeech. Speak: ' + SayText);
     if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
       MGSAPI.Speak(SayText)
     else
@@ -1560,12 +1560,12 @@ procedure TMainForm.OtherTTS(const SayText: String);
 begin
   if SayText = EmptyStr then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': OtherTTS: Строка текста для синтеза пустая.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': OtherTTS: Synthesis string is empty.');
     Exit;
   end;
   if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Google TTS (TTSLangCode = ' + GoogleTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run Google TTS (TTSLangCode = ' + GoogleTL + ', Speak: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 100;
     MGGoogleTTS.TTSLangCode := GoogleTL;
@@ -1575,7 +1575,7 @@ begin
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Yandex TTS (TTSLangCode = ' + YandexTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run Yandex TTS (TTSLangCode = ' + YandexTL + ', Speak: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 79;
     MGYandexTTS.TTSLangCode := YandexTL;
@@ -1585,7 +1585,7 @@ begin
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Если iSpeech TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем iSpeech TTS (TTSLangCode = ' + iSpeechTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run iSpeech TTS (TTSLangCode = ' + iSpeechTL + ', Speak: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 100;
     MGISpeechTTS.TTSLangCode := iSpeechTL;
@@ -1596,7 +1596,7 @@ begin
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Если Nuance TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Nuance TTS (TTSVoice = ' + NuanceTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Run Nuance TTS (TTSVoice = ' + NuanceTL + ', Speak: ' + SayText + ')');
     DXAudioOut.Input := WaveIn;
     DXAudioOut.Latency := 100;
     MGNuanceTTS.ID := '000';
