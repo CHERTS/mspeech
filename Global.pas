@@ -92,6 +92,7 @@ const
     'EventDisable',
     'EventEnable');
   // Список регионов для распознавания голоса через Google
+  // https://cloud.google.com/speech-to-text/docs/languages
   // Afrikaans - af-ZA
   // Bahasa Indonesia - id-ID
   // Bahasa Melayu - ms-MY
@@ -147,6 +148,7 @@ const
   // Türkçe - tr-TR
   // български - bg-BG
   // Pусский - ru-RU
+  // Українська (Україна)	- uk-UA
   // Српски - sr-RS
   // Korean - ko-KR
   // Mandarin Chinese (Simplified) - cmn-Hans-CN
@@ -155,15 +157,15 @@ const
   // Hong Kong Chinese (Traditional) -  yue-Hant-HK
   // Japanese - ja-JP
   // Lingua latīna - la
-  GoogleRegionArray: Array[0..62] of String = (
+  GoogleRegionArray: Array[0..63] of String = (
     'af-ZA', 'id-ID', 'ms-MY', 'ca-ES', 'cs-CZ', 'de-DE', 'en-AU', 'en-CA', 'en-IN',
     'en-NZ', 'en-ZA', 'en-GB', 'en-US', 'es-AR', 'es-BO', 'es-CL', 'es-CO', 'es-CR',
     'es-EC', 'es-SV', 'es-ES', 'es-US', 'es-GT', 'es-HN', 'es-MX', 'es-NI', 'es-PA',
     'es-PY', 'es-PE', 'es-PR', 'es-DO', 'es-UY', 'es-VE', 'eu-ES', 'fr-FR', 'gl-ES',
     'he-HE', 'hr_HR', 'zu-ZA', 'is-IS', 'it-IT', 'it-CH', 'hu-HU', 'nl-NL', 'nb-NO',
     'pl-PL', 'pt-BR', 'pt-PT', 'ro-RO', 'sk-SK', 'fi-FI', 'sv-SE', 'tr-TR', 'bg-BG',
-    'ru-RU', 'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW', 'yue-Hant-HK',
-    'ja-JP', 'la');
+    'ru-RU', 'uk-UA', 'sr-RS', 'ko-KR', 'cmn-Hans-CN', 'cmn-Hans-HK', 'cmn-Hant-TW',
+    'yue-Hant-HK', 'ja-JP', 'la');
   // Список систем синтеза речи
   TTSEngineList: Array[TTTSEngine] of TTTSEngines = (
     (TTSDisplayName: 'Microsoft SAPI (Offline)'),

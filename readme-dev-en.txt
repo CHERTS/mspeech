@@ -16,7 +16,7 @@ OS: Win2000/XP/2003/Vista/7/8/10
 The necessary components for the assembly:
 ------------------------------------------
 
-1. Embarcadero RAD Studio 10.1 Berlin
+1. Embarcadero RAD Studio 10.3 Rio
 
 2. New Audio Components for Delphi
    Web-site: http://symmetrica.net/newac/
@@ -25,4 +25,4 @@ The necessary components for the assembly:
 3. MGSoft Components
    Latest version: https://github.com/CHERTS/MGSoft
 
-(c) 2012-2018 by Mikhail Grigorev
+(c) 2012-2020 by Mikhail Grigorev
