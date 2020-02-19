@@ -296,7 +296,7 @@ begin
     until (Deleted) or (UserAnswer = 0);
     if Deleted then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ' - Процедура DeleteLogButtonClick: Файл ' + CBFileName.Items[CBFileName.ItemIndex] + ' удален.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ' - Procedure DeleteLogButtonClick: File ' + CBFileName.Items[CBFileName.ItemIndex] + ' deleted.');
       if Assigned(FTextReader) then
         FreeAndNil(FTextReader);
       TextListView.Clear;
