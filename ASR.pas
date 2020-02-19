@@ -429,7 +429,7 @@ begin
   for JStringListCnt := 0 to JStringList.Count-1 do
   begin
     try
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Cтрока для парсинга = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), UTF8ToString(JStringList[JStringListCnt])]));
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: Parsing string = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), UTF8ToString(JStringList[JStringListCnt])]));
       FJSON := TJSONObject.Create(UTF8ToString(JStringList[JStringListCnt]));
     except
       on e: Exception do
@@ -458,10 +458,10 @@ begin
           end;
         end;
         try
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Размер массива result = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.length]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Lenght of array [result] = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.length]));
           if FJSON.optInt('result_index') < JArray.length then
           begin
-            if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив result = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.get(FJSON.optInt('result_index')).toString]));
+            if EnableLogs then WriteInLog(WorkPath, Format('%s: Array [result] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.get(FJSON.optInt('result_index')).toString]));
             try
               FJo := TJSONObject.Create(JArray.get(FJSON.optInt('result_index')).toString);
             except
@@ -480,7 +480,7 @@ begin
               if FJo.optString('final') = 'true' then
               begin
                 {$IFDEF DEBUG}
-                if EnableLogs then WriteInLog(WorkPath, Format('%s: Cтрока alternative = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FJo.optString('alternative')]));
+                if EnableLogs then WriteInLog(WorkPath, Format('%s: String alternative = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FJo.optString('alternative')]));
                 {$ENDIF}
                 try
                   JArrayA := TJSONArray.create(FJo.optString('alternative'));
@@ -499,11 +499,11 @@ begin
                 end;
                 try
                   {$IFDEF DEBUG}
-                  if EnableLogs then WriteInLog(WorkPath, Format('%s: Размер массива alternative = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArrayA.length]));
+                  if EnableLogs then WriteInLog(WorkPath, Format('%s: Lenght of array [alternative] = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArrayA.length]));
                   {$ENDIF}
                   if JArrayA.length > 0 then
                   begin
-                    if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, JArrayA.get(0).toString]));
+                    if EnableLogs then WriteInLog(WorkPath, Format('%s: Array alternative[%d] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, JArrayA.get(0).toString]));
                     try
                       FJo2 := TJSONObject.Create(JArrayA.get(0).toString);
                     except
@@ -526,13 +526,13 @@ begin
                       if not FJo2.isNull('transcript') then
                       begin
                         Result.FTranscript := FJo2.optString('transcript');
-                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] transcript = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('transcript')]));
+                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Array alternative[%d] transcript = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('transcript')]));
                       end;
                       if not FJo2.isNull('confidence') then
                       begin
                         FormatSettings.DecimalSeparator := '.';
                         Result.FConfidence := FJo2.optDouble('confidence')*100;
-                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] confidence = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('confidence')]));
+                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Array alternative[%d] confidence = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('confidence')]));
                       end;
                     finally
                       FJo2.Free;
