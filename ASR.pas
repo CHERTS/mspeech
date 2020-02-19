@@ -1,8 +1,8 @@
 { ############################################################################ }
 { #                                                                          # }
-{ #  MSpeech v1.5.9                                                          # }
+{ #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (с) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (СЃ) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -18,27 +18,27 @@ uses Windows, Classes, SysUtils, Global, HTTPSend, synautil;
 
 type
   //JSONError = class(Exception);
-  // Статусы
+  // РЎС‚Р°С‚СѓСЃС‹
   TRecognizeStatus = (rsRecognizeDone, rsRecordingNotRecognized,
                   rsErrorJsonParse, rsErrorResponse,
                   rsInfo, rsAbort, rsErrorGetAPIKey,
                   rsFileSizeNull, rsErrorConnectionTimedOut,
                   rsErrorNoRouteToHost, rsErrorHostNotFound,
                   rsErrorCommunication, rsErrorPermissionDenied);
-  // Структура с информацией о статусе распознавания (передается в callback процедуру)
+  // РЎС‚СЂСѓРєС‚СѓСЂР° СЃ РёРЅС„РѕСЂРјР°С†РёРµР№ Рѕ СЃС‚Р°С‚СѓСЃРµ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ (РїРµСЂРµРґР°РµС‚СЃСЏ РІ callback РїСЂРѕС†РµРґСѓСЂСѓ)
   TRecognizeInfo = record
-    FStatus     : TRecognizeStatus; // Статус
-    FMessage    : String;           // Сообщение
-    FConfidence : Real;             // Достоверность распознавания в %
-    FTranscript : String;           // Распознанная фраза
+    FStatus     : TRecognizeStatus; // РЎС‚Р°С‚СѓСЃ
+    FMessage    : String;           // РЎРѕРѕР±С‰РµРЅРёРµ
+    FConfidence : Real;             // Р”РѕСЃС‚РѕРІРµСЂРЅРѕСЃС‚СЊ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ РІ %
+    FTranscript : String;           // Р Р°СЃРїРѕР·РЅР°РЅРЅР°СЏ С„СЂР°Р·Р°
   end;
 
-  // callback процедура, вызываемая после распознавания
+  // callback РїСЂРѕС†РµРґСѓСЂР°, РІС‹Р·С‹РІР°РµРјР°СЏ РїРѕСЃР»Рµ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   TRecognizeResultEvent = procedure (Sender: TObject; pInfo: TRecognizeInfo) of object;
 
-  // Запуск распознавания
+  // Р—Р°РїСѓСЃРє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   procedure StartRecognize(pGoogleAPIKey, pFileName, pRecognizeLang: String; pUseProxy: Boolean; pProxyAddress, pProxyPort: String; pProxyAuth: Boolean; pProxyAuthUserName, pProxyAuthPassword: String; pRecognizeInfoCallBack: TRecognizeResultEvent);
-  // Остановка распознавания
+  // РћСЃС‚Р°РЅРѕРІРєР° СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   procedure StopRecognize;
 
 implementation
@@ -90,7 +90,7 @@ var
   GoogleRecognize: TGoogleRecognizer;
 
 const
-  // Ваш ключ Google Speech API
+  // Р’Р°С€ РєР»СЋС‡ Google Speech API
   GoogleRecognizePublicAPIKey = 'Enter-Your-Google-Speech-API-Key';
   GoogleRecognizeURLv2Public = 'https://www.google.com/speech-api/v2/recognize?client=chrome-hotword&output=json&lang=%s&key=%s&app=web-hotword-0.1.1.5018_0';
   GoogleRecognizeURLv2MSpeech = 'https://www.google.com/speech-api/v2/recognize?output=json&lang=%s&key=%s&app=%s';
@@ -205,17 +205,17 @@ begin
   else
   begin
     FRecognizeInfo := SendRecognizeRequest(FInputFileName);
-    if FRecognizeInfo.FStatus = rsErrorJsonParse then // Ошибка при парсинге ответа
+    if FRecognizeInfo.FStatus = rsErrorJsonParse then // РћС€РёР±РєР° РїСЂРё РїР°СЂСЃРёРЅРіРµ РѕС‚РІРµС‚Р°
     begin
       FRecognizeInfo.FStatus := rsErrorGetAPIKey;
       FRecognizeInfo.FMessage := 'Validity of Key Speech API, obtained from the server MSpeech, already ended.';
       Synchronize(RecognizeEvent);
     end
-    else if FRecognizeInfo.FStatus = rsRecordingNotRecognized then // Запись не распознана
+    else if FRecognizeInfo.FStatus = rsRecordingNotRecognized then // Р—Р°РїРёСЃСЊ РЅРµ СЂР°СЃРїРѕР·РЅР°РЅР°
     begin
       Synchronize(RecognizeEvent);
     end
-    else if FRecognizeInfo.FStatus = rsRecognizeDone then // Запись распознана
+    else if FRecognizeInfo.FStatus = rsRecognizeDone then // Р—Р°РїРёСЃСЊ СЂР°СЃРїРѕР·РЅР°РЅР°
     begin
       Synchronize(RecognizeEvent);
     end;
@@ -371,8 +371,8 @@ begin
         HR_Accept: Status := 'Accept: ' + Value;
         HR_ReadCount:
         begin
-          // Считаем количество принятых байт, потом их выведем суммарно и отдельно
-          // В это количество не входит размер заголовка и т.п.
+          // РЎС‡РёС‚Р°РµРј РєРѕР»РёС‡РµСЃС‚РІРѕ РїСЂРёРЅСЏС‚С‹С… Р±Р°Р№С‚, РїРѕС‚РѕРј РёС… РІС‹РІРµРґРµРј СЃСѓРјРјР°СЂРЅРѕ Рё РѕС‚РґРµР»СЊРЅРѕ
+          // Р’ СЌС‚Рѕ РєРѕР»РёС‡РµСЃС‚РІРѕ РЅРµ РІС…РѕРґРёС‚ СЂР°Р·РјРµСЂ Р·Р°РіРѕР»РѕРІРєР° Рё С‚.Рї.
           FReadCount := FReadCount+StrToInt(Value);
           Status := '';
         end;
@@ -429,7 +429,7 @@ begin
   for JStringListCnt := 0 to JStringList.Count-1 do
   begin
     try
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: Cтрока для парсинга = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), UTF8ToString(JStringList[JStringListCnt])]));
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: CС‚СЂРѕРєР° РґР»СЏ РїР°СЂСЃРёРЅРіР° = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), UTF8ToString(JStringList[JStringListCnt])]));
       FJSON := TJSONObject.Create(UTF8ToString(JStringList[JStringListCnt]));
     except
       on e: Exception do
@@ -458,10 +458,10 @@ begin
           end;
         end;
         try
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Размер массива result = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.length]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Р Р°Р·РјРµСЂ РјР°СЃСЃРёРІР° result = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.length]));
           if FJSON.optInt('result_index') < JArray.length then
           begin
-            if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив result = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.get(FJSON.optInt('result_index')).toString]));
+            if EnableLogs then WriteInLog(WorkPath, Format('%s: РњР°СЃСЃРёРІ result = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArray.get(FJSON.optInt('result_index')).toString]));
             try
               FJo := TJSONObject.Create(JArray.get(FJSON.optInt('result_index')).toString);
             except
@@ -480,7 +480,7 @@ begin
               if FJo.optString('final') = 'true' then
               begin
                 {$IFDEF DEBUG}
-                if EnableLogs then WriteInLog(WorkPath, Format('%s: Cтрока alternative = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FJo.optString('alternative')]));
+                if EnableLogs then WriteInLog(WorkPath, Format('%s: CС‚СЂРѕРєР° alternative = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FJo.optString('alternative')]));
                 {$ENDIF}
                 try
                   JArrayA := TJSONArray.create(FJo.optString('alternative'));
@@ -499,11 +499,11 @@ begin
                 end;
                 try
                   {$IFDEF DEBUG}
-                  if EnableLogs then WriteInLog(WorkPath, Format('%s: Размер массива alternative = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArrayA.length]));
+                  if EnableLogs then WriteInLog(WorkPath, Format('%s: Р Р°Р·РјРµСЂ РјР°СЃСЃРёРІР° alternative = %d', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), JArrayA.length]));
                   {$ENDIF}
                   if JArrayA.length > 0 then
                   begin
-                    if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, JArrayA.get(0).toString]));
+                    if EnableLogs then WriteInLog(WorkPath, Format('%s: РњР°СЃСЃРёРІ alternative[%d] = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, JArrayA.get(0).toString]));
                     try
                       FJo2 := TJSONObject.Create(JArrayA.get(0).toString);
                     except
@@ -526,13 +526,13 @@ begin
                       if not FJo2.isNull('transcript') then
                       begin
                         Result.FTranscript := FJo2.optString('transcript');
-                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] transcript = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('transcript')]));
+                        if EnableLogs then WriteInLog(WorkPath, Format('%s: РњР°СЃСЃРёРІ alternative[%d] transcript = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('transcript')]));
                       end;
                       if not FJo2.isNull('confidence') then
                       begin
                         FormatSettings.DecimalSeparator := '.';
                         Result.FConfidence := FJo2.optDouble('confidence')*100;
-                        if EnableLogs then WriteInLog(WorkPath, Format('%s: Массив alternative[%d] confidence = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('confidence')]));
+                        if EnableLogs then WriteInLog(WorkPath, Format('%s: РњР°СЃСЃРёРІ alternative[%d] confidence = %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), 0, FJo2.optString('confidence')]));
                       end;
                     finally
                       FJo2.Free;

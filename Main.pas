@@ -1,8 +1,8 @@
-{ ############################################################################ }
+п»ї{ ############################################################################ }
 { #                                                                          # }
 { #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (с) 2012-2017, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (СЃ) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -108,14 +108,14 @@ type
   public
     { Public declarations }
     MSpeechMainFormHidden: Boolean;
-    // Список команд
+    // РЎРїРёСЃРѕРє РєРѕРјР°РЅРґ
     CommandSGrid: TStringGrid;
-    // Список замены
+    // РЎРїРёСЃРѕРє Р·Р°РјРµРЅС‹
     ReplaceSGrid: TStringGrid;
-    // Список синтеза речи
+    // РЎРїРёСЃРѕРє СЃРёРЅС‚РµР·Р° СЂРµС‡Рё
     TextToSpeechSGrid: TStringGrid;
     FLockedCount: Integer;
-    // Фильтры
+    // Р¤РёР»СЊС‚СЂС‹
     VoiceFilter: TVoiceFilter;
     SincFilter: TSincFilter;
     procedure ShowBalloonHint(BalloonTitle, BalloonMsg : WideString); overload;
@@ -200,30 +200,30 @@ begin
   ProgramsPath := IncludeTrailingPathDelimiter(ExtractFilePath(ParamStr(0)));
   OutFileName := GetUserTempPath() + 'out.flac';
   WorkPath := IncludeTrailingPathDelimiter(GetAppDataFolderPath()+ProgramsName);
-  // Проверяем файл конфигурации
+  // РџСЂРѕРІРµСЂСЏРµРј С„Р°Р№Р» РєРѕРЅС„РёРіСѓСЂР°С†РёРё
   if not DirectoryExists(WorkPath) then
     CreateDir(WorkPath);
   if DirectoryExists(WorkPath) then
   begin
-    // Копируем дефолтный файл настроек
+    // РљРѕРїРёСЂСѓРµРј РґРµС„РѕР»С‚РЅС‹Р№ С„Р°Р№Р» РЅР°СЃС‚СЂРѕРµРє
     if not FileExists(WorkPath + ININame) then
     begin
       if FileExists(ProgramsPath + ININame) then
         CopyFileEx(PChar(ProgramsPath + ININame), PChar(WorkPath + ININame), nil, nil, nil, COPY_FILE_FAIL_IF_EXISTS);
     end;
-    // Копируем дефолтный файл команд
+    // РљРѕРїРёСЂСѓРµРј РґРµС„РѕР»С‚РЅС‹Р№ С„Р°Р№Р» РєРѕРјР°РЅРґ
     if not FileExists(WorkPath + CommandGridFile) then
     begin
       if FileExists(ProgramsPath + CommandGridFile) then
         CopyFileEx(PChar(ProgramsPath + CommandGridFile), PChar(WorkPath + CommandGridFile), nil, nil, nil, COPY_FILE_FAIL_IF_EXISTS);
     end;
-    // Копируем дефолтный файл для автозамены
+    // РљРѕРїРёСЂСѓРµРј РґРµС„РѕР»С‚РЅС‹Р№ С„Р°Р№Р» РґР»СЏ Р°РІС‚РѕР·Р°РјРµРЅС‹
     if not FileExists(WorkPath + ReplaceGridFile) then
     begin
       if FileExists(ProgramsPath + ReplaceGridFile) then
         CopyFileEx(PChar(ProgramsPath + ReplaceGridFile), PChar(WorkPath + ReplaceGridFile), nil, nil, nil, COPY_FILE_FAIL_IF_EXISTS);
     end;
-    // Копируем дефолтный файл text-to-speech
+    // РљРѕРїРёСЂСѓРµРј РґРµС„РѕР»С‚РЅС‹Р№ С„Р°Р№Р» text-to-speech
     if not FileExists(WorkPath + TextToSpeechGridFile) then
     begin
       if FileExists(ProgramsPath + TextToSpeechGridFile) then
@@ -232,13 +232,13 @@ begin
   end
   else
     WorkPath := ProgramsPath;
-  // Для мультиязыковой поддержки
+  // Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё
   MainFormHandle := Handle;
   SetWindowLong(Handle, GWL_HWNDPARENT, 0);
   SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
-  // Читаем настройки
+  // Р§РёС‚Р°РµРј РЅР°СЃС‚СЂРѕР№РєРё
   LoadINI(WorkPath);
-  // Проверка на автозапуск MSpeech
+  // РџСЂРѕРІРµСЂРєР° РЅР° Р°РІС‚РѕР·Р°РїСѓСЃРє MSpeech
   if AutoRunMSpeech then
   begin
     if not CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
@@ -250,12 +250,12 @@ begin
       CheckAutorun(mAutorunCurrentUser, mAutorunDisable, ProgramsName, ParamStr(0));
   end;
   MSpeechTray.Hint := ProgramsName;
-  // Загружаем настройки локализации
+  // Р—Р°РіСЂСѓР¶Р°РµРј РЅР°СЃС‚СЂРѕР№РєРё Р»РѕРєР°Р»РёР·Р°С†РёРё
   if INIFileLoaded then
     CoreLanguage := DefaultLanguage
   else
   begin
-    if (GetSysLang = 'Русский') or (GetSysLang = 'Russian') or (MatchStrings(GetSysLang, 'Русский*')) then
+    if (GetSysLang = 'Р СѓСЃСЃРєРёР№') or (GetSysLang = 'Russian') or (MatchStrings(GetSysLang, 'Р СѓСЃСЃРєРёР№*')) then
       CoreLanguage := 'Russian'
     else
       CoreLanguage := 'English';
@@ -269,7 +269,7 @@ begin
     Application.Terminate;
     Exit;
   end;
-  // Заполняем список устройст записи
+  // Р—Р°РїРѕР»РЅСЏРµРј СЃРїРёСЃРѕРє СѓСЃС‚СЂРѕР№СЃС‚ Р·Р°РїРёСЃРё
   if DXAudioIn.DeviceCount > 0 then
     StartButton.Enabled := True
   else
@@ -278,11 +278,11 @@ begin
     Application.Terminate;
     Exit;
   end;
-  // Отключаем кнопки
+  // РћС‚РєР»СЋС‡Р°РµРј РєРЅРѕРїРєРё
   StopButton.Enabled := False;
-  // Фильтрация звука
+  // Р¤РёР»СЊС‚СЂР°С†РёСЏ Р·РІСѓРєР°
   Filters();
-  // Создаем горячие клавиши
+  // РЎРѕР·РґР°РµРј РіРѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё
   StartRecordHotKeyIndex := 0;
   StartRecordWithoutSendTextHotKeyIndex := 0;
   StartRecordWithoutExecCommandHotKeyIndex := 0;
@@ -295,40 +295,40 @@ begin
     StartRecordWithoutExecCommandHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True));
   if SwitchesLanguageRecognizeHotKey <> '' then
     SwitchesLanguageRecognizeHotKeyIndex := MSpeechHotKeyManager.AddHotKey(TextToHotKey(SwitchesLanguageRecognizeHotKey, True));
-  // Грузим список команд
+  // Р“СЂСѓР·РёРј СЃРїРёСЃРѕРє РєРѕРјР°РЅРґ
   CommandSGrid := TStringGrid.Create(nil);
-  // Если найден старый файл команд, то грузим список из него
+  // Р•СЃР»Рё РЅР°Р№РґРµРЅ СЃС‚Р°СЂС‹Р№ С„Р°Р№Р» РєРѕРјР°РЅРґ, С‚Рѕ РіСЂСѓР·РёРј СЃРїРёСЃРѕРє РёР· РЅРµРіРѕ
   if FileExists(ProgramsPath + OLDCommandFileName) then
     DeleteFile(ProgramsPath + OLDCommandFileName)
   else
     LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
-  // Грузим список замены
+  // Р“СЂСѓР·РёРј СЃРїРёСЃРѕРє Р·Р°РјРµРЅС‹
   ReplaceSGrid := TStringGrid.Create(nil);
   if EnableTextReplace then
     LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceSGrid);
-  // Грузим список для синтеза речи
+  // Р“СЂСѓР·РёРј СЃРїРёСЃРѕРє РґР»СЏ СЃРёРЅС‚РµР·Р° СЂРµС‡Рё
   TextToSpeechSGrid := TStringGrid.Create(nil);
   if EnableTextToSpeech then
   begin
     LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechSGrid);
-    if TextToSpeechEngine = 0 then // Если Microsoft SAPI
+    if TextToSpeechEngine = 0 then // Р•СЃР»Рё Microsoft SAPI
     begin
       MGSAPI.TTSLang := SAPIVoiceNum;
       MGSAPI.TTSVoiceVolume := SAPIVoiceVolume;
       MGSAPI.TTSVoiceSpeed := SAPIVoiceSpeed;
     end;
   end;
-  // Авто-активация записи
+  // РђРІС‚Рѕ-Р°РєС‚РёРІР°С†РёСЏ Р·Р°РїРёСЃРё
   StartNULLRecord;
-  // Язык распознавания
+  // РЇР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   CurrentSpeechRecognizeLang := DefaultSpeechRecognizeLang;
-  // Кол. блокировок ПК
+  // РљРѕР». Р±Р»РѕРєРёСЂРѕРІРѕРє РџРљ
   FLockedCount := 0;
   WTSRegisterSessionNotification(Handle, NOTIFY_FOR_ALL_SESSIONS);
-  // Удаляем старый файл состояния форм MSpeechForms.ini
+  // РЈРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Р№ С„Р°Р№Р» СЃРѕСЃС‚РѕСЏРЅРёСЏ С„РѕСЂРј MSpeechForms.ini
   if FileExists(WorkPath + 'MSpeechForms.ini') then
     DeleteFile(WorkPath + 'MSpeechForms.ini');
-  // Сохранение позиций окна
+  // РЎРѕС…СЂР°РЅРµРЅРёРµ РїРѕР·РёС†РёР№ РѕРєРЅР°
   MGFormPlacement.IniFileName := WorkPath + INIFormStorage;
   StopRecord := True;
   FCount := 0;
@@ -339,14 +339,14 @@ procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   if FileExists(OutFileName) then
     DeleteFile(OutFileName);
-  // Очистка
+  // РћС‡РёСЃС‚РєР°
   if Assigned(CommandSGrid) then
     CommandSGrid.Free;
   if Assigned(ReplaceSGrid) then
     ReplaceSGrid.Free;
   if Assigned(TextToSpeechSGrid) then
     TextToSpeechSGrid.Free;
-  // Закрываем логи
+  // Р—Р°РєСЂС‹РІР°РµРј Р»РѕРіРё
   CloseLogFile;
   WTSUnRegisterSessionNotification(Handle);
 end;
@@ -374,7 +374,7 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
-  // Прозрачность окна
+  // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР°
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
 end;
@@ -384,21 +384,21 @@ var
   msgbHandle: HWND;
 begin
   case Message.Msg of
-    WM_SAVESETTINGSDONE: // Настройки сохранены
+    WM_SAVESETTINGSDONE: // РќР°СЃС‚СЂРѕР№РєРё СЃРѕС…СЂР°РЅРµРЅС‹
     begin
       if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': WM_SAVESETTINGSDONE');
-      // Список команд
+      // РЎРїРёСЃРѕРє РєРѕРјР°РЅРґ
       LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandSGrid);
-      // Список замены
+      // РЎРїРёСЃРѕРє Р·Р°РјРµРЅС‹
       if EnableTextReplace then
         LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceSGrid);
-      // Список синтеза событий
+      // РЎРїРёСЃРѕРє СЃРёРЅС‚РµР·Р° СЃРѕР±С‹С‚РёР№
       if EnableTextToSpeech then
         LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechSGrid);
-      // Меняем глобальные горячие клавиши
+      // РњРµРЅСЏРµРј РіР»РѕР±Р°Р»СЊРЅС‹Рµ РіРѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё
       if GlobalHotKeyEnable then
       begin
-        // Гор.клавиша "Начать-остановить запись"
+        // Р“РѕСЂ.РєР»Р°РІРёС€Р° "РќР°С‡Р°С‚СЊ-РѕСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ"
         if StartRecordHotKey <> '' then
         begin
           if StartRecordHotKeyIndex = 0 then
@@ -413,7 +413,7 @@ begin
           else
             MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordHotKey, True));
         end;
-        // Гор.клавиша "Начать-остановить запись без передачи текста"
+        // Р“РѕСЂ.РєР»Р°РІРёС€Р° "РќР°С‡Р°С‚СЊ-РѕСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ Р±РµР· РїРµСЂРµРґР°С‡Рё С‚РµРєСЃС‚Р°"
         if StartRecordWithoutSendTextHotKey <> '' then
         begin
           if StartRecordWithoutSendTextHotKeyIndex = 0 then
@@ -428,7 +428,7 @@ begin
           else
             MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordWithoutSendTextHotKey, True));
         end;
-        // Гор.клавиша "Начать-остановить запись без выполнения команды"
+        // Р“РѕСЂ.РєР»Р°РІРёС€Р° "РќР°С‡Р°С‚СЊ-РѕСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ Р±РµР· РІС‹РїРѕР»РЅРµРЅРёСЏ РєРѕРјР°РЅРґС‹"
         if StartRecordWithoutExecCommandHotKey <> '' then
         begin
           if StartRecordWithoutExecCommandHotKeyIndex = 0 then
@@ -443,7 +443,7 @@ begin
           else
             MSpeechHotKeyManager.RemoveHotKey(TextToHotKey(StartRecordWithoutExecCommandHotKey, True));
         end;
-        // Гор.клавиша "Переключение между основным и доп.языком распознавания"
+        // Р“РѕСЂ.РєР»Р°РІРёС€Р° "РџРµСЂРµРєР»СЋС‡РµРЅРёРµ РјРµР¶РґСѓ РѕСЃРЅРѕРІРЅС‹Рј Рё РґРѕРї.СЏР·С‹РєРѕРј СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ"
         if SwitchesLanguageRecognizeHotKey <> '' then
         begin
           if SwitchesLanguageRecognizeHotKeyIndex = 0 then
@@ -461,66 +461,66 @@ begin
       end
       else
         MSpeechHotKeyManager.ClearHotKeys;
-      // Прозрачность окон
+      // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРѕРЅ
       AlphaBlendValue := AlphaBlendEnableValue;
       AlphaBlend := AlphaBlendEnable;
       LogForm.AlphaBlend := AlphaBlendEnable;
       LogForm.AlphaBlendValue := AlphaBlendEnableValue;
-      // Настройки синтеза голоса
+      // РќР°СЃС‚СЂРѕР№РєРё СЃРёРЅС‚РµР·Р° РіРѕР»РѕСЃР°
       if EnableTextToSpeech and (TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft))) then
       begin
         MGSAPI.TTSLang := SAPIVoiceNum;
         MGSAPI.TTSVoiceVolume := SAPIVoiceVolume;
         MGSAPI.TTSVoiceSpeed := SAPIVoiceSpeed;
       end;
-      // Фильтры
+      // Р¤РёР»СЊС‚СЂС‹
       Filters();
-      // Авто-активация записи
+      // РђРІС‚Рѕ-Р°РєС‚РёРІР°С†РёСЏ Р·Р°РїРёСЃРё
       StartNULLRecord;
     end;
-    WM_STARTSAVESETTINGS: // Открытие окна настроек
+    WM_STARTSAVESETTINGS: // РћС‚РєСЂС‹С‚РёРµ РѕРєРЅР° РЅР°СЃС‚СЂРѕРµРє
     begin
       if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': WM_STARTSAVESETTINGS');
       Stop();
       StopNULLRecord;
     end;
-    WM_MSGBOX: // Отлавливаем событие WM_MSGBOX для изменения прозрачности окна
+    WM_MSGBOX: // РћС‚Р»Р°РІР»РёРІР°РµРј СЃРѕР±С‹С‚РёРµ WM_MSGBOX РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё РѕРєРЅР°
     begin
       msgbHandle := GetActiveWindow;
       if msgbHandle <> 0 then
         MakeTransp(msgbHandle);
     end;
-    WM_LANGUAGECHANGED: // Смена языка программы
+    WM_LANGUAGECHANGED: // РЎРјРµРЅР° СЏР·С‹РєР° РїСЂРѕРіСЂР°РјРјС‹
     begin
       LoadLanguageStrings;
     end;
-    WM_QUERYENDSESSION: // Завершение работы Windows
+    WM_QUERYENDSESSION: // Р—Р°РІРµСЂС€РµРЅРёРµ СЂР°Р±РѕС‚С‹ Windows
     begin
         if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': WMQueryEndSession');
         SessionEnding := True;
         Message.Result := 1;
         Close;
     end;
-    WM_WTSSESSION_CHANGE: // Смена статуса сеанса пользователя
+    WM_WTSSESSION_CHANGE: // РЎРјРµРЅР° СЃС‚Р°С‚СѓСЃР° СЃРµР°РЅСЃР° РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
     begin
-      if Message.wParam = WTS_SESSION_LOCK then // ПК заблокирован
+      if Message.wParam = WTS_SESSION_LOCK then // РџРљ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ
       begin
         Inc(FLockedCount);
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: РљРѕРјРїСЊСЋС‚РµСЂ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
         if StopRecognitionAfterLockingComputer then
         begin
           if MaxLevelOnAutoControl then
             MaxLevelOnAutoControl := False;
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Останавливаем запись и распознавание.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·Р°РїРёСЃСЊ Рё СЂР°СЃРїРѕР·РЅР°РІР°РЅРёРµ.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
           Stop();
         end;
       end;
-      if Message.wParam = WTS_SESSION_UNLOCK then // ПК разблокирован
+      if Message.wParam = WTS_SESSION_UNLOCK then // РџРљ СЂР°Р·Р±Р»РѕРєРёСЂРѕРІР°РЅ
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Компьютер заблокирован %d раз.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: РљРѕРјРїСЊСЋС‚РµСЂ Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ %d СЂР°Р·.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), FLockedCount]));
         if StartRecognitionAfterUnlockingComputer then
         begin
-          if EnableLogs then WriteInLog(WorkPath, Format('%s: Запускаем запись.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
+          if EnableLogs then WriteInLog(WorkPath, Format('%s: Р—Р°РїСѓСЃРєР°РµРј Р·Р°РїРёСЃСЊ.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now)]));
           MaxLevelOnAutoControl := ReadCustomINI(WorkPath, 'Main', 'MaxLevelOnAutoControl', False);
           if MaxLevelOnAutoControl then
             StartNULLRecord
@@ -549,7 +549,7 @@ procedure TMainForm.MGGoogleTTSEvent(Sender: TObject; pInfo: TGTTSResultInfo);
 begin
   if pInfo.FStatus = TGTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Р РµР·СѓР»СЊС‚Р°С‚ СЃРёРЅС‚РµР·Р° СЃРѕС…СЂР°РЅРµРЅ РІ С„Р°Р№Р»: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -557,23 +557,23 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Р¤Р°Р№Р» %s РёРјРµРµС‚ РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TGTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: РћС€РёР±РєР°: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TGTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Google TTS: РРЅС„РѕСЂРјР°С†РёСЏ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGYandexTTSEvent(Sender: TObject; pInfo: TYTTSResultInfo);
 begin
   if pInfo.FStatus = TYTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Р РµР·СѓР»СЊС‚Р°С‚ СЃРёРЅС‚РµР·Р° СЃРѕС…СЂР°РЅРµРЅ РІ С„Р°Р№Р»: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -581,23 +581,23 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Р¤Р°Р№Р» %s РёРјРµРµС‚ РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         {if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);}
       end;
     end;
   end
   else if pInfo.FStatus = TYTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: РћС€РёР±РєР°: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TYTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Yandex TTS: РРЅС„РѕСЂРјР°С†РёСЏ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGISpeechTTSEvent(Sender: TObject; pInfo: TISpeechTTSResultInfo);
 begin
   if pInfo.FStatus = TISpeechTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Р РµР·СѓР»СЊС‚Р°С‚ СЃРёРЅС‚РµР·Р° СЃРѕС…СЂР°РЅРµРЅ РІ С„Р°Р№Р»: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       MP3In.FileName := pInfo.FResult;
@@ -605,25 +605,25 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Р¤Р°Р№Р» %s РёРјРµРµС‚ РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(MP3In.FileName) then
           DeleteFile(MP3In.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TISpeechTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: РћС€РёР±РєР°: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TISpeechTTSStatus.ttsWarning then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Сервис iSpeech сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: РЎРµСЂРІРёСЃ iSpeech СЃРѕРѕР±С‰РёР» РѕР± РѕС€РёР±РєРµ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TISpeechTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: iSpeech TTS: РРЅС„РѕСЂРјР°С†РёСЏ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MGNuanceTTSEvent(Sender: TObject; pInfo: TNuanceTTSResultInfo);
 begin
   if pInfo.FStatus = TNuanceTTSStatus.ttsDone then
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Результат синтеза сохранен в файл: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Р РµР·СѓР»СЊС‚Р°С‚ СЃРёРЅС‚РµР·Р° СЃРѕС…СЂР°РЅРµРЅ РІ С„Р°Р№Р»: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
     if FileExists(pInfo.FResult) then
     begin
       WaveIn.FileName := pInfo.FResult;
@@ -631,18 +631,18 @@ begin
         DXAudioOut.Run
       else
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Файл %s имеет некорректный формат.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Р¤Р°Р№Р» %s РёРјРµРµС‚ РЅРµРєРѕСЂСЂРµРєС‚РЅС‹Р№ С„РѕСЂРјР°С‚.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
         if FileExists(WaveIn.FileName) then
           DeleteFile(WaveIn.FileName);
       end;
     end;
   end
   else if pInfo.FStatus = TNuanceTTSStatus.ttsError then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Ошибка: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: РћС€РёР±РєР°: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TNuanceTTSStatus.ttsWarning then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Сервис Nuance сообщил об ошибке: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: РЎРµСЂРІРёСЃ Nuance СЃРѕРѕР±С‰РёР» РѕР± РѕС€РёР±РєРµ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]))
   else if pInfo.FStatus = TNuanceTTSStatus.ttsInfo then
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: Информация: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Nuance TTS: РРЅС„РѕСЂРјР°С†РёСЏ: %s', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FResult]));
 end;
 
 procedure TMainForm.MSpeechExitClick(Sender: TObject);
@@ -664,7 +664,7 @@ begin
   LogForm.Show;
 end;
 
-{ Клик по пункту Скрыть/Показать контекстного меню в трее }
+{ РљР»РёРє РїРѕ РїСѓРЅРєС‚Сѓ РЎРєСЂС‹С‚СЊ/РџРѕРєР°Р·Р°С‚СЊ РєРѕРЅС‚РµРєСЃС‚РЅРѕРіРѕ РјРµРЅСЋ РІ С‚СЂРµРµ }
 procedure TMainForm.MSpeechTrayDblClick(Sender: TObject);
 begin
   if MSpeechMainFormHidden then
@@ -724,7 +724,7 @@ begin
   except
     on e: Exception do
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Неизвестное исключение в процедуре FastGainIndicatorGainData - ' + e.Message);
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'РќРµРёР·РІРµСЃС‚РЅРѕРµ РёСЃРєР»СЋС‡РµРЅРёРµ РІ РїСЂРѕС†РµРґСѓСЂРµ FastGainIndicatorGainData - ' + e.Message);
       Exit;
     end;
   end;
@@ -734,7 +734,7 @@ procedure TMainForm.FLACOutDone(Sender: TComponent);
 begin
   FLACDoneCnt := 0;
   SaveFLACDone := True;
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Файл ' + OutFileName + ' сохранен.');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р¤Р°Р№Р» ' + OutFileName + ' СЃРѕС…СЂР°РЅРµРЅ.');
   if not StartSaveSettings then
   begin
     if (StopRecordAction = 1) or (StopRecordAction = 3) then
@@ -746,13 +746,13 @@ begin
   else
   begin
     ShowBalloonHint(ProgramsName, GetLangStr('MsgInf11'),  bitWarning);
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Открыто окно Настройки. Распознавание речи отключено.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РћС‚РєСЂС‹С‚Рѕ РѕРєРЅРѕ РќР°СЃС‚СЂРѕР№РєРё. Р Р°СЃРїРѕР·РЅР°РІР°РЅРёРµ СЂРµС‡Рё РѕС‚РєР»СЋС‡РµРЅРѕ.');
   end;
 end;
 
 procedure TMainForm.FLACOutThreadException(Sender: TComponent);
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка записи в файл ' + OutFileName);
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РћС€РёР±РєР° Р·Р°РїРёСЃРё РІ С„Р°Р№Р» ' + OutFileName);
   FLACOut.Stop;
   MSpeechTray.IconIndex := 5;
   StartButton.Enabled := True;
@@ -867,7 +867,7 @@ end;
 
 procedure TMainForm.Stop;
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Получен запрос на остановку записи.');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РџРѕР»СѓС‡РµРЅ Р·Р°РїСЂРѕСЃ РЅР° РѕСЃС‚Р°РЅРѕРІРєСѓ Р·Р°РїРёСЃРё.');
   StopRecord := True;
   MSpeechTray.IconIndex := 0;
   StartButton.Enabled := True;
@@ -909,7 +909,7 @@ end;
 
 procedure TMainForm.NULLOutThreadException(Sender: TComponent);
 begin
-  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Ошибка записи в пустоту');
+  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РћС€РёР±РєР° Р·Р°РїРёСЃРё РІ РїСѓСЃС‚РѕС‚Сѓ');
   StopNULLRecord;
   MSpeechTray.IconIndex := 5;
 end;
@@ -926,16 +926,16 @@ begin
     //FLACOut.Input := FastGainIndicator;
     FLACOut.FileName := OutFileName;
     FLACOut.Run;
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Начата запись в файл ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РќР°С‡Р°С‚Р° Р·Р°РїРёСЃСЊ РІ С„Р°Р№Р» ' + OutFileName);
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InSampleRate = ' + IntToStr(DXAudioIn.InSampleRate));
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InBitsPerSample = ' + IntToStr(DXAudioIn.InBitsPerSample));
     if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InChannels = ' + IntToStr(DXAudioIn.InChannels));
   end
   else
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Не найдена библиотека libFLAC.dll');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РќРµ РЅР°Р№РґРµРЅР° Р±РёР±Р»РёРѕС‚РµРєР° libFLAC.dll');
 end;
 
-{ Запуск потока отправки данных и выполнения команды }
+{ Р—Р°РїСѓСЃРє РїРѕС‚РѕРєР° РѕС‚РїСЂР°РІРєРё РґР°РЅРЅС‹С… Рё РІС‹РїРѕР»РЅРµРЅРёСЏ РєРѕРјР°РЅРґС‹ }
 procedure TMainForm.StartRecognizer;
 begin
   if FileExists(OutFileName) then
@@ -945,13 +945,13 @@ begin
   end
   else
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognizer - Ошибка чтения файла ' + OutFileName);
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': StartRecognizer - РћС€РёР±РєР° С‡С‚РµРЅРёСЏ С„Р°Р№Р»Р° ' + OutFileName);
     StartButton.Enabled := True;
     StopButton.Enabled := False;
   end;
 end;
 
-{ Обработка результатов распознавания }
+{ РћР±СЂР°Р±РѕС‚РєР° СЂРµР·СѓР»СЊС‚Р°С‚РѕРІ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ }
 procedure TMainForm.RecognizeResultCallBack(Sender: TObject; pInfo: TRecognizeInfo);
 var
   MsgStr: String;
@@ -961,27 +961,27 @@ var
   Grid: TArrayOfInteger;
 begin
   case pInfo.FStatus of
-    rsErrorGetAPIKey: MsgStr := 'Ошибка: Google Speech API Key не указан в настройках, заблокирован или достигнут лимит запросов в сутки: ' + pInfo.FMessage;
-    rsFileSizeNull: MsgStr := 'Ошибка: Нулевой размер файла для распознавания: ' + pInfo.FMessage;
-    rsErrorHostNotFound: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
-    rsErrorPermissionDenied: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а.';
-    rsErrorNoRouteToHost: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте подключение к Интернет и сетевые настройки.';
-    rsErrorConnectionTimedOut: MsgStr := 'Ошибка: ' + pInfo.FMessage + '. Проверьте настройки Firewall''а или прокси-сервера.';
-    rsInfo: MsgStr := 'Информация: ' + pInfo.FMessage;
-    rsAbort: MsgStr := 'Отмена: ' + pInfo.FMessage;
+    rsErrorGetAPIKey: MsgStr := 'РћС€РёР±РєР°: Google Speech API Key РЅРµ СѓРєР°Р·Р°РЅ РІ РЅР°СЃС‚СЂРѕР№РєР°С…, Р·Р°Р±Р»РѕРєРёСЂРѕРІР°РЅ РёР»Рё РґРѕСЃС‚РёРіРЅСѓС‚ Р»РёРјРёС‚ Р·Р°РїСЂРѕСЃРѕРІ РІ СЃСѓС‚РєРё: ' + pInfo.FMessage;
+    rsFileSizeNull: MsgStr := 'РћС€РёР±РєР°: РќСѓР»РµРІРѕР№ СЂР°Р·РјРµСЂ С„Р°Р№Р»Р° РґР»СЏ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ: ' + pInfo.FMessage;
+    rsErrorHostNotFound: MsgStr := 'РћС€РёР±РєР°: ' + pInfo.FMessage + '. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°СЃС‚СЂРѕР№РєРё Firewall''Р°.';
+    rsErrorPermissionDenied: MsgStr := 'РћС€РёР±РєР°: ' + pInfo.FMessage + '. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°СЃС‚СЂРѕР№РєРё Firewall''Р°.';
+    rsErrorNoRouteToHost: MsgStr := 'РћС€РёР±РєР°: ' + pInfo.FMessage + '. РџСЂРѕРІРµСЂСЊС‚Рµ РїРѕРґРєР»СЋС‡РµРЅРёРµ Рє РРЅС‚РµСЂРЅРµС‚ Рё СЃРµС‚РµРІС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё.';
+    rsErrorConnectionTimedOut: MsgStr := 'РћС€РёР±РєР°: ' + pInfo.FMessage + '. РџСЂРѕРІРµСЂСЊС‚Рµ РЅР°СЃС‚СЂРѕР№РєРё Firewall''Р° РёР»Рё РїСЂРѕРєСЃРё-СЃРµСЂРІРµСЂР°.';
+    rsInfo: MsgStr := 'РРЅС„РѕСЂРјР°С†РёСЏ: ' + pInfo.FMessage;
+    rsAbort: MsgStr := 'РћС‚РјРµРЅР°: ' + pInfo.FMessage;
   end;
-  if pInfo.FStatus = rsRecordingNotRecognized then // Запись не распознана
+  if pInfo.FStatus = rsRecordingNotRecognized then // Р—Р°РїРёСЃСЊ РЅРµ СЂР°СЃРїРѕР·РЅР°РЅР°
   begin
     MSpeechTray.IconIndex := 2;
     TextToSpeech(mRecordingNotRecognized);
     ShowBalloonHint(ProgramsName, GetLangStr('MsgInf2'), bitWarning);
   end
-  else if pInfo.FStatus = rsRecognizeDone then // Запись распознана
+  else if pInfo.FStatus = rsRecognizeDone then // Р—Р°РїРёСЃСЊ СЂР°СЃРїРѕР·РЅР°РЅР°
   begin
-    if EnableLogs then WriteInLog(WorkPath, Format('%s: Распознанная строка = %s, Достоверность распознавания = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript, FloatToStr(pInfo.FConfidence)]));
+    if EnableLogs then WriteInLog(WorkPath, Format('%s: Р Р°СЃРїРѕР·РЅР°РЅРЅР°СЏ СЃС‚СЂРѕРєР° = %s, Р”РѕСЃС‚РѕРІРµСЂРЅРѕСЃС‚СЊ СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ = %s%%', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), pInfo.FTranscript, FloatToStr(pInfo.FConfidence)]));
     RecognizeStr := pInfo.FTranscript;
-    // Замена текста
-    if EnableTextСorrection then
+    // Р—Р°РјРµРЅР° С‚РµРєСЃС‚Р°
+    if EnableTextCorrection then
     begin
       if EnableTextReplace then
       begin
@@ -996,20 +996,20 @@ begin
           RecognizeStr := EngLowercaseToUppercase(RecognizeStr);
       end;
     end;
-    // Передача текста
+    // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р°
     if EnableSendText then
-    begin // Передача текста в неактивное окно программы
+    begin // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р° РІ РЅРµР°РєС‚РёРІРЅРѕРµ РѕРєРЅРѕ РїСЂРѕРіСЂР°РјРјС‹
       if EnableSendTextInactiveWindow then
       begin
         if OnSendMessage(InactiveWindowCaption, RecognizeStr) then
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Текст передан методом WM_COPYDATA.')
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РўРµРєСЃС‚ РїРµСЂРµРґР°РЅ РјРµС‚РѕРґРѕРј WM_COPYDATA.')
         else
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Программа с заголовком ' + InactiveWindowCaption + ' не найдена.')
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РџСЂРѕРіСЂР°РјРјР° СЃ Р·Р°РіРѕР»РѕРІРєРѕРј ' + InactiveWindowCaption + ' РЅРµ РЅР°Р№РґРµРЅР°.')
       end
       else
-      begin // Передача текста в активное окно программы
+      begin // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р° РІ Р°РєС‚РёРІРЅРѕРµ РѕРєРЅРѕ РїСЂРѕРіСЂР°РјРјС‹
         if ClassNameReciver <> '' then
-        begin // Если указан класс поля ввода
+        begin // Р•СЃР»Рё СѓРєР°Р·Р°РЅ РєР»Р°СЃСЃ РїРѕР»СЏ РІРІРѕРґР°
           if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
             InsTextWnd(ClassNameReciver, RecognizeStr)
           else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
@@ -1020,7 +1020,7 @@ begin
             CopyPasteTextWnd(ClassNameReciver, RecognizeStr)
         end
         else
-        begin // Если класс поля ввода не указан
+        begin // Р•СЃР»Рё РєР»Р°СЃСЃ РїРѕР»СЏ РІРІРѕРґР° РЅРµ СѓРєР°Р·Р°РЅ
           if DetectMethodSendingText(MethodSendingText) = mWM_SETTEXT then
             InsTextWnd(RecognizeStr)
           else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
@@ -1033,63 +1033,63 @@ begin
       end;
     end;
     // End
-    // Выполнение команд
+    // Р’С‹РїРѕР»РЅРµРЅРёРµ РєРѕРјР°РЅРґ
     if EnableExecCommand then
     begin
-      Grid := HackTStringsIndexOf(CommandSGrid.Cols[0], RecognizeStr); // Поиск команд
-      if Length(Grid) > 0 then // Команда найдена в списке
+      Grid := HackTStringsIndexOf(CommandSGrid.Cols[0], RecognizeStr); // РџРѕРёСЃРє РєРѕРјР°РЅРґ
+      if Length(Grid) > 0 then // РљРѕРјР°РЅРґР° РЅР°Р№РґРµРЅР° РІ СЃРїРёСЃРєРµ
       begin
-        if EnableLogs then WriteInLog(WorkPath, Format('%s: В CommandSGrid найдено %d команд.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
-        // Перебор найденных команд
+        if EnableLogs then WriteInLog(WorkPath, Format('%s: Р’ CommandSGrid РЅР°Р№РґРµРЅРѕ %d РєРѕРјР°РЅРґ.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+        // РџРµСЂРµР±РѕСЂ РЅР°Р№РґРµРЅРЅС‹С… РєРѕРјР°РЅРґ
         for K := Low(Grid) to High(Grid) do
         begin
-          // Запуск программы
+          // Р—Р°РїСѓСЃРє РїСЂРѕРіСЂР°РјРјС‹
           if IntToStr(CommandList[mExecPrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Р—Р°РїСѓСЃРєР°РµРј РїСЂРѕРіСЂР°РјРјСѓ: ' + CommandSGrid.Cells[1,Grid[K]]);
             if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_HIDE)
             else
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), nil, nil, SW_SHOWNORMAL);
           end
-          // Запуск программы и передача ей распознанной строки
+          // Р—Р°РїСѓСЃРє РїСЂРѕРіСЂР°РјРјС‹ Рё РїРµСЂРµРґР°С‡Р° РµР№ СЂР°СЃРїРѕР·РЅР°РЅРЅРѕР№ СЃС‚СЂРѕРєРё
           else if IntToStr(CommandList[mExecProgramsParams].CommandCode) =  CommandSGrid.Cells[2,Grid[K]] then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Запускаем программу с передачей ей распознанной строки: ' + CommandSGrid.Cells[1,Grid[K]] + ' "' + RecognizeStr + '"');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Р—Р°РїСѓСЃРєР°РµРј РїСЂРѕРіСЂР°РјРјСѓ СЃ РїРµСЂРµРґР°С‡РµР№ РµР№ СЂР°СЃРїРѕР·РЅР°РЅРЅРѕР№ СЃС‚СЂРѕРєРё: ' + CommandSGrid.Cells[1,Grid[K]] + ' "' + RecognizeStr + '"');
             if (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.cmd') or (ExtractFileExt(CommandSGrid.Cells[1,Grid[K]]) = '.bat') then
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), PWideChar('"'+RecognizeStr+'"'), nil, SW_HIDE)
             else
               ShellExecute(0, 'open', PWideChar(CommandSGrid.Cells[1,Grid[K]]), PWideChar('"'+RecognizeStr+'"'), nil, SW_SHOWNORMAL);
           end
-          // Закрытие программы
+          // Р—Р°РєСЂС‹С‚РёРµ РїСЂРѕРіСЂР°РјРјС‹
           else if IntToStr(CommandList[mClosePrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Закрываем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Р—Р°РєСЂС‹РІР°РµРј РїСЂРѕРіСЂР°РјРјСѓ: ' + CommandSGrid.Cells[1,Grid[K]]);
               EndProcess(GetProcessID(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])), WM_CLOSE);
             end;
           end
-          // Прибивание программы
+          // РџСЂРёР±РёРІР°РЅРёРµ РїСЂРѕРіСЂР°РјРјС‹
           else if IntToStr(CommandList[mKillPrograms].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
           begin
             if IsProcessRun(ExtractFileName(CommandSGrid.Cells[1,Grid[K]])) then
             begin
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'Убиваем программу: ' + CommandSGrid.Cells[1,Grid[K]]);
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': ' + 'РЈР±РёРІР°РµРј РїСЂРѕРіСЂР°РјРјСѓ: ' + CommandSGrid.Cells[1,Grid[K]]);
               KillTask(ExtractFileName(CommandSGrid.Cells[1,Grid[K]]));
             end;
           end
-          // Синтез голоса
+          // РЎРёРЅС‚РµР· РіРѕР»РѕСЃР°
           else if IntToStr(CommandList[mTextToSpeech].CommandCode) = CommandSGrid.Cells[2,Grid[K]] then
             TextToSpeech(CommandSGrid.Cells[1,Grid[K]]);
         end;
       end
-      else // Команда не найдена в списке
+      else // РљРѕРјР°РЅРґР° РЅРµ РЅР°Р№РґРµРЅР° РІ СЃРїРёСЃРєРµ
       begin
-        // Выполнение команды по-умолчанию если она определена
+        // Р’С‹РїРѕР»РЅРµРЅРёРµ РєРѕРјР°РЅРґС‹ РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ РµСЃР»Рё РѕРЅР° РѕРїСЂРµРґРµР»РµРЅР°
         if DefaultCommandExec  <> '' then
         begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Выполняем команду по-умолчанию = ' + DefaultCommandExec);
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р’С‹РїРѕР»РЅСЏРµРј РєРѕРјР°РЅРґСѓ РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ = ' + DefaultCommandExec);
           if (ExtractFileExt(DefaultCommandExec) = '.cmd') or (ExtractFileExt(DefaultCommandExec) = '.bat') then
             ShellExecute(0, 'open', PWideChar(DefaultCommandExec), nil, nil, SW_HIDE)
           else
@@ -1097,7 +1097,7 @@ begin
         end
         else
         begin
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Команда не распознана или её нет в базе MSpeech.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': РљРѕРјР°РЅРґР° РЅРµ СЂР°СЃРїРѕР·РЅР°РЅР° РёР»Рё РµС‘ РЅРµС‚ РІ Р±Р°Р·Рµ MSpeech.');
           TextToSpeech(mCommandNotFound);
           ShowBalloonHint(ProgramsName, GetLangStr('MsgInf3'));
         end;
@@ -1126,16 +1126,16 @@ begin
   StartNULLRecord;
 end;
 
-{ Нажата горячая клавиша }
+{ РќР°Р¶Р°С‚Р° РіРѕСЂСЏС‡Р°СЏ РєР»Р°РІРёС€Р° }
 procedure TMainForm.MSpeechHotKeyManagerHotKeyPressed(HotKey: Cardinal; Index: Word);
 begin
   if not EnableSendText then
     SetForegroundWindow(Application.Handle);
 
-  // Старт записи с передачей текста
+  // РЎС‚Р°СЂС‚ Р·Р°РїРёСЃРё СЃ РїРµСЂРµРґР°С‡РµР№ С‚РµРєСЃС‚Р°
   if Index = StartRecordHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - РќР°Р¶Р°С‚Р° РєР»Р°РІРёС€Р° '+HotKeyToText(HotKey, True));
     if StopRecord then
     begin
       EnableSendText := ReadCustomINI(WorkPath, 'SendText', 'EnableSendText', False);
@@ -1146,11 +1146,11 @@ begin
       Stop();
   end;
 
-  // Старт записи без передачи текста
+  // РЎС‚Р°СЂС‚ Р·Р°РїРёСЃРё Р±РµР· РїРµСЂРµРґР°С‡Рё С‚РµРєСЃС‚Р°
   if Index = StartRecordWithoutSendTextHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
-    if StopRecord then // Начинаем запись
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - РќР°Р¶Р°С‚Р° РєР»Р°РІРёС€Р° '+HotKeyToText(HotKey, True));
+    if StopRecord then // РќР°С‡РёРЅР°РµРј Р·Р°РїРёСЃСЊ
     begin
       EnableExecCommand := ReadCustomINI(WorkPath, 'Main', 'EnableExecCommand', True);
       if EnableSendText then
@@ -1161,11 +1161,11 @@ begin
       Stop();
   end;
 
-  // Старт записи без выполнения команд
+  // РЎС‚Р°СЂС‚ Р·Р°РїРёСЃРё Р±РµР· РІС‹РїРѕР»РЅРµРЅРёСЏ РєРѕРјР°РЅРґ
   if Index = StartRecordWithoutExecCommandHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
-    if StopRecord then // Начинаем запись
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - РќР°Р¶Р°С‚Р° РєР»Р°РІРёС€Р° '+HotKeyToText(HotKey, True));
+    if StopRecord then // РќР°С‡РёРЅР°РµРј Р·Р°РїРёСЃСЊ
     begin
       if EnableExecCommand then
         EnableExecCommand := False;
@@ -1175,10 +1175,10 @@ begin
       Stop();
   end;
 
-  // Смена языка распознавания
+  // РЎРјРµРЅР° СЏР·С‹РєР° СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   if Index = SwitchesLanguageRecognizeHotKeyIndex then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - Нажата клавиша '+HotKeyToText(HotKey, True));
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': DoHotKey - РќР°Р¶Р°С‚Р° РєР»Р°РІРёС€Р° '+HotKeyToText(HotKey, True));
     if CurrentSpeechRecognizeLang = DefaultSpeechRecognizeLang then
       CurrentSpeechRecognizeLang := SecondSpeechRecognizeLang
     else
@@ -1186,21 +1186,21 @@ begin
   end;
 end;
 
-{ Показываем всплывающе сообщение в трее }
+{ РџРѕРєР°Р·С‹РІР°РµРј РІСЃРїР»С‹РІР°СЋС‰Рµ СЃРѕРѕР±С‰РµРЅРёРµ РІ С‚СЂРµРµ }
 procedure TMainForm.ShowBalloonHint(BalloonTitle, BalloonMsg: WideString);
 begin
   if ShowTrayEvents then
     MSpeechTray.ShowBalloonHint(BalloonTitle, BalloonMsg, bitInfo, 10);
 end;
 
-{ Показываем всплывающе сообщение в трее с указанием его типа }
+{ РџРѕРєР°Р·С‹РІР°РµРј РІСЃРїР»С‹РІР°СЋС‰Рµ СЃРѕРѕР±С‰РµРЅРёРµ РІ С‚СЂРµРµ СЃ СѓРєР°Р·Р°РЅРёРµРј РµРіРѕ С‚РёРїР° }
 procedure TMainForm.ShowBalloonHint(BalloonTitle, BalloonMsg: WideString; BalloonIconType: TBalloonHintIcon);
 begin
   if ShowTrayEvents then
     MSpeechTray.ShowBalloonHint(BalloonTitle, BalloonMsg, BalloonIconType, 10);
 end;
 
-{ Функция получения текста из поля активного окна, используя WM_GETTEXT }
+{ Р¤СѓРЅРєС†РёСЏ РїРѕР»СѓС‡РµРЅРёСЏ С‚РµРєСЃС‚Р° РёР· РїРѕР»СЏ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ WM_GETTEXT }
 function TMainForm.GetTextWnd(MyClassName: String): String;
 var
   hFocusedWnd : HWND;
@@ -1242,7 +1242,7 @@ begin
   end;
 end;
 
-{ Процедура замены текста в поле активного окна, используя WM_SETTEXT }
+{ РџСЂРѕС†РµРґСѓСЂР° Р·Р°РјРµРЅС‹ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ WM_SETTEXT }
 procedure TMainForm.SetTextWnd(MyClassName, MyText: String);
 var
  hFocusedWnd : HWND;
@@ -1252,22 +1252,22 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Подключение успешно.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РџРѕРґРєР»СЋС‡РµРЅРёРµ СѓСЃРїРµС€РЅРѕ.');
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
         if Boolean(GetClassName(hFocusedWnd, pszClassName, 256)) then
         begin
           if String(pszClassName) = MyClassName then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Найден класс ' + MyClassName);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РќР°Р№РґРµРЅ РєР»Р°СЃСЃ ' + MyClassName);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РћС‚РїСЂР°РІР»СЏРµРј РєРѕРјР°РЅРґСѓ.');
             if SendMessage(hFocusedWnd, WM_SETTEXT, 0, lParam(PChar(MyText))) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - Команда WM_SETTEXT успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd (2) - РљРѕРјР°РЅРґР° WM_SETTEXT СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
           end;
         end;
       end;
@@ -1276,7 +1276,7 @@ begin
   end;
 end;
 
-{ Процедура замены текста в поле активного окна, используя WM_SETTEXT }
+{ РџСЂРѕС†РµРґСѓСЂР° Р·Р°РјРµРЅС‹ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ WM_SETTEXT }
 procedure TMainForm.SetTextWnd(MyText: String);
 var
  hFocusedWnd : HWND;
@@ -1285,23 +1285,23 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Найден фокус.');
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Отправляем команду.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - РћС‚РїСЂР°РІР»СЏРµРј РєРѕРјР°РЅРґСѓ.');
         if SendMessage(hFocusedWnd, WM_SETTEXT, 0, lParam(PChar(MyText))) > 0 then
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - Команда WM_SETTEXT успешно передана.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetTextWnd - РљРѕРјР°РЅРґР° WM_SETTEXT СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
       end;
       AttachThreadInput(GetCurrentThreadId, dwThreadID, False);
     end;
   end;
 end;
 
-{ Процедура добавления текста в поле активного окна, используя EM_SETSEL и EM_REPLACESEL }
+{ РџСЂРѕС†РµРґСѓСЂР° РґРѕР±Р°РІР»РµРЅРёСЏ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ EM_SETSEL Рё EM_REPLACESEL }
 procedure TMainForm.InsTextWnd(MyClassName, MyText: String);
 var
   hFocusedWnd : HWND;
@@ -1313,14 +1313,14 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Подключение успешно.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РџРѕРґРєР»СЋС‡РµРЅРёРµ СѓСЃРїРµС€РЅРѕ.');
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
         dwBytesNeeded := SendMessage(hFocusedWnd, WM_GETTEXTLENGTH, 0, 0);
         if dwBytesNeeded > 0 then
         begin
@@ -1332,12 +1332,12 @@ begin
             begin
               if String(pszClassName) = MyClassName then
               begin
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Найден класс ' + MyClassName);
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Отправляем команду.');
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РќР°Р№РґРµРЅ РєР»Р°СЃСЃ ' + MyClassName);
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РћС‚РїСЂР°РІР»СЏРµРј РєРѕРјР°РЅРґСѓ.');
                 if SendMessage(hFocusedWnd, EM_SETSEL, wParam(dwBytesNeeded), lParam(dwBytesNeeded)) > 0 then
-                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Команда EM_SETSEL успешно передана.');
+                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РљРѕРјР°РЅРґР° EM_SETSEL СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
                 if SendMessage(hFocusedWnd, EM_REPLACESEL, 0, lParam(PChar(MyText))) > 0 then
-                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - Команда EM_REPLACESEL успешно передана.');
+                  if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd (2) - РљРѕРјР°РЅРґР° EM_REPLACESEL СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
               end;
             end;
           finally
@@ -1352,7 +1352,7 @@ begin
   end;
 end;
 
-{ Процедура добавления текста в поле активного окна, используя EM_SETSEL и EM_REPLACESEL }
+{ РџСЂРѕС†РµРґСѓСЂР° РґРѕР±Р°РІР»РµРЅРёСЏ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ EM_SETSEL Рё EM_REPLACESEL }
 procedure TMainForm.InsTextWnd(MyText: String);
 var
   hFocusedWnd : HWND;
@@ -1363,24 +1363,24 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
         dwBytesNeeded := SendMessage(hFocusedWnd, WM_GETTEXTLENGTH, 0, 0);
         if dwBytesNeeded > 0 then
         begin
           GetMem(pszWindowText, dwBytesNeeded + 1);
           try
             ZeroMemory(pszWindowText, dwBytesNeeded + 1);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - РћС‚РїСЂР°РІР»СЏРµРј РєРѕРјР°РЅРґСѓ.');
             if SendMessage(hFocusedWnd, EM_SETSEL, wParam(dwBytesNeeded), lParam(dwBytesNeeded)) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Команда EM_SETSEL успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - РљРѕРјР°РЅРґР° EM_SETSEL СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
             if SendMessage(hFocusedWnd, EM_REPLACESEL, 0, lParam(PChar(MyText))) > 0 then
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - Команда EM_REPLACESEL успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': InsTextWnd - РљРѕРјР°РЅРґР° EM_REPLACESEL СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
           finally
             FreeMem(pszWindowText);
           end;
@@ -1393,7 +1393,7 @@ begin
   end;
 end;
 
-{ Процедура добавления текста в поле активного окна, используя WM_PASTE }
+{ РџСЂРѕС†РµРґСѓСЂР° РґРѕР±Р°РІР»РµРЅРёСЏ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ WM_PASTE }
 procedure TMainForm.CopyPasteTextWnd(MyClassName, MyText: String);
 var
   hFocusedWnd : HWND;
@@ -1405,36 +1405,36 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
         if Boolean(GetClassName(hFocusedWnd, pszClassName, 256)) then
         begin
           if String(pszClassName) = MyClassName then
           begin
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Найден класс ' + MyClassName);
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Отправляем команду.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - РќР°Р№РґРµРЅ РєР»Р°СЃСЃ ' + MyClassName);
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - РћС‚РїСЂР°РІР»СЏРµРј РєРѕРјР°РЅРґСѓ.');
             Clipboard.Clear;
             Clipboard.AsText := MyText;
             if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
             begin
-              // Метод WM_PASTE
+              // РњРµС‚РѕРґ WM_PASTE
               if SendMessage(hFocusedWnd, WM_PASTE, 0, 0) > 0 then
-                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - Команда WM_PASTE успешно передана.');
+                if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd (2) - РљРѕРјР°РЅРґР° WM_PASTE СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
             end
             else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
             begin
-              // Модифицированный метод WM_PASTE, через отправку сочетания Ctrl+V
+              // РњРѕРґРёС„РёС†РёСЂРѕРІР°РЅРЅС‹Р№ РјРµС‚РѕРґ WM_PASTE, С‡РµСЂРµР· РѕС‚РїСЂР°РІРєСѓ СЃРѕС‡РµС‚Р°РЅРёСЏ Ctrl+V
               PostMessage(hFocusedWnd, WM_SETFOCUS,0,0);
               keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL, 0), 0, 0);
               keybd_event(Ord('V'), MapVirtualKey(Ord('V'), 0), 0, 0);
               keybd_event(Ord('V'), 0, KEYEVENTF_KEYUP, 0);
               keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL,0), KEYEVENTF_KEYUP, 0);
-              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда Ctrl+V успешно передана.');
+              if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - РљРѕРјР°РЅРґР° Ctrl+V СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
             end;
           end;
         end;
@@ -1454,30 +1454,30 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Найден фокус.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
         Clipboard.Clear;
         Clipboard.AsText := MyText;
         if DetectMethodSendingText(MethodSendingText) = mWM_PASTE then
         begin
-          // Метод WM_PASTE
+          // РњРµС‚РѕРґ WM_PASTE
           if SendMessage(hFocusedWnd, WM_PASTE, 0, 0) > 0 then
-            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда WM_PASTE успешно передана.');
+            if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - РљРѕРјР°РЅРґР° WM_PASTE СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
         end
         else if DetectMethodSendingText(MethodSendingText) = mWM_PASTE_MOD then
         begin
-          // Модифицированный метод WM_PASTE, через отправку сочетания Ctrl+V
+          // РњРѕРґРёС„РёС†РёСЂРѕРІР°РЅРЅС‹Р№ РјРµС‚РѕРґ WM_PASTE, С‡РµСЂРµР· РѕС‚РїСЂР°РІРєСѓ СЃРѕС‡РµС‚Р°РЅРёСЏ Ctrl+V
           PostMessage(hFocusedWnd, WM_SETFOCUS,0,0);
           keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL, 0), 0, 0);
           keybd_event(Ord('V'), MapVirtualKey(Ord('V'), 0), 0, 0);
           keybd_event(Ord('V'), 0, KEYEVENTF_KEYUP, 0);
           keybd_event(VK_CONTROL, MapVirtualKey(VK_CONTROL,0), KEYEVENTF_KEYUP, 0);
-          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - Команда Ctrl+V успешно передана.');
+          if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': CopyPasteTextWnd - РљРѕРјР°РЅРґР° Ctrl+V СѓСЃРїРµС€РЅРѕ РїРµСЂРµРґР°РЅР°.');
         end;
       end;
       AttachThreadInput(GetCurrentThreadId, dwThreadID, False);
@@ -1485,7 +1485,7 @@ begin
   end;
 end;
 
-{ Процедура добавления текста в поле активного окна, используя WM_CHAR }
+{ РџСЂРѕС†РµРґСѓСЂР° РґРѕР±Р°РІР»РµРЅРёСЏ С‚РµРєСЃС‚Р° РІ РїРѕР»Рµ Р°РєС‚РёРІРЅРѕРіРѕ РѕРєРЅР°, РёСЃРїРѕР»СЊР·СѓСЏ WM_CHAR }
 procedure TMainForm.SetCharTextWnd(MyText: String);
 var
   hFocusedWnd : HWND;
@@ -1497,14 +1497,14 @@ begin
   dwThreadID := GetWindowThreadProcessId(GetForegroundWindow, nil);
   if dwThreadID <> 0 then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Найден процесс.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - РќР°Р№РґРµРЅ РїСЂРѕС†РµСЃСЃ.');
     if AttachThreadInput(GetCurrentThreadId, dwThreadID, True) then
     begin
       hFocusedWnd := GetFocus;
       if hFocusedWnd <> 0 then
       begin
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Найден фокус.');
-        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - Отправляем текст...');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - РќР°Р№РґРµРЅ С„РѕРєСѓСЃ.');
+        if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SetCharTextWnd - РћС‚РїСЂР°РІР»СЏРµРј С‚РµРєСЃС‚...');
         for Cnt := 1 to Length(MyText) do
           PostMessage(hFocusedWnd, WM_CHAR, Word(MyText[Cnt]), 0);
         //PostMessage(hFocusedWnd, WM_KEYDOWN, VK_RETURN, 0);
@@ -1514,7 +1514,7 @@ begin
   end;
 end;
 
-{ Текст в голос по событиям  }
+{ РўРµРєСЃС‚ РІ РіРѕР»РѕСЃ РїРѕ СЃРѕР±С‹С‚РёСЏРј  }
 procedure TMainForm.TextToSpeech(EType: TEventsType);
 var
   K: Integer;
@@ -1522,17 +1522,17 @@ var
 begin
   if EnableTextToSpeech then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск SAPITextToSpeech.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРє SAPITextToSpeech.');
     Grid := HackTStringsIndexOf(TextToSpeechSGrid.Cols[1], DetectEventsTypeName(EType));
-    if Length(Grid) > 0 then // Команда найдена в списке
+    if Length(Grid) > 0 then // РљРѕРјР°РЅРґР° РЅР°Р№РґРµРЅР° РІ СЃРїРёСЃРєРµ
     begin
-      if EnableLogs then WriteInLog(WorkPath, Format('%s: В TextToSpeechSGrid найдено %d событий.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
-      for K := Low(Grid) to High(Grid) do // Перебор найденных событий
+      if EnableLogs then WriteInLog(WorkPath, Format('%s: Р’ TextToSpeechSGrid РЅР°Р№РґРµРЅРѕ %d СЃРѕР±С‹С‚РёР№.', [FormatDateTime('dd.mm.yy hh:mm:ss', Now), Length(Grid)]));
+      for K := Low(Grid) to High(Grid) do // РџРµСЂРµР±РѕСЂ РЅР°Р№РґРµРЅРЅС‹С… СЃРѕР±С‹С‚РёР№
       begin
         if DetectEventsTypeStatusName(TextToSpeechSGrid.Cells[2,Grid[K]]) = mEnable then
         begin
           if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': SAPITextToSpeech = ' + TextToSpeechSGrid.Cells[0,Grid[K]]);
-          if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+          if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
             MGSAPI.Speak(TextToSpeechSGrid.Cells[0,Grid[K]])
           else
             OtherTTS(TextToSpeechSGrid.Cells[0,Grid[K]]);
@@ -1542,30 +1542,30 @@ begin
   end;
 end;
 
-{ Текст в голос  }
+{ РўРµРєСЃС‚ РІ РіРѕР»РѕСЃ  }
 procedure TMainForm.TextToSpeech(SayText: String);
 begin
   if EnableTextToSpeech then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запуск TextToSpeech. Говорим: ' + SayText);
-    if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРє TextToSpeech. Р“РѕРІРѕСЂРёРј: ' + SayText);
+    if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
       MGSAPI.Speak(SayText)
     else
       OtherTTS(SayText);
   end;
 end;
 
-{ Отправка текстового запроса в систему TTS, прием звукового файла и его воспроизведение }
+{ РћС‚РїСЂР°РІРєР° С‚РµРєСЃС‚РѕРІРѕРіРѕ Р·Р°РїСЂРѕСЃР° РІ СЃРёСЃС‚РµРјСѓ TTS, РїСЂРёРµРј Р·РІСѓРєРѕРІРѕРіРѕ С„Р°Р№Р»Р° Рё РµРіРѕ РІРѕСЃРїСЂРѕРёР·РІРµРґРµРЅРёРµ }
 procedure TMainForm.OtherTTS(const SayText: String);
 begin
   if SayText = EmptyStr then
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': OtherTTS: Строка текста для синтеза пустая.');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': OtherTTS: РЎС‚СЂРѕРєР° С‚РµРєСЃС‚Р° РґР»СЏ СЃРёРЅС‚РµР·Р° РїСѓСЃС‚Р°СЏ.');
     Exit;
   end;
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google TTS
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Р•СЃР»Рё Google TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Google TTS (TTSLangCode = ' + GoogleTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРєР°РµРј Google TTS (TTSLangCode = ' + GoogleTL + ', Р“РѕРІРѕСЂРёРј: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 100;
     MGGoogleTTS.TTSLangCode := GoogleTL;
@@ -1573,9 +1573,9 @@ begin
     MGGoogleTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-google.mp3';
     MGGoogleTTS.SpeakText;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex TTS
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Р•СЃР»Рё Yandex TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Yandex TTS (TTSLangCode = ' + YandexTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРєР°РµРј Yandex TTS (TTSLangCode = ' + YandexTL + ', Р“РѕРІРѕСЂРёРј: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 79;
     MGYandexTTS.TTSLangCode := YandexTL;
@@ -1583,9 +1583,9 @@ begin
     MGYandexTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-yandex.mp3';
     MGYandexTTS.SpeakText;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Если iSpeech TTS
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Р•СЃР»Рё iSpeech TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем iSpeech TTS (TTSLangCode = ' + iSpeechTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРєР°РµРј iSpeech TTS (TTSLangCode = ' + iSpeechTL + ', Р“РѕРІРѕСЂРёРј: ' + SayText + ')');
     DXAudioOut.Input := MP3In;
     DXAudioOut.Latency := 100;
     MGISpeechTTS.TTSLangCode := iSpeechTL;
@@ -1594,9 +1594,9 @@ begin
     MGISpeechTTS.OutFileName := GetUserTempPath() + 'mspeech-tts-ispeech.mp3';
     MGISpeechTTS.SpeakText;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Если Nuance TTS
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Р•СЃР»Рё Nuance TTS
   begin
-    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Запускаем Nuance TTS (TTSVoice = ' + NuanceTL + ', Говорим: ' + SayText + ')');
+    if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ': Р—Р°РїСѓСЃРєР°РµРј Nuance TTS (TTSVoice = ' + NuanceTL + ', Р“РѕРІРѕСЂРёРј: ' + SayText + ')');
     DXAudioOut.Input := WaveIn;
     DXAudioOut.Latency := 100;
     MGNuanceTTS.ID := '000';
@@ -1623,7 +1623,7 @@ begin
   end;
 end;
 
-{ Для мультиязыковой поддержки }
+{ Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё }
 procedure TMainForm.LoadLanguageStrings;
 begin
   Caption := GetLangStr('MSpeechCaption');

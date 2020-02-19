@@ -1,8 +1,8 @@
-{ ############################################################################ }
+п»ї{ ############################################################################ }
 { #                                                                          # }
 { #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (c) 2012-2017, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (c) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -135,7 +135,7 @@ type
     DeleteTextToSpeechButton: TButton;
     CBEventsType: TComboBox;
     CBTextToSpeechStatus: TComboBox;
-    СhangeTextToSpeechButton: TButton;
+    РЎhangeTextToSpeechButton: TButton;
     ChangeCommandButton: TButton;
     CBEnableExecCommand: TCheckBox;
     CBEnableReplace: TCheckBox;
@@ -149,7 +149,7 @@ type
     AddReplaceButton: TButton;
     ChangeReplaceButton: TButton;
     DeleteReplaceButton: TButton;
-    CBEnableTextСorrection: TCheckBox;
+    CBEnableTextCorrection: TCheckBox;
     CBEnableFilters: TCheckBox;
     GBFilters: TGroupBox;
     RGFiltersType: TRadioGroup;
@@ -238,7 +238,7 @@ type
     procedure CBLangChange(Sender: TObject);
     procedure CBAlphaBlendClick(Sender: TObject);
     procedure AlphaBlendTrackBarChange(Sender: TObject);
-    procedure CBEnableTextСorrectionClick(Sender: TObject);
+    procedure CBEnableTextCorrectionClick(Sender: TObject);
     procedure CBEnableReplaceClick(Sender: TObject);
     procedure CBEnableSendTextInactiveWindowClick(Sender: TObject);
     procedure ReplaceStringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
@@ -264,7 +264,7 @@ type
     procedure AddTextToSpeechButtonClick(Sender: TObject);
     procedure DeleteTextToSpeechButtonClick(Sender: TObject);
     procedure TextToSpeechStringGridSelectCell(Sender: TObject; ACol, ARow: Integer; var CanSelect: Boolean);
-    procedure СhangeTextToSpeechButtonClick(Sender: TObject);
+    procedure РЎhangeTextToSpeechButtonClick(Sender: TObject);
     procedure ChangeCommandButtonClick(Sender: TObject);
     procedure ChangeReplaceButtonClick(Sender: TObject);
     procedure CBEnableExecCommandClick(Sender: TObject);
@@ -320,22 +320,22 @@ var
   AboutBitmap: TBitmap;
   I: Integer;
 begin
-  // Для мультиязыковой поддержки
+  // Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё
   SettingsFormHandle := Handle;
   SetWindowLong(Handle, GWL_HWNDPARENT, 0);
   SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
-  // Отключаем табы
+  // РћС‚РєР»СЋС‡Р°РµРј С‚Р°Р±С‹
   for I := 0 to SettingsPageControl.PageCount-1 do
     SettingsPageControl.Pages[I].TabVisible := False;
-  // О программе
-  // Грузим битовый образы из файла ресурсов
+  // Рћ РїСЂРѕРіСЂР°РјРјРµ
+  // Р“СЂСѓР·РёРј Р±РёС‚РѕРІС‹Р№ РѕР±СЂР°Р·С‹ РёР· С„Р°Р№Р»Р° СЂРµСЃСѓСЂСЃРѕРІ
   AboutBitmap := TBitmap.Create;
   AboutBitmap.LoadFromResourceName(HInstance, 'About');
   AboutImage.Picture.Assign(AboutBitmap);
   AboutBitmap.Free;
   LAuthor.Cursor := crHandPoint;
   LWebSite.Cursor := crHandPoint;
-  // Указываем версию в окне "О плагине"
+  // РЈРєР°Р·С‹РІР°РµРј РІРµСЂСЃРёСЋ РІ РѕРєРЅРµ "Рћ РїР»Р°РіРёРЅРµ"
   LVersionNum.Caption := GetMyExeVersion() + ' ' + PlatformType;
 end;
 
@@ -350,30 +350,30 @@ procedure TSettingsForm.FormShow(Sender: TObject);
 var
   DevCnt: Integer;
 begin
-  // Кол. горячих клавиш
+  // РљРѕР». РіРѕСЂСЏС‡РёС… РєР»Р°РІРёС€
   HotKetStringGrid.RowCount := 4;
-  // Замена текста
+  // Р—Р°РјРµРЅР° С‚РµРєСЃС‚Р°
   ReplaceStringGrid.ColWidths[0] := 170;
   ReplaceStringSelectedCell := 1;
   ActivateAddReplaceButton := False;
   ActivateDeleteReplaceButton := False;
-  // Команды
+  // РљРѕРјР°РЅРґС‹
   CommandStringSelectedCell := 1;
   ActivateAddCommandButton := False;
   ActivateDeleteCommandButton := False;
-  // Синтез речи
+  // РЎРёРЅС‚РµР· СЂРµС‡Рё
   TextToSpeechStringSelectedCell := 1;
   ActivateAddTextToSpeechButton := False;
-  // Читаем настройки
+  // Р§РёС‚Р°РµРј РЅР°СЃС‚СЂРѕР№РєРё
   LoadINI(WorkPath);
-  // Активируем настройки
+  // РђРєС‚РёРІРёСЂСѓРµРј РЅР°СЃС‚СЂРѕР№РєРё
   LoadSettings;
-  // Загружаем язык интерфейса
+  // Р—Р°РіСЂСѓР¶Р°РµРј СЏР·С‹Рє РёРЅС‚РµСЂС„РµР№СЃР°
   LoadLanguageStrings;
-  // Всегда первая вкладка настроек
+  // Р’СЃРµРіРґР° РїРµСЂРІР°СЏ РІРєР»Р°РґРєР° РЅР°СЃС‚СЂРѕРµРє
   SettingtButtonGroup.ItemIndex := 0;
   SettingsPageControl.ActivePage := TabSheetSettings;
-  // Заполняем список устройст записи
+  // Р—Р°РїРѕР»РЅСЏРµРј СЃРїРёСЃРѕРє СѓСЃС‚СЂРѕР№СЃС‚ Р·Р°РїРёСЃРё
   CBDevice.Clear;
   for DevCnt := 0 to MainForm.DXAudioIn.DeviceCount - 1 do
     CBDevice.Items.Add(MainForm.DXAudioIn.DeviceName[DevCnt]);
@@ -381,10 +381,10 @@ begin
     CBDevice.ItemIndex := DefaultAudioDeviceNumber
   else
     CBDevice.ItemIndex := 0;
-  // Прозрачность окна
+  // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР°
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
-  // Информация о лицензии
+  // РРЅС„РѕСЂРјР°С†РёСЏ Рѕ Р»РёС†РµРЅР·РёРё
   {$ifdef LICENSE}
   BActivateLicense.Visible := True;
   BActivate.Visible := False;
@@ -404,35 +404,35 @@ end;
 procedure TSettingsForm.SaveSettingsButtonClick(Sender: TObject);
 begin
   StartSaveSettings := True;
-  // Останавливаем потоки распознавания и запись
+  // РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРѕС‚РѕРєРё СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ Рё Р·Р°РїРёСЃСЊ
   SendMessage(MainFormHandle, WM_STARTSAVESETTINGS, 0, 0);
-  // Устанавливаем новые настройки
-  // Команды
+  // РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РЅРѕРІС‹Рµ РЅР°СЃС‚СЂРѕР№РєРё
+  // РљРѕРјР°РЅРґС‹
   TranslateCommandNameToCode(CommandStringGrid);
   SaveCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
   TranslateCommandCodeToName(CommandStringGrid);
-  // Прокси
+  // РџСЂРѕРєСЃРё
   UseProxy := CBUseProxy.Checked;
   ProxyAddress := EProxyAddress.Text;
   ProxyPort := EProxyPort.Text;
   ProxyAuth := CBProxyAuth.Checked;
   ProxyUser := EProxyUser.Text;
   ProxyUserPasswd := EProxyUserPasswd.Text;
-  // Всплывашки
+  // Р’СЃРїР»С‹РІР°С€РєРё
   ShowTrayEvents := CBShowTrayEvents.Checked;
-  // Логгирование
+  // Р›РѕРіРіРёСЂРѕРІР°РЅРёРµ
   MaxDebugLogSize := StrToInt(SEErrLogSize.Text);
-  // Передача текста в другие программы
+  // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р° РІ РґСЂСѓРіРёРµ РїСЂРѕРіСЂР°РјРјС‹
   EnableSendText := CBEnableSendText.Checked;
   ClassNameReciver := EClassNameReciver.Text;
   MethodSendingText := CBMethodSendingText.ItemIndex;
-  // Коррекция текста
+  // РљРѕСЂСЂРµРєС†РёСЏ С‚РµРєСЃС‚Р°
   {$ifdef LICENSE}
   CBEnableSendTextInactiveWindow.OnClick := nil;
-  CBEnableTextСorrection.OnClick := nil;
+  CBEnableTextCorrection.OnClick := nil;
   if CheckLicense(WorkPath, True) then
   begin
-    EnableTextСorrection := CBEnableTextСorrection.Checked;
+    EnableTextCorrection := CBEnableTextCorrection.Checked;
     EnableTextReplace := CBEnableReplace.Checked;
     FirstLetterUpper := CBFirstLetterUpper.Checked;
     EnableSendTextInactiveWindow := CBEnableSendTextInactiveWindow.Checked;
@@ -440,73 +440,73 @@ begin
   end
   else
   begin
-    EnableTextСorrection := False;
+    EnableTextCorrection := False;
     EnableTextReplace := False;
     FirstLetterUpper := False;
     EnableSendTextInactiveWindow := False;
     InactiveWindowCaption := '';
   end;
   CBEnableSendTextInactiveWindow.OnClick := CBEnableSendTextInactiveWindowClick;
-  CBEnableTextСorrection.OnClick := CBEnableTextСorrectionClick;
+  CBEnableTextCorrection.OnClick := CBEnableTextCorrectionClick;
   {$endif LICENSE}
   {$ifdef FREE_MSPEECH}
-    EnableTextСorrection := CBEnableTextСorrection.Checked;
+    EnableTextРЎorrection := CBEnableTextРЎorrection.Checked;
     EnableTextReplace := CBEnableReplace.Checked;
     FirstLetterUpper := CBFirstLetterUpper.Checked;
     EnableSendTextInactiveWindow := CBEnableSendTextInactiveWindow.Checked;
     InactiveWindowCaption := EInactiveWindowCaption.Text;
   {$endif FREE_MSPEECH}
-  // Аудио-устройство по-умолчанию
+  // РђСѓРґРёРѕ-СѓСЃС‚СЂРѕР№СЃС‚РІРѕ РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ
   DefaultAudioDeviceNumber := CBDevice.ItemIndex;
-  // Уровни Max
+  // РЈСЂРѕРІРЅРё Max
   MaxLevelOnAutoRecord := StrToInt(EMaxLevel.Text);
   MaxLevelOnAutoRecordInterrupt := StrToInt(EMaxLevelInterrupt.Text);
-  // Уровни Min
+  // РЈСЂРѕРІРЅРё Min
   MinLevelOnAutoRecognize := StrToInt(EMinLevel.Text);
   MinLevelOnAutoRecognizeInterrupt := StrToInt(EMinLevelInterrupt.Text);
-  // Авто-активация
+  // РђРІС‚Рѕ-Р°РєС‚РёРІР°С†РёСЏ
   MaxLevelOnAutoControl := CBMaxLevelControl.Checked;
-  // Действие кнопки "Остановить запись"
+  // Р”РµР№СЃС‚РІРёРµ РєРЅРѕРїРєРё "РћСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ"
   StopRecordAction := CBStopRecordAction.ItemIndex;
   EnableExecCommand := CBEnableExecCommand.Checked;
-  // Горячая клавиша
+  // Р“РѕСЂСЏС‡Р°СЏ РєР»Р°РІРёС€Р°
   GlobalHotKeyEnable := CBEnableHotKey.Checked;
   StartRecordHotKey := HotKetStringGrid.Cells[1,0];
   StartRecordWithoutSendTextHotKey := HotKetStringGrid.Cells[1,1];
   StartRecordWithoutExecCommandHotKey := HotKetStringGrid.Cells[1,2];
   SwitchesLanguageRecognizeHotKey := HotKetStringGrid.Cells[1,3];
-  // Язык распознавания
+  // РЇР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   DefaultSpeechRecognizeLang := DetectRegionStr(CBFirstRegion.ItemIndex);
   SecondSpeechRecognizeLang := DetectRegionStr(CBSecondRegion.ItemIndex);
-  // Замена текста
+  // Р—Р°РјРµРЅР° С‚РµРєСЃС‚Р°
   if EnableTextReplace then
     SaveReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceStringGrid);
-  // Синтез голоса
+  // РЎРёРЅС‚РµР· РіРѕР»РѕСЃР°
   EnableTextToSpeech := CBEnableTextToSpeech.Checked;
   TextToSpeechEngine := CBTextToSpeechEngine.ItemIndex;
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
   begin
     SAPIVoiceNum := CBVoice.ItemIndex;
     SAPIVoiceVolume := TBVoiceVolume.Position;
     SAPIVoiceSpeed := TBVoiceSpeed.Position;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Если Google
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then // Р•СЃР»Рё Google
   begin
     GoogleTL := MainForm.MGGoogleTTS.GTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
     //SAPIVoiceNum := 0;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Если Yandex
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSYandex)) then // Р•СЃР»Рё Yandex
   begin
     YandexTL := MainForm.MGYandexTTS.YTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
     //SAPIVoiceNum := 0;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Если iSpeech
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSISpeech)) then // Р•СЃР»Рё iSpeech
   begin
     ISpeechTL := MainForm.MGISpeechTTS.ISpeechTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
     iSpeechAPIKey := ETTSAPIKey.Text;
     //SAPIVoiceNum := 0;
   end
-  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Если Nuance
+  else if TextToSpeechEngine = Integer(TTTSEngine(TTSNuance)) then // Р•СЃР»Рё Nuance
   begin
     NuanceTL := MainForm.MGNuanceTTS.NuanceTTSLanguageNameToCode(CBVoice.Items[CBVoice.ItemIndex]);
     NuanceAPIKey := ETTSAPIKey.Text;
@@ -515,7 +515,7 @@ begin
   end;
   if EnableTextToSpeech then
     SaveTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechStringGrid);
-  // Фильтры
+  // Р¤РёР»СЊС‚СЂС‹
   EnableFilters := CBEnableFilters.Checked;
   FilterType := RGFiltersType.ItemIndex;
   SincFilterType := CBSincFilterType.ItemIndex;
@@ -526,14 +526,14 @@ begin
   VoiceFilterEnableAGC := CBVoiceFilterEnableAGC.Checked;
   VoiceFilterEnableNoiseReduction := CBVoiceFilterEnableNoiseReduction.Checked;
   VoiceFilterEnableVAD := CBVoiceFilterEnableVAD.Checked;
-  // Команда по-умолчанию
+  // РљРѕРјР°РЅРґР° РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ
   DefaultCommandExec := EDefaultCommandExec.Text;
   // API Key
   GoogleAPIKey := ESpeechAPIKey.Text;
-  // Блокировка ПК
+  // Р‘Р»РѕРєРёСЂРѕРІРєР° РџРљ
   StopRecognitionAfterLockingComputer := CBStopRecognitionAfterLockingComputer.Checked;
   StartRecognitionAfterUnlockingComputer := CBStartRecognitionAfterUnlockingComputer.Checked;
-  // Автозапуск
+  // РђРІС‚РѕР·Р°РїСѓСЃРє
   AutoRunMSpeech := CBAutoRunMSpeech.Checked;
   if AutoRunMSpeech then
   begin
@@ -545,9 +545,9 @@ begin
     if CheckAutorun(mAutorunCurrentUser, mAutorunCheck, ProgramsName, ParamStr(0)) then
       CheckAutorun(mAutorunCurrentUser, mAutorunDisable, ProgramsName, ParamStr(0));
   end;
-  // Сохраняем настройки
+  // РЎРѕС…СЂР°РЅСЏРµРј РЅР°СЃС‚СЂРѕР№РєРё
   SaveINI(WorkPath);
-  // Для основной формы
+  // Р”Р»СЏ РѕСЃРЅРѕРІРЅРѕР№ С„РѕСЂРјС‹
   SendMessage(MainFormHandle, WM_SAVESETTINGSDONE, 0, 0);
   StartSaveSettings := False;
   Close;
@@ -565,7 +565,7 @@ end;
 
 procedure TSettingsForm.LoadSettings;
 begin
-  // Прокси
+  // РџСЂРѕРєСЃРё
   CBUseProxy.Checked := UseProxy;
   EProxyAddress.Text := ProxyAddress;
   EProxyPort.Text := ProxyPort;
@@ -574,19 +574,19 @@ begin
   EProxyUserPasswd.Text := ProxyUserPasswd;
   CBUseProxyClick(CBUseProxy);
   CBProxyAuthClick(CBProxyAuth);
-  // Авто-активация
+  // РђРІС‚Рѕ-Р°РєС‚РёРІР°С†РёСЏ
   CBMaxLevelControl.Checked := MaxLevelOnAutoControl;
   CBMaxLevelControlClick(CBMaxLevelControl);
-  // Всплывашки
+  // Р’СЃРїР»С‹РІР°С€РєРё
   CBShowTrayEvents.Checked := ShowTrayEvents;
-  // Выполнение команд
+  // Р’С‹РїРѕР»РЅРµРЅРёРµ РєРѕРјР°РЅРґ
   CBEnableExecCommand.Checked := EnableExecCommand;
-  // Передача текста в другие программы
+  // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р° РІ РґСЂСѓРіРёРµ РїСЂРѕРіСЂР°РјРјС‹
   CBEnableSendText.Checked := EnableSendText;
   EClassNameReciver.Text := ClassNameReciver;
   CBMethodSendingText.ItemIndex := MethodSendingText;
   CBMethodSendingTextChange(CBMethodSendingText);
-  // Передача в неактивное окно
+  // РџРµСЂРµРґР°С‡Р° РІ РЅРµР°РєС‚РёРІРЅРѕРµ РѕРєРЅРѕ
   if EnableSendTextInactiveWindow then
   begin
     LMethodSendingText.Enabled := not EnableSendTextInactiveWindow;
@@ -598,22 +598,22 @@ begin
   CBMethodSendingText.Enabled := not EnableSendTextInactiveWindow;
   LInactiveWindowCaption.Enabled := EnableSendTextInactiveWindow;
   EInactiveWindowCaption.Enabled := EnableSendTextInactiveWindow;
-  // Ставим уровни Max
+  // РЎС‚Р°РІРёРј СѓСЂРѕРІРЅРё Max
   EMaxLevel.Text := IntToStr(MaxLevelOnAutoRecord);
   UpDownMaxLevel.Position := MaxLevelOnAutoRecord;
   EMaxLevelInterrupt.Text := IntToStr(MaxLevelOnAutoRecordInterrupt);
   UpDownMaxLevelInterrupt.Position := MaxLevelOnAutoRecordInterrupt;
-  // Ставим уровни Min
+  // РЎС‚Р°РІРёРј СѓСЂРѕРІРЅРё Min
   EMinLevel.Text := IntToStr(MinLevelOnAutoRecognize);
   UpDownMinLevel.Position := MinLevelOnAutoRecognize;
   EMinLevelInterrupt.Text := IntToStr(MinLevelOnAutoRecognizeInterrupt);
   UpDownMinLevelInterrupt.Position := MinLevelOnAutoRecognizeInterrupt;
-  // Действие кнопки "Остановить запись"
+  // Р”РµР№СЃС‚РІРёРµ РєРЅРѕРїРєРё "РћСЃС‚Р°РЅРѕРІРёС‚СЊ Р·Р°РїРёСЃСЊ"
   CBStopRecordAction.ItemIndex := StopRecordAction;
   CBStopRecordActionChange(CBStopRecordAction);
-  // Команды
+  // РљРѕРјР°РЅРґС‹
   GBCommand.Visible := EnableExecCommand;
-  // Гор. клавиши
+  // Р“РѕСЂ. РєР»Р°РІРёС€Рё
   HotKeySelectedCell := 0;
   GBHotKey.Visible := GlobalHotKeyEnable;
   CBEnableHotKey.Checked := GlobalHotKeyEnable;
@@ -627,7 +627,7 @@ begin
   HotKetStringGrid.Cells[1,2] := StartRecordWithoutExecCommandHotKey;
   HotKetStringGrid.Cells[1,3] := SwitchesLanguageRecognizeHotKey;
   IMHotKey.HotKey := TextToShortCut(HotKetStringGrid.Cells[1,0]);
-  // Прозрачность окна
+  // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР°
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
   if AlphaBlendEnable then
@@ -644,51 +644,51 @@ begin
     AlphaBlendTrackBar.Visible := False;
     AlphaBlendVar.Visible := False;
   end;
-  // Заполняем список языков
+  // Р—Р°РїРѕР»РЅСЏРµРј СЃРїРёСЃРѕРє СЏР·С‹РєРѕРІ
   FindLangFile;
-  // Список команд
+  // РЎРїРёСЃРѕРє РєРѕРјР°РЅРґ
   AddCommmandsToList;
   CommandStringGrid.ColWidths[0] := 170;
   CommandStringGrid.ColWidths[1] := 250;
   CommandStringGrid.ColWidths[2] := 120;
   LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
   TranslateCommandCodeToName(CommandStringGrid);
-  // Коррекция текста
+  // РљРѕСЂСЂРµРєС†РёСЏ С‚РµРєСЃС‚Р°
   {$ifdef LICENSE}
   CBEnableSendTextInactiveWindow.OnClick := nil;
-  CBEnableTextСorrection.OnClick := nil;
+  CBEnableTextCorrection.OnClick := nil;
   if not CheckLicense(WorkPath, True) then
   begin
-    EnableTextСorrection := False;
+    EnableTextCorrection := False;
     EnableTextReplace := False;
     FirstLetterUpper := False;
   end;
-  CBEnableTextСorrection.Checked := EnableTextСorrection;
-  GBTextCorrection.Visible := EnableTextСorrection;
+  CBEnableTextCorrection.Checked := EnableTextCorrection;
+  GBTextCorrection.Visible := EnableTextCorrection;
   CBEnableReplace.Checked := EnableTextReplace;
   CBFirstLetterUpper.Checked := FirstLetterUpper;
   CBEnableSendTextInactiveWindow.Checked := EnableSendTextInactiveWindow;
   EInactiveWindowCaption.Text := InactiveWindowCaption;
   CBEnableSendTextInactiveWindow.OnClick := CBEnableSendTextInactiveWindowClick;
-  CBEnableTextСorrection.OnClick := CBEnableTextСorrectionClick;
+  CBEnableTextCorrection.OnClick := CBEnableTextCorrectionClick;
   {$endif LICENSE}
   {$ifdef FREE_MSPEECH}
-  CBEnableTextСorrection.Checked := EnableTextСorrection;
-  CBEnableReplace.Visible := EnableTextСorrection;
-  CBFirstLetterUpper.Visible := EnableTextСorrection;
-  GBReplaceList.Visible := EnableTextСorrection;
+  CBEnableTextРЎorrection.Checked := EnableTextРЎorrection;
+  CBEnableReplace.Visible := EnableTextРЎorrection;
+  CBFirstLetterUpper.Visible := EnableTextРЎorrection;
+  GBReplaceList.Visible := EnableTextРЎorrection;
   CBEnableReplace.Checked := EnableTextReplace;
   CBFirstLetterUpper.Checked := FirstLetterUpper;
   CBEnableSendTextInactiveWindow.Checked := EnableSendTextInactiveWindow;
   EInactiveWindowCaption.Text := InactiveWindowCaption;
   {$endif FREE_MSPEECH}
-  // Язык распознавания
+  // РЇР·С‹Рє СЂР°СЃРїРѕР·РЅР°РІР°РЅРёСЏ
   CBFirstRegion.ItemIndex := DetectRegionID(DefaultSpeechRecognizeLang);
   CBSecondRegion.ItemIndex := DetectRegionID(SecondSpeechRecognizeLang);
-  // Замена текста
+  // Р—Р°РјРµРЅР° С‚РµРєСЃС‚Р°
   if EnableTextReplace then
     LoadReplaceDataStringGrid(WorkPath + ReplaceGridFile, ReplaceStringGrid);
-  // Синтез голоса
+  // РЎРёРЅС‚РµР· РіРѕР»РѕСЃР°
   CBEnableTextToSpeech.Checked := EnableTextToSpeech;
   GBTextToSpeech.Visible := EnableTextToSpeech;
   if not GetTTSEngines(CBTextToSpeechEngine.Items) then
@@ -700,23 +700,23 @@ begin
     CBTextToSpeechEngine.ItemIndex := CBTextToSpeechEngine.Items.IndexOf(TTSEngineList[TTTSEngine(TextToSpeechEngine)].TTSDisplayName);
   GBTextToSpeechEngine.Caption := Format(' %s ',[CBTextToSpeechEngine.Items[CBTextToSpeechEngine.ItemIndex]]);
   CBTextToSpeechEngine.OnChange := CBTextToSpeechEngineChange;
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
     SetSAPISettings
-  else // Google, Yandex, iSpeech или Nuance
+  else // Google, Yandex, iSpeech РёР»Рё Nuance
     SetOtherTTSSettings;
-  // Список типов событий и т.д.
+  // РЎРїРёСЃРѕРє С‚РёРїРѕРІ СЃРѕР±С‹С‚РёР№ Рё С‚.Рґ.
   AddEventsTypeToList;
   AddEventsTypeStatusToList;
   TextToSpeechStringGrid.ColWidths[0] := 245;
   TextToSpeechStringGrid.ColWidths[1] := 150;
   TextToSpeechStringGrid.ColWidths[2] := 120;
   LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechStringGrid);
-  // Логгирование
+  // Р›РѕРіРіРёСЂРѕРІР°РЅРёРµ
   CBEnableLogs.Checked := EnableLogs;
   SEErrLogSize.Enabled := EnableLogs;
   LErrLogSize.Enabled := EnableLogs;
   SEErrLogSize.Text := IntToStr(MaxDebugLogSize);
-  // Фильтры
+  // Р¤РёР»СЊС‚СЂС‹
   CBEnableFilters.Checked := EnableFilters;
   GBFilters.Visible := EnableFilters;
   RGFiltersType.ItemIndex := FilterType;
@@ -729,14 +729,14 @@ begin
   CBVoiceFilterEnableAGC.Checked := VoiceFilterEnableAGC;
   CBVoiceFilterEnableNoiseReduction .Checked := VoiceFilterEnableNoiseReduction;
   CBVoiceFilterEnableVAD.Checked := VoiceFilterEnableVAD;
-  // Команда по-умолчанию
+  // РљРѕРјР°РЅРґР° РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ
   EDefaultCommandExec.Text := DefaultCommandExec;
   // API Key
   ESpeechAPIKey.Text := GoogleAPIKey;
-  // Блокировка ПК
+  // Р‘Р»РѕРєРёСЂРѕРІРєР° РџРљ
   CBStopRecognitionAfterLockingComputer.Checked := StopRecognitionAfterLockingComputer;
   CBStartRecognitionAfterUnlockingComputer.Checked := StartRecognitionAfterUnlockingComputer;
-  // Автозагрузка
+  // РђРІС‚РѕР·Р°РіСЂСѓР·РєР°
   CBAutoRunMSpeech.Checked := AutoRunMSpeech;
 end;
 
@@ -776,7 +776,7 @@ begin
       Add(Format(GetLangStr('LBSAPIVoiceAge'), [VInfo.VoiceAge]));
       Add(Format(GetLangStr('LBSAPIVoiceGender'), [VInfo.VoiceGender]));
       Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
-      //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
+      //Add(Format('РљР»СЋС‡СЊ РІ СЂРµРµСЃС‚СЂРµ: %s', [VInfo.VoiceId]));
     end;
     GBTextToSpeechList.Visible := True;
     TBVoiceVolume.Position := MainForm.MGSAPI.TTSVoiceVolume;
@@ -889,7 +889,7 @@ begin
   LTTSAPPID.Enabled := True;
   ETTSAPPID.Enabled := True;
   GetAPIKeyButton.Visible := True;
-  // Позиционируем контролы
+  // РџРѕР·РёС†РёРѕРЅРёСЂСѓРµРј РєРѕРЅС‚СЂРѕР»С‹
   CBVoice.Left := LVoice.Left + LVoice.Width + 10;
   ETTSAPIKey.Left := LTTSAPIKey.Left + LTTSAPIKey.Width + 10;
   if LTTSAPPID.Left + LTTSAPPID.Width + 10 > ETTSAPIKey.Left then
@@ -908,7 +908,7 @@ begin
   LTTSAPPID.Visible := False;
   ETTSAPPID.Visible := False;
   GetAPIKeyButton.Visible := False;
-  // Позиционируем контролы
+  // РџРѕР·РёС†РёРѕРЅРёСЂСѓРµРј РєРѕРЅС‚СЂРѕР»С‹
   GBTextToSpeechEngine.Height := CBVoice.Top + CBVoice.Height + 10;
 end;
 
@@ -923,7 +923,7 @@ begin
   LBSAPIInfo.Visible := False;
 end;
 
-{ Процедура поиска языковых файлов и заполнения списка }
+{ РџСЂРѕС†РµРґСѓСЂР° РїРѕРёСЃРєР° СЏР·С‹РєРѕРІС‹С… С„Р°Р№Р»РѕРІ Рё Р·Р°РїРѕР»РЅРµРЅРёСЏ СЃРїРёСЃРєР° }
 procedure TSettingsForm.FindLangFile;
 var
   SR: TSearchRec;
@@ -933,13 +933,13 @@ begin
   if FindFirst(ProgramsPath + dirLangs + '\*.*', faAnyFile or faDirectory, SR) = 0 then
   begin
     repeat
-      if (SR.Attr = faDirectory) and ((SR.Name = '.') or (SR.Name = '..')) then // Чтобы не было файлов . и ..
+      if (SR.Attr = faDirectory) and ((SR.Name = '.') or (SR.Name = '..')) then // Р§С‚РѕР±С‹ РЅРµ Р±С‹Р»Рѕ С„Р°Р№Р»РѕРІ . Рё ..
       begin
-        Continue; // Продолжаем цикл
+        Continue; // РџСЂРѕРґРѕР»Р¶Р°РµРј С†РёРєР»
       end;
       if MatchStrings(SR.Name, '*.xml') then
       begin
-        // Заполняем лист
+        // Р—Р°РїРѕР»РЅСЏРµРј Р»РёСЃС‚
         CBLang.Items.Add(ExtractFileNameEx(SR.Name, False));
       end;
     until FindNext(SR) <> 0;
@@ -954,7 +954,7 @@ end;
 
 procedure TSettingsForm.AddCommmandsToList;
 begin
-  // Список команд
+  // РЎРїРёСЃРѕРє РєРѕРјР°РЅРґ
   CBCommandType.Clear;
   if not GetCommands(CBCommandType.Items, True) then
   begin
@@ -1128,7 +1128,7 @@ begin
     EDefaultCommandExec.Text := CommandOpenDialog.FileName;
 end;
 
-{ Добавить горячую клавишу }
+{ Р”РѕР±Р°РІРёС‚СЊ РіРѕСЂСЏС‡СѓСЋ РєР»Р°РІРёС€Сѓ }
 procedure TSettingsForm.SetHotKeyButtonClick(Sender: TObject);
 var
   S: String;
@@ -1153,14 +1153,14 @@ begin
   HotKetStringGrid.Cells[1,HotKeySelectedCell] := S;
 end;
 
-{ Удалить горячую клавишу }
+{ РЈРґР°Р»РёС‚СЊ РіРѕСЂСЏС‡СѓСЋ РєР»Р°РІРёС€Сѓ }
 procedure TSettingsForm.DeleteHotKeyButtonClick(Sender: TObject);
 begin
   HotKetStringGrid.Cells[1,HotKeySelectedCell] := '';
   IMHotKey.HotKey := TextToShortCut('');
 end;
 
-{ Клик по строке StringGrid с горячими клавишами }
+{ РљР»РёРє РїРѕ СЃС‚СЂРѕРєРµ StringGrid СЃ РіРѕСЂСЏС‡РёРјРё РєР»Р°РІРёС€Р°РјРё }
 procedure TSettingsForm.HotKetStringGridSelectCell(Sender: TObject; ACol,
   ARow: Integer; var CanSelect: Boolean);
 begin
@@ -1173,10 +1173,10 @@ begin
   GBSendText.Visible := (Sender as TCheckBox).Checked;
   if not (Sender as TCheckBox).Checked then
   begin
-    CBEnableTextСorrection.OnClick := nil;
-    CBEnableTextСorrection.Checked := False;
+    CBEnableTextCorrection.OnClick := nil;
+    CBEnableTextCorrection.Checked := False;
     GBTextCorrection.Visible := False;
-    CBEnableTextСorrection.OnClick := CBEnableTextСorrectionClick;
+    CBEnableTextCorrection.OnClick := CBEnableTextCorrectionClick;
   end;
 end;
 
@@ -1217,14 +1217,14 @@ begin
   TranslateCommandCodeToName(CommandStringGrid);
 end;
 
-procedure TSettingsForm.CBEnableTextСorrectionClick(Sender: TObject);
+procedure TSettingsForm.CBEnableTextCorrectionClick(Sender: TObject);
 begin
   if not CBEnableSendText.Checked then
   begin
     (Sender as TCheckBox).OnClick := nil;
     MsgInf(ProgramsName, GetLangStr('MsgInf10'));
     (Sender as TCheckBox).Checked := False;
-    (Sender as TCheckBox).OnClick := CBEnableTextСorrectionClick;
+    (Sender as TCheckBox).OnClick := CBEnableTextCorrectionClick;
     Exit;
   end;
 {$ifdef LICENSE}
@@ -1293,11 +1293,11 @@ begin
   end;
 end;
 
-{ Прозрачность окон }
+{ РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРѕРЅ }
 procedure TSettingsForm.CBAlphaBlendClick(Sender: TObject);
 begin
   AlphaBlendEnable := (Sender as TCheckBox).Checked;
-  // Вкл. прозрачность окна настроек
+  // Р’РєР». РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР° РЅР°СЃС‚СЂРѕРµРє
   AlphaBlend := AlphaBlendEnable;
   if AlphaBlendEnable then
   begin
@@ -1346,7 +1346,7 @@ procedure TSettingsForm.AlphaBlendTrackBarChange(Sender: TObject);
 begin
   AlphaBlendEnableValue := AlphaBlendTrackBar.Position;
   AlphaBlendVar.Caption := IntToStr(AlphaBlendEnableValue);
-  // Прозрачность окна настроек
+  // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР° РЅР°СЃС‚СЂРѕРµРє
   AlphaBlendValue := AlphaBlendEnableValue;
 end;
 
@@ -1394,7 +1394,7 @@ begin
     AddCommandButton.Enabled := False;
 end;
 
-{ Добывить команду }
+{ Р”РѕР±С‹РІРёС‚СЊ РєРѕРјР°РЅРґСѓ }
 procedure TSettingsForm.AddCommandButtonClick(Sender: TObject);
 var
   RowScrollCnt, I: Integer;
@@ -1405,9 +1405,9 @@ begin
     CommandStringGrid.Cells[0,CommandStringGrid.RowCount-1] := ECommandKey.Text;
     CommandStringGrid.Cells[1,CommandStringGrid.RowCount-1] := ECommandExec.Text;
     CommandStringGrid.Cells[2,CommandStringGrid.RowCount-1] := CBCommandType.Items[CBCommandType.ItemIndex];
-    // Скроллинг StringGrid в самый конец
+    // РЎРєСЂРѕР»Р»РёРЅРі StringGrid РІ СЃР°РјС‹Р№ РєРѕРЅРµС†
     RowScrollCnt := 0;
-    // 12 число видимых на экране строк в StringGrid
+    // 12 С‡РёСЃР»Рѕ РІРёРґРёРјС‹С… РЅР° СЌРєСЂР°РЅРµ СЃС‚СЂРѕРє РІ StringGrid
     if CommandStringGrid.RowCount > 12 then
       RowScrollCnt := Trunc(CommandStringGrid.RowCount/12);
     for I := 0 to RowScrollCnt do
@@ -1425,7 +1425,7 @@ begin
   end;
 end;
 
-{ Удалить команду }
+{ РЈРґР°Р»РёС‚СЊ РєРѕРјР°РЅРґСѓ }
 procedure TSettingsForm.DeleteCommandButtonClick(Sender: TObject);
 begin
   if (CommandStringSelectedCell = 0) and (CommandStringGrid.RowCount = 1) then
@@ -1493,7 +1493,7 @@ begin
   TextToSpeechEngine := (Sender as TComboBox).ItemIndex;
   if (Sender as TComboBox).ItemIndex = Integer(TTTSEngine(TTSMicrosoft)) then // Microsoft SAPI
     SetSAPISettings
-  else // Google, Yandex или другие
+  else // Google, Yandex РёР»Рё РґСЂСѓРіРёРµ
     SetOtherTTSSettings;
 end;
 
@@ -1501,7 +1501,7 @@ procedure TSettingsForm.CBVoiceChange(Sender: TObject);
 var
   VInfo: TVoiceInfo;
 begin
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
   begin
     SAPIVoiceNum := (Sender as TComboBox).ItemIndex;
     MainForm.MGSAPI.TTSLang := SAPIVoiceNum;
@@ -1514,7 +1514,7 @@ begin
       Add(Format(GetLangStr('LBSAPIVoiceAge'), [VInfo.VoiceAge]));
       Add(Format(GetLangStr('LBSAPIVoiceGender'), [VInfo.VoiceGender]));
       Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
-      //Add(Format('Ключь в реестре: %s', [VInfo.VoiceId]));
+      //Add(Format('РљР»СЋС‡СЊ РІ СЂРµРµСЃС‚СЂРµ: %s', [VInfo.VoiceId]));
     end
   end
   else if TextToSpeechEngine = Integer(TTTSEngine(TTSGoogle)) then
@@ -1618,7 +1618,7 @@ begin
   end;
 end;
 
-procedure TSettingsForm.СhangeTextToSpeechButtonClick(Sender: TObject);
+procedure TSettingsForm.РЎhangeTextToSpeechButtonClick(Sender: TObject);
 begin
   if ETextToSpeech.Text <> '' then
   begin
@@ -1643,13 +1643,13 @@ begin
   ETextToSpeech.Text := TextToSpeechStringGrid.Cells[0,ARow];
   CBEventsType.ItemIndex := DetectEventsType(DetectEventsTypeName(TextToSpeechStringGrid.Cells[1,ARow]));
   CBTextToSpeechStatus.ItemIndex := DetectEventsTypeStatus(DetectEventsTypeStatusName(TextToSpeechStringGrid.Cells[2,ARow]));
-  СhangeTextToSpeechButton.Enabled := True;
+  РЎhangeTextToSpeechButton.Enabled := True;
   DeleteTextToSpeechButton.Enabled := True;
 end;
 
 procedure TSettingsForm.AddEventsTypeToList;
 begin
-  // Список типов событий
+  // РЎРїРёСЃРѕРє С‚РёРїРѕРІ СЃРѕР±С‹С‚РёР№
   CBEventsType.Clear;
   CBEventsType.Items.Add(DetectEventsTypeName(mWarningRecognize));
   CBEventsType.Items.Add(DetectEventsTypeName(mRecordingNotRecognized));
@@ -1660,7 +1660,7 @@ end;
 
 procedure TSettingsForm.AddEventsTypeStatusToList;
 begin
-  // Список состояний типов событий
+  // РЎРїРёСЃРѕРє СЃРѕСЃС‚РѕСЏРЅРёР№ С‚РёРїРѕРІ СЃРѕР±С‹С‚РёР№
   CBTextToSpeechStatus.Clear;
   CBTextToSpeechStatus.Items.Add(DetectEventsTypeStatusName(mDisable));
   CBTextToSpeechStatus.Items.Add(DetectEventsTypeStatusName(mEnable));
@@ -1690,7 +1690,7 @@ begin
   end;
 end;
 
-{ Отлавливаем событие WM_MSGBOX для изменения прозрачности окна }
+{ РћС‚Р»Р°РІР»РёРІР°РµРј СЃРѕР±С‹С‚РёРµ WM_MSGBOX РґР»СЏ РёР·РјРµРЅРµРЅРёСЏ РїСЂРѕР·СЂР°С‡РЅРѕСЃС‚Рё РѕРєРЅР° }
 procedure TSettingsForm.msgBoxShow(var Msg: TMessage);
 var
   msgbHandle: HWND;
@@ -1734,13 +1734,13 @@ begin
   {$endif}
 end;
 
-{ Смена языка интерфейса по событию WM_LANGUAGECHANGED }
+{ РЎРјРµРЅР° СЏР·С‹РєР° РёРЅС‚РµСЂС„РµР№СЃР° РїРѕ СЃРѕР±С‹С‚РёСЋ WM_LANGUAGECHANGED }
 procedure TSettingsForm.OnLanguageChanged(var Msg: TMessage);
 begin
   LoadLanguageStrings;
 end;
 
-{ Для мультиязыковой поддержки }
+{ Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё }
 procedure TSettingsForm.LoadLanguageStrings;
 var
   VInfo: TVoiceInfo;
@@ -1758,14 +1758,14 @@ begin
   SettingtButtonGroup.Items[9].Caption := GetLangStr('TabSheetAbout');
   SaveSettingsButton.Caption := GetLangStr('SaveSettingsButton');
   CloseButton.Caption := GetLangStr('CloseButton');
-  // Общие настройки
+  // РћР±С‰РёРµ РЅР°СЃС‚СЂРѕР№РєРё
   GBInterfaceSettings.Caption := Format(' %s ', [GetLangStr('GBInterfaceSettings')]);
   CBAlphaBlend.Caption := GetLangStr('CBAlphaBlend');
   CBShowTrayEvents.Caption := GetLangStr('CBShowTrayEvents');
   LLang.Caption := GetLangStr('LLang');
   GBMainSettings.Caption := Format(' %s ', [GetLangStr('GBMainSettings')]);
   CBAutoRunMSpeech.Caption := GetLangStr('CBAutoRunMSpeech');
-  // Настройки записи
+  // РќР°СЃС‚СЂРѕР№РєРё Р·Р°РїРёСЃРё
   GBRecordSettings.Caption := Format(' %s ', [GetLangStr('GBRecordSettings')]);
   LDevice.Caption := GetLangStr('LDevice');
   MicSettingsButton.Caption := GetLangStr('MicSettingsButton');
@@ -1781,7 +1781,7 @@ begin
   CBStopRecordAction.Items.Add(GetLangStr('CBStopRecordActionItems3'));
   CBStopRecordAction.Items.Add(GetLangStr('CBStopRecordActionItems4'));
   CBStopRecordAction.ItemIndex := StopRecordAction;
-  // Настройки соединения
+  // РќР°СЃС‚СЂРѕР№РєРё СЃРѕРµРґРёРЅРµРЅРёСЏ
   GBConnectSettings.Caption := Format(' %s ', [GetLangStr('GBConnectSettings')]);
   CBUseProxy.Caption := GetLangStr('CBUseProxy');
   LProxyAddress.Caption := GetLangStr('LProxyAddress');
@@ -1789,7 +1789,7 @@ begin
   CBProxyAuth.Caption := GetLangStr('CBProxyAuth');
   LProxyUser.Caption := GetLangStr('LProxyUser');
   LProxyUserPasswd.Caption := GetLangStr('LProxyUserPasswd');
-  // Горячие клавиши
+  // Р“РѕСЂСЏС‡РёРµ РєР»Р°РІРёС€Рё
   HotKetStringGrid.Cells[0,0] := GetLangStr('StartStopRecord');
   HotKetStringGrid.Cells[0,1] := GetLangStr('StartStopRecordWithoutSendText');
   HotKetStringGrid.Cells[0,2] := GetLangStr('StartRecordWithoutExecCommand');
@@ -1798,7 +1798,7 @@ begin
   GBHotKey.Caption := Format(' %s ', [GetLangStr('GBHotKey')]);
   SetHotKeyButton.Caption := GetLangStr('SetHotKeyButton');
   DeleteHotKeyButton.Caption := GetLangStr('DeleteHotKeyButton');
-  // Передача текста
+  // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р°
   CBEnableSendText.Caption := GetLangStr('CBEnableSendText');
   GBSendText.Caption := Format(' %s ', [GetLangStr('GBSendText')]);
   LMethodSendingText.Caption := GetLangStr('LMethodSendingText');
@@ -1807,7 +1807,7 @@ begin
     LNote.Caption := GetLangStr('LNoteInactive')
   else
     LNote.Caption := GetLangStr('LNote');
-  // Распознавание
+  // Р Р°СЃРїРѕР·РЅР°РІР°РЅРёРµ
   GBRecognizeSettings.Caption := Format(' %s ', [GetLangStr('GBRecognizeSettings')]);
   LFirstRegion.Caption := GetLangStr('LRegion');
   LSecondRegion.Caption := GetLangStr('LSecondRegion');
@@ -1816,7 +1816,7 @@ begin
   GBAPINotes.Caption := Format(' %s ', [GetLangStr('GBAPINotes')]);
   CBStopRecognitionAfterLockingComputer.Caption := GetLangStr('CBStopRecognitionAfterLockingComputer');
   CBStartRecognitionAfterUnlockingComputer.Caption := GetLangStr('CBStartRecognitionAfterUnlockingComputer');
-  // Команды
+  // РљРѕРјР°РЅРґС‹
   CBEnableExecCommand.Caption := GetLangStr('CBEnableExecCommand');
   GBCommand.Caption := Format(' %s ', [GetLangStr('GBCommand')]);
   LCommandKey.Caption := GetLangStr('LCommandKey');
@@ -1828,7 +1828,7 @@ begin
   AddCommmandsToList;
   LoadCommandDataStringGrid(WorkPath + CommandGridFile, CommandStringGrid);
   TranslateCommandCodeToName(CommandStringGrid);
-  // Замена текста
+  // Р—Р°РјРµРЅР° С‚РµРєСЃС‚Р°
   CBEnableReplace.Caption := GetLangStr('CBEnableReplace');
   CBFirstLetterUpper.Caption := GetLangStr('CBFirstLetterUpper');
   GBReplaceList.Caption := Format(' %s ', [GetLangStr('GBReplaceList')]);
@@ -1837,16 +1837,16 @@ begin
   AddReplaceButton.Caption := GetLangStr('AddReplaceButton');
   ChangeReplaceButton.Caption := GetLangStr('ChangeReplaceButton');
   DeleteReplaceButton.Caption := GetLangStr('DeleteReplaceButton');
-  // Передача текста
+  // РџРµСЂРµРґР°С‡Р° С‚РµРєСЃС‚Р°
   CBEnableSendTextInactiveWindow.Caption := GetLangStr('CBEnableSendTextInactiveWindow');
-  CBEnableTextСorrection.Caption := GetLangStr('CBEnableTextСorrection');
+  CBEnableTextCorrection.Caption := GetLangStr('CBEnableTextРЎorrection');
   GBTextCorrection.Caption := Format(' %s ', [GetLangStr('GBTextCorrection')]);
   LInactiveWindowCaption.Caption := GetLangStr('LInactiveWindowCaption');
-  // Логи
+  // Р›РѕРіРё
   GBLogs.Caption := Format(' %s ', [GetLangStr('GBLogs')]);
   CBEnableLogs.Caption := GetLangStr('CBEnableLogs');
   LErrLogSize.Caption := GetLangStr('LErrLogSize');
-  // Синтез голоса
+  // РЎРёРЅС‚РµР· РіРѕР»РѕСЃР°
   CBEnableTextToSpeech.Caption := GetLangStr('CBEnableTextToSpeech');
   GBTextToSpeech.Caption := Format(' %s ', [GetLangStr('GBTextToSpeech')]);
   LTextToSpeechEngine.Caption := GetLangStr('LTextToSpeechEngine');
@@ -1867,12 +1867,12 @@ begin
   LTextToSpeechEventsType.Caption := GetLangStr('LTextToSpeechEventsType');
   LTextToSpeechEventsTypeStatus.Caption := GetLangStr('LTextToSpeechEventsTypeStatus');
   AddTextToSpeechButton.Caption := GetLangStr('AddTextToSpeechButton');
-  СhangeTextToSpeechButton.Caption := GetLangStr('СhangeTextToSpeechButton');
+  РЎhangeTextToSpeechButton.Caption := GetLangStr('РЎhangeTextToSpeechButton');
   DeleteTextToSpeechButton.Caption := GetLangStr('DeleteTextToSpeechButton');
   AddEventsTypeToList;
   AddEventsTypeStatusToList;
   LoadTextToSpeechDataStringGrid(WorkPath + TextToSpeechGridFile, TextToSpeechStringGrid);
-  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Если Microsoft SAPI
+  if TextToSpeechEngine = Integer(TTTSEngine(TTSMicrosoft)) then // Р•СЃР»Рё Microsoft SAPI
   begin
     VInfo := MainForm.MGSAPI.GetVoiceInfo(SAPIVoiceNum);
     with LBSAPIInfo.Items do
@@ -1885,7 +1885,7 @@ begin
       Add(Format(GetLangStr('LBSAPIVoiceLanguage'), [VInfo.VoiceLanguage]));
     end;
   end;
-  // Фильтры
+  // Р¤РёР»СЊС‚СЂС‹
   CBEnableFilters.Caption := GetLangStr('CBEnableFilters');
   GBFilters.Caption := Format(' %s ', [GetLangStr('GBFilters')]);
   RGFiltersType.Caption := Format(' %s ', [GetLangStr('RGFiltersType')]);
@@ -1899,10 +1899,10 @@ begin
   CBVoiceFilterEnableAGC.Caption := GetLangStr('CBVoiceFilterEnableAGC');
   CBVoiceFilterEnableNoiseReduction.Caption := GetLangStr('CBVoiceFilterEnableNoiseReduction');
   CBVoiceFilterEnableVAD.Caption := GetLangStr('CBVoiceFilterEnableVAD');
-  // Команда по-умолчанию
+  // РљРѕРјР°РЅРґР° РїРѕ-СѓРјРѕР»С‡Р°РЅРёСЋ
   LDefaultCommandExec.Caption := GetLangStr('LDefaultCommandExec');
   LDefaultCommandExecDesc.Caption := GetLangStr('LDefaultCommandExecDesc');
-  // О программе
+  // Рћ РїСЂРѕРіСЂР°РјРјРµ
   LProgramName.Caption := ProgramsName;
   LVersion.Caption := GetLangStr('Version');
   LLicense.Caption := GetLangStr('License');
@@ -1910,7 +1910,7 @@ begin
   BActivate.Caption := GetLangStr('BActivate');
   // API
   LAPINotes.Caption := GetLangStr('LAPINotes');
-  // Позиционируем контролы
+  // РџРѕР·РёС†РёРѕРЅРёСЂСѓРµРј РєРѕРЅС‚СЂРѕР»С‹
   CBLang.Left := LLang.Left + LLang.Width + 5;
   CBDevice.Left := LDevice.Left + LDevice.Width + 5;
   MicSettingsButton.Left := LDevice.Left + LDevice.Width + 5 + CBDevice.Width + 5;

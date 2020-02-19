@@ -2,7 +2,7 @@
 { #                                                                          # }
 { #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (c) 2012-2017, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (c) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -247,7 +247,7 @@ var
   LangDoc: IXMLDocument;
   DefaultLanguage: String;
   // Коррекция текста при передаче
-  EnableTextСorrection: Boolean = False;
+  EnableTextCorrection: Boolean = False;
   EnableTextReplace: Boolean = False;
   FirstLetterUpper: Boolean = False;
   // Язык распознавания по умолчанию
@@ -470,7 +470,7 @@ begin
       ClassNameReciver := INI.ReadString('SendText', 'ClassNameReciver', 'Edit');
       MethodSendingText := INI.ReadInteger('SendText', 'MethodSendingText', 0);
       InactiveWindowCaption := INI.ReadString('SendText', 'InactiveWindowCaption', '*Блокнот');
-      EnableTextСorrection := INI.ReadBool('SendText', 'EnableTextСorrection', False);
+      EnableTextCorrection := INI.ReadBool('SendText', 'EnableTextСorrection', False);
       EnableTextReplace := INI.ReadBool('SendText', 'EnableTextReplace', False);
       FirstLetterUpper := INI.ReadBool('SendText', 'FirstLetterUpper', False);
       UseProxy := INI.ReadBool('Proxy', 'UseProxy', False);
@@ -537,7 +537,7 @@ begin
       INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
       INI.WriteInteger('SendText', 'MethodSendingText', MethodSendingText);
       INI.WriteString('SendText', 'InactiveWindowCaption', InactiveWindowCaption);
-      INI.WriteBool('SendText', 'EnableTextСorrection', EnableTextСorrection);
+      INI.WriteBool('SendText', 'EnableTextСorrection', EnableTextCorrection);
       INI.WriteBool('SendText', 'EnableTextReplace', EnableTextReplace);
       INI.WriteBool('SendText', 'FirstLetterUpper', FirstLetterUpper);
       INI.WriteBool('Proxy', 'UseProxy', False);
@@ -621,7 +621,7 @@ begin
     INI.WriteString('SendText', 'ClassNameReciver', ClassNameReciver);
     INI.WriteInteger('SendText', 'MethodSendingText', MethodSendingText);
     INI.WriteString('SendText', 'InactiveWindowCaption', InactiveWindowCaption);
-    INI.WriteBool('SendText', 'EnableTextСorrection', EnableTextСorrection);
+    INI.WriteBool('SendText', 'EnableTextСorrection', EnableTextCorrection);
     INI.WriteBool('SendText', 'EnableTextReplace', EnableTextReplace);
     INI.WriteBool('SendText', 'FirstLetterUpper', FirstLetterUpper);
     INI.WriteBool('Proxy', 'UseProxy', UseProxy);

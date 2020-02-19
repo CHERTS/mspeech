@@ -2,7 +2,7 @@
 { #                                                                          # }
 { #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (c) 2012-2017, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (c) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -56,7 +56,7 @@ type
     FTextReader: TMGTextReaderA;
     IsUnicodeFile: Boolean;
     procedure OnLogUpdated(var Msg: TMessage); message WM_UPDATELOG;
-    // Для мультиязыковой поддержки
+    // Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё
     procedure OnLanguageChanged(var Msg: TMessage); message WM_LANGUAGECHANGED;
     procedure LoadLanguageStrings;
   public
@@ -75,16 +75,16 @@ uses
 
 procedure TLogForm.FormCreate(Sender: TObject);
 begin
-  // Для мультиязыковой поддержки
+  // Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё
   LogFormHandle := Handle;
   SetWindowLong(Handle, GWL_HWNDPARENT, 0);
   SetWindowLong(Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) or WS_EX_APPWINDOW);
-  // Загружаем язык интерфейса
+  // Р—Р°РіСЂСѓР¶Р°РµРј СЏР·С‹Рє РёРЅС‚РµСЂС„РµР№СЃР°
   LoadLanguageStrings;
-  // Настройки TextListView
-  // Инфо тут http://zarezky.spb.ru/lectures/mfc/list-control.html
+  // РќР°СЃС‚СЂРѕР№РєРё TextListView
+  // РРЅС„Рѕ С‚СѓС‚ http://zarezky.spb.ru/lectures/mfc/list-control.html
   ListView_SetExtendedListViewStyle(TextListView.Handle, LVS_EX_DOUBLEBUFFER or LVS_EX_FULLROWSELECT); // or LVS_EX_INFOTIP
-  // Сохранение позиций окна
+  // РЎРѕС…СЂР°РЅРµРЅРёРµ РїРѕР·РёС†РёР№ РѕРєРЅР°
   MGFormPlacement.IniFileName := WorkPath + INIFormStorage;
 end;
 
@@ -103,10 +103,10 @@ end;
 
 procedure TLogForm.FormShow(Sender: TObject);
 begin
-  // Прозрачность окна
+  // РџСЂРѕР·СЂР°С‡РЅРѕСЃС‚СЊ РѕРєРЅР°
   AlphaBlend := AlphaBlendEnable;
   AlphaBlendValue := AlphaBlendEnableValue;
-  // Другие настройки
+  // Р”СЂСѓРіРёРµ РЅР°СЃС‚СЂРѕР№РєРё
   TextListView.Clear;
   CBFileName.ItemIndex := -1;
   ReloadLogButton.Enabled := False;
@@ -116,27 +116,27 @@ end;
 
 procedure TLogForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  // Завершаем поток
+  // Р—Р°РІРµСЂС€Р°РµРј РїРѕС‚РѕРє
   FileReadThreadStop;
 end;
 
-{ Раскрытие списка CBFileName }
+{ Р Р°СЃРєСЂС‹С‚РёРµ СЃРїРёСЃРєР° CBFileName }
 procedure TLogForm.CBFileNameDropDown(Sender: TObject);
 begin
-  // Завершаем поток
+  // Р—Р°РІРµСЂС€Р°РµРј РїРѕС‚РѕРє
   //FileReadThreadStop;
-  // Построение списка файлов
+  // РџРѕСЃС‚СЂРѕРµРЅРёРµ СЃРїРёСЃРєР° С„Р°Р№Р»РѕРІ
   CheckLogFile;
 end;
 
-{ Изменение текста в CBFileName }
+{ РР·РјРµРЅРµРЅРёРµ С‚РµРєСЃС‚Р° РІ CBFileName }
 procedure TLogForm.CBFileNameChange(Sender: TObject);
 begin
-  // Завершаем поток
+  // Р—Р°РІРµСЂС€Р°РµРј РїРѕС‚РѕРє
   FileReadThreadStop;
-  // Закрываем логи
+  // Р—Р°РєСЂС‹РІР°РµРј Р»РѕРіРё
   CloseLogFile;
-  // Ожидание...
+  // РћР¶РёРґР°РЅРёРµ...
   StatusBar.Panels[0].Text := GetLangStr('PleaseWait');
   StatusBar.Panels[1].Text := '';
   StatusBar.Panels[2].Text := '';
@@ -146,7 +146,7 @@ begin
   FileReadThread.Execute(Self);
 end;
 
-{ Поток чтения лог-файла }
+{ РџРѕС‚РѕРє С‡С‚РµРЅРёСЏ Р»РѕРі-С„Р°Р№Р»Р° }
 procedure TLogForm.FileReadThreadExecute(Sender: TObject; Params: Pointer);
 var
   FileName: String;
@@ -194,21 +194,21 @@ begin
   end;
 end;
 
-{ Поток завершен }
+{ РџРѕС‚РѕРє Р·Р°РІРµСЂС€РµРЅ }
 procedure TLogForm.FileReadThreadFinish(Sender: TObject);
 begin
   EnableLogs := ReadCustomINI(WorkPath, 'Main', 'EnableLogs', False);
   SendMessage(TextListView.Handle, WM_VSCROLL, SB_BOTTOM, 0);
-  // Окончание ожидания
+  // РћРєРѕРЅС‡Р°РЅРёРµ РѕР¶РёРґР°РЅРёСЏ
   StopWait;
 end;
 
-{ Завершаем поток }
+{ Р—Р°РІРµСЂС€Р°РµРј РїРѕС‚РѕРє }
 procedure TLogForm.FileReadThreadStop;
 begin
-  // Окончание ожидания
+  // РћРєРѕРЅС‡Р°РЅРёРµ РѕР¶РёРґР°РЅРёСЏ
   StopWait;
-  // Останавливаем поток
+  // РћСЃС‚Р°РЅР°РІР»РёРІР°РµРј РїРѕС‚РѕРє
   if not FileReadThread.Terminated then
     FileReadThread.Terminate;
   while not (FileReadThread.Terminated) do
@@ -278,9 +278,9 @@ var
 begin
   if FileExists(CBFileName.Items[CBFileName.ItemIndex]) then
   begin
-    // Завершаем поток
+    // Р—Р°РІРµСЂС€Р°РµРј РїРѕС‚РѕРє
     FileReadThreadStop;
-    // Пытаемся удалить файл
+    // РџС‹С‚Р°РµРјСЃСЏ СѓРґР°Р»РёС‚СЊ С„Р°Р№Р»
     Deleted := False;
     UserAnswer := 1;
     repeat
@@ -289,14 +289,14 @@ begin
       begin
         case MessageBox(Handle,PWideChar(Format(GetLangStr('MsgErr9'), [CBFileName.Items[CBFileName.ItemIndex]]) + #13 +
             GetLangStr('MsgErr10')),PWideChar(MainForm.Caption + ' - ' + GetLangStr('MsgErr8')),36) of
-          6: UserAnswer := 1; // Да
-          7: UserAnswer := 0; // Нет
+          6: UserAnswer := 1; // Р”Р°
+          7: UserAnswer := 0; // РќРµС‚
         end;
       end;
     until (Deleted) or (UserAnswer = 0);
     if Deleted then
     begin
-      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ' - Процедура DeleteLogButtonClick: Файл ' + CBFileName.Items[CBFileName.ItemIndex] + ' удален.');
+      if EnableLogs then WriteInLog(WorkPath, FormatDateTime('dd.mm.yy hh:mm:ss', Now) + ' - РџСЂРѕС†РµРґСѓСЂР° DeleteLogButtonClick: Р¤Р°Р№Р» ' + CBFileName.Items[CBFileName.ItemIndex] + ' СѓРґР°Р»РµРЅ.');
       if Assigned(FTextReader) then
         FreeAndNil(FTextReader);
       TextListView.Clear;
@@ -316,7 +316,7 @@ begin
   FindLogFile(WorkPath, '*.log');
 end;
 
-{ Процедура поиска файлов по маске и формирования их списка }
+{ РџСЂРѕС†РµРґСѓСЂР° РїРѕРёСЃРєР° С„Р°Р№Р»РѕРІ РїРѕ РјР°СЃРєРµ Рё С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ РёС… СЃРїРёСЃРєР° }
 procedure TLogForm.FindLogFile(Dir, Ext: String);
 var
   SR: TSearchRec;
@@ -324,19 +324,19 @@ begin
   if FindFirst(Dir + '*.*', faAnyFile or faDirectory, SR) = 0 then
   begin
     repeat
-      if (SR.Attr = faDirectory) and ((SR.Name = '.') or (SR.Name = '..')) then // Чтобы не было файлов . и ..
+      if (SR.Attr = faDirectory) and ((SR.Name = '.') or (SR.Name = '..')) then // Р§С‚РѕР±С‹ РЅРµ Р±С‹Р»Рѕ С„Р°Р№Р»РѕРІ . Рё ..
       begin
-        Continue; // Продолжаем цикл
+        Continue; // РџСЂРѕРґРѕР»Р¶Р°РµРј С†РёРєР»
       end;
       if MatchStrings(SR.Name, Ext) then
       begin
-        // Заполняем лист
+        // Р—Р°РїРѕР»РЅСЏРµРј Р»РёСЃС‚
         CBFileName.Items.Add(Dir+SR.Name);
       end;
-      if (SR.Attr = faDirectory) then // Если нашли директорию, то ищем файлы в ней
+      if (SR.Attr = faDirectory) then // Р•СЃР»Рё РЅР°С€Р»Рё РґРёСЂРµРєС‚РѕСЂРёСЋ, С‚Рѕ РёС‰РµРј С„Р°Р№Р»С‹ РІ РЅРµР№
       begin
-        FindLogFile(Dir + '\' + SR.Name, Ext); // Pекурсивно вызываем нашу процедуру
-        Continue; // Продолжаем цикл
+        FindLogFile(Dir + '\' + SR.Name, Ext); // PРµРєСѓСЂСЃРёРІРЅРѕ РІС‹Р·С‹РІР°РµРј РЅР°С€Сѓ РїСЂРѕС†РµРґСѓСЂСѓ
+        Continue; // РџСЂРѕРґРѕР»Р¶Р°РµРј С†РёРєР»
       end;
     until FindNext(SR) <> 0;
     FindClose(SR);
@@ -348,20 +348,20 @@ begin
   CBFileNameChange(ReloadLogButton);
 end;
 
-{ Подгрузка лога по событию WM_UPDATELOG }
+{ РџРѕРґРіСЂСѓР·РєР° Р»РѕРіР° РїРѕ СЃРѕР±С‹С‚РёСЋ WM_UPDATELOG }
 procedure TLogForm.OnLogUpdated(var Msg: TMessage);
 begin
   if CBFileName.ItemIndex <> -1 then
     ReloadLogButton.Click;
 end;
 
-{ Смена языка интерфейса по событию WM_LANGUAGECHANGED }
+{ РЎРјРµРЅР° СЏР·С‹РєР° РёРЅС‚РµСЂС„РµР№СЃР° РїРѕ СЃРѕР±С‹С‚РёСЋ WM_LANGUAGECHANGED }
 procedure TLogForm.OnLanguageChanged(var Msg: TMessage);
 begin
   LoadLanguageStrings;
 end;
 
-{ Для мультиязыковой поддержки }
+{ Р”Р»СЏ РјСѓР»СЊС‚РёСЏР·С‹РєРѕРІРѕР№ РїРѕРґРґРµСЂР¶РєРё }
 procedure TLogForm.LoadLanguageStrings;
 begin
   Caption := ProgramsName + ' - ' + GetLangStr('LogFormCaption');
@@ -370,7 +370,7 @@ begin
   LFileNameDesc.Caption := GetLangStr('LFileNameDesc');
   DeleteLogButton.Caption := GetLangStr('DeleteLogButton');
   ReloadLogButton.Caption := GetLangStr('ReloadLogButton');
-  // Позиционируем лейблы
+  // РџРѕР·РёС†РёРѕРЅРёСЂСѓРµРј Р»РµР№Р±Р»С‹
   CBFileName.Left := LFileNameDesc.Left + LFileNameDesc.Width + 5;
   CBFileName.Width := ReloadLogButton.Left - CBFileName.Left - 5;
 end;

@@ -2,7 +2,7 @@
 { #                                                                          # }
 { #  MSpeech v1.5.10                                                         # }
 { #                                                                          # }
-{ #  Copyright (с) 2012-2016, Mikhail Grigorev. All rights reserved.         # }
+{ #  Copyright (СЃ) 2012-2020, Mikhail Grigorev. All rights reserved.         # }
 { #                                                                          # }
 { #  License: http://opensource.org/licenses/GPL-3.0                         # }
 { #                                                                          # }
@@ -28,8 +28,8 @@ uses
 begin
   if not Init_Mutex(ProgramsName) then
   begin
-    if (GetSysLang = 'Русский') or (GetSysLang = 'Russian') or (MatchStrings(GetSysLang, 'Русский*')) then
-      Application.MessageBox('Программа уже запущена.', 'Ошибка запуска', 0 or 48)
+    if (GetSysLang = 'Р СѓСЃСЃРєРёР№') or (GetSysLang = 'Russian') or (MatchStrings(GetSysLang, 'Р СѓСЃСЃРєРёР№*')) then
+      Application.MessageBox('РџСЂРѕРіСЂР°РјРјР° СѓР¶Рµ Р·Р°РїСѓС‰РµРЅР°.', 'РћС€РёР±РєР° Р·Р°РїСѓСЃРєР°', 0 or 48)
     else
       Application.MessageBox('The program is already running.', 'Error', 0 or 48);
     Exit;
