@@ -20,4 +20,5 @@ dcu
 *.vlb
 *.local
 *.identcache 
+*.stat
 License.pas
