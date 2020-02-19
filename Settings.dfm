@@ -104,7 +104,7 @@
     Top = 8
     Width = 622
     Height = 429
-    ActivePage = TabSheetRecognize
+    ActivePage = TabSheetTextCorrection
     TabOrder = 0
     object TabSheetSettings: TTabSheet
       Caption = #1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
@@ -1487,14 +1487,14 @@
           end
         end
       end
-      object CBEnableTextСorrection: TCheckBox
+      object CBEnableTextCorrection: TCheckBox
         Left = 3
         Top = 10
         Width = 366
         Height = 17
         Caption = #1042#1082#1083#1102#1095#1080#1090#1100' '#1082#1086#1088#1088#1077#1082#1094#1080#1102' '#1090#1077#1082#1089#1090#1072' '#1087#1088#1080' '#1087#1077#1088#1077#1076#1072#1095#1077
         TabOrder = 1
-        OnClick = CBEnableTextСorrectionClick
+        OnClick = CBEnableTextCorrectionClick
       end
     end
     object TabSheetTextToSpeech: TTabSheet
@@ -1832,6 +1832,10 @@
     object TabSheetAbout: TTabSheet
       Caption = #1054' '#1087#1088#1086#1075#1088#1072#1084#1084#1077
       ImageIndex = 9
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object AboutImage: TImage
         Left = 144
         Top = 16
@@ -1863,7 +1867,7 @@
         Top = 104
         Width = 130
         Height = 13
-        Caption = 'Copyright '#169' 2011-2017 by'
+        Caption = 'Copyright '#169' 2011-2020 by'
       end
       object LAuthor: TLabel
         Left = 156
