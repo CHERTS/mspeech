@@ -22,3 +22,4 @@ dcu
 *.identcache 
 *.stat
 License.pas
+update_submodule.cmd
