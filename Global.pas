@@ -15,6 +15,8 @@ unit Global;
 interface
 
 {$I MSpeech.inc}
+{$R MGLangStrGoogle.res}
+{$R MGLangStrYandex.res}
 
 uses
   Windows, Messages, SysUtils, IniFiles, XMLIntf, XMLDoc, Classes, Vcl.Grids,
