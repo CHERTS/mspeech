@@ -109,6 +109,10 @@
     object TabSheetSettings: TTabSheet
       Caption = #1054#1073#1097#1080#1077' '#1085#1072#1089#1090#1088#1086#1081#1082#1080
       ImageIndex = 2
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -231,6 +235,10 @@
     object TabSheetRecord: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1079#1072#1087#1080#1089#1080
       ImageIndex = 5
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -600,6 +608,10 @@
     object TabSheetRecognize: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1088#1072#1089#1087#1086#1079#1085#1072#1074#1072#1085#1080#1103
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object GBRecognizeSettings: TGroupBox
         Left = 3
         Top = 0
@@ -842,6 +854,10 @@
     end
     object TabSheetConnectSettings: TTabSheet
       Caption = #1053#1072#1089#1090#1088#1086#1081#1082#1080' '#1089#1086#1077#1076#1080#1085#1077#1085#1080#1103
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -937,6 +953,10 @@
     object TabSheetCommand: TTabSheet
       Caption = #1050#1086#1084#1072#1085#1076#1099
       ImageIndex = 7
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1177,6 +1197,10 @@
     object TabSheetHotKey: TTabSheet
       Caption = #1043#1086#1088#1103#1095#1080#1077' '#1082#1083#1072#1074#1080#1096#1080
       ImageIndex = 3
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1259,6 +1283,10 @@
     object TabSheetSendText: TTabSheet
       Caption = #1055#1077#1088#1077#1076#1072#1095#1072' '#1090#1077#1082#1089#1090#1072
       ImageIndex = 4
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1358,6 +1386,10 @@
     object TabSheetTextCorrection: TTabSheet
       Caption = #1050#1086#1088#1088#1077#1082#1094#1080#1103' '#1090#1077#1082#1089#1090#1072
       ImageIndex = 6
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)
@@ -1500,6 +1532,10 @@
     object TabSheetTextToSpeech: TTabSheet
       Caption = #1057#1080#1085#1090#1077#1079' '#1075#1086#1083#1086#1089#1072
       ImageIndex = 8
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         614
         401)

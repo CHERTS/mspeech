@@ -450,7 +450,7 @@ begin
   CBEnableTextCorrection.OnClick := CBEnableTextCorrectionClick;
   {$endif LICENSE}
   {$ifdef FREE_MSPEECH}
-    EnableTextСorrection := CBEnableTextСorrection.Checked;
+    EnableTextCorrection := CBEnableTextCorrection.Checked;
     EnableTextReplace := CBEnableReplace.Checked;
     FirstLetterUpper := CBFirstLetterUpper.Checked;
     EnableSendTextInactiveWindow := CBEnableSendTextInactiveWindow.Checked;
@@ -673,10 +673,10 @@ begin
   CBEnableTextCorrection.OnClick := CBEnableTextCorrectionClick;
   {$endif LICENSE}
   {$ifdef FREE_MSPEECH}
-  CBEnableTextСorrection.Checked := EnableTextСorrection;
-  CBEnableReplace.Visible := EnableTextСorrection;
-  CBFirstLetterUpper.Visible := EnableTextСorrection;
-  GBReplaceList.Visible := EnableTextСorrection;
+  CBEnableTextCorrection.Checked := EnableTextCorrection;
+  CBEnableReplace.Visible := EnableTextCorrection;
+  CBFirstLetterUpper.Visible := EnableTextCorrection;
+  GBReplaceList.Visible := EnableTextCorrection;
   CBEnableReplace.Checked := EnableTextReplace;
   CBFirstLetterUpper.Checked := FirstLetterUpper;
   CBEnableSendTextInactiveWindow.Checked := EnableSendTextInactiveWindow;
